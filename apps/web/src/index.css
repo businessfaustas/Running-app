@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@theme {
+  --font-sans:
+    'Inter Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+
+  /* Energetic accents on a slate base. Sports map onto these in features/slots/meta.ts. */
+  --color-volt: #ccff00;
+  --color-blaze: #ff5500;
+  --color-ice: #00e5ff;
+  --color-dune: #ffb800;
+
+  --animate-card-in: card-in 280ms ease-out both;
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-slate-950 font-sans text-slate-100 antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

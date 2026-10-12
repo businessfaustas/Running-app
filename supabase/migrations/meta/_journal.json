@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791835297682,
+      "tag": "20261012200137_enable_postgis",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791835300761,
+      "tag": "20261012200140_init_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791835303806,
+      "tag": "20261012200143_triggers_rls_realtime",
+      "breakpoints": true
+    }
+  ]
+}

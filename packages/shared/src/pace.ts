@@ -39,10 +39,10 @@ export function parseTarget(text: string): TargetRange | null {
 export type PaceFit = 'match' | 'close' | 'faster' | 'easier'
 
 export const PACE_FIT_LABEL: Record<PaceFit, string> = {
-  match: 'Your pace',
-  close: 'Close to your pace',
-  faster: 'Faster than usual',
-  easier: 'Easier than usual',
+  match: 'Tavo tempas',
+  close: 'Artima tavo tempui',
+  faster: 'Greičiau nei įprastai',
+  easier: 'Lengviau nei įprastai',
 }
 
 const HARD_VIBES: VibeTag[] = ['PACE_PUSH', 'INTERVALS']

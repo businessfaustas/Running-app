@@ -1,4 +1,4 @@
-import { toISODate } from '@grouppace/shared'
+import { toISODate } from '@pacemates/shared'
 import { create } from 'zustand'
 import type { SportFilter } from '../slots/meta'
 

@@ -1,4 +1,4 @@
-import { listSlotsQuerySchema } from '@grouppace/shared'
+import { listSlotsQuerySchema } from '@pacemates/shared'
 import { Router } from 'express'
 import { z } from 'zod'
 import { listSlots } from '../services/slots'

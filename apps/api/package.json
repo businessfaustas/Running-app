@@ -1,5 +1,5 @@
 {
-  "name": "@grouppace/api",
+  "name": "@pacemates/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed.ts"
   },
   "dependencies": {
-    "@grouppace/shared": "workspace:*",
+    "@pacemates/shared": "workspace:*",
     "cors": "^2.8.6",
     "drizzle-orm": "^0.45.4",
     "express": "^5.3.0",

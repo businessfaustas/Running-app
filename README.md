@@ -1,23 +1,38 @@
-# GroupPace
+# PaceMates
 
-A social endurance-sports calendar. Runners and cyclists post upcoming workouts on a 24-hour
-timeline as open invitations, so others can find training partners and join.
+A social endurance-sports calendar, in Lithuanian, set in Vilnius. Runners and cyclists post
+upcoming workouts on a 24-hour timeline as open invitations, so others can find training partners
+and join.
 
 **What's in the app**
 
-- **Discover:** 24-hour timeline (or map) of workouts for the next two weeks, filterable by run or
-  ride. Tap an empty time to post a workout there.
-- **Workout page:** meeting point map and directions, who's going with each person's usual pace,
-  join/leave, host cancel, share link.
+- **Welcome:** three full-screen photo slides on the first visit ("Bėk. Mink. Kartu.").
+- **Atrasti (Discover):** blue header with greeting, the day's quote and a two-week day strip;
+  24-hour timeline (or map) of workouts, filterable by run or ride. Tap an empty time, or the
+  "+" button, to post a workout.
+- **Workout page:** photo header, start/distance/pace, how the pace compares with yours, meeting
+  point map and directions, who's going, a "did you know?" fact, join/leave, host cancel, share.
+  Joining or posting ends in a full-screen celebration.
 - **Group chat** per workout, for people who are going.
-- **Post a workout:** six short steps: sport, time, distance and pace, vibe, meeting point (map pin,
-  your location or a popular spot), group size.
-- **Plans** (upcoming and past), **Chats** (all your workout chats), **Profile** (stats, usual
-  paces, edit), other athletes' profiles, and sign in / create account.
+- **Post a workout:** six short steps (photo sport tiles, time, distance and pace, vibe, meeting
+  point, group size) with a preview of the card others will see.
+- **Planai:** the next workout with a countdown, then upcoming and past ones.
+- **Įkvėpimas (Inspiration):** quote of the day, weekly challenge (3 group workouts), fun facts,
+  badges, pace calculator with race-time predictions, group-run tips and the most active hosts.
+- **Pokalbiai** (all your workout chats) and **Profilis** (stats, badges, usual paces, edit),
+  other athletes' profiles, sign in / create account.
+
+All text, dates and plurals are Lithuanian (`apps/web/src/lib/format.ts`, `Intl.PluralRules('lt')`);
+quotes, facts and tips live in `apps/web/src/content/inspiration.ts`.
 
 **Preview mode.** Without Supabase settings the app runs entirely in the browser: sample athletes
 and workouts around today, and anything you do (accounts, workouts, joins, messages) is saved on
-that device only. Set the Supabase variables (below) to make it multi-user.
+that device only. "Išbandyti kaip Gabija" signs in as a sample athlete in one tap. Set the Supabase
+variables (below) to make it multi-user.
+
+**Photos.** `apps/web/public/photos/` holds the three photos used for headers and tiles. They came
+from the client brief; confirm the rights before a public launch. Sample avatars load from
+randomuser.me and fall back to initials.
 
 ## Stack
 
@@ -41,9 +56,12 @@ apps/
       discover/        timeline, overlap layout algorithm (+ tests), day strip, map view
       workout/         workout page, group chat
       create/          post-a-workout steps
+      inspire/         inspiration tab, badges and weekly progress (+ tests)
+      welcome/         first-visit photo carousel
       plans/ inbox/ profile/ auth/
       slots/           workout card, list rows, sport/vibe metadata
-    src/components/    buttons, fields, top/tab bars, maps, dialogs
+    src/components/    buttons, fields, top/tab bars, maps, dialogs, celebration overlay
+    src/content/       quotes, fun facts and tips (Lithuanian)
   api/                 Express API (optional) and the seed script
     src/db/schema.ts   Drizzle schema (source of truth for tables/enums/indexes)
 packages/
@@ -92,7 +110,7 @@ for the two commands above.
 Edit `apps/api/src/db/schema.ts`, then run `pnpm db:generate`. drizzle-kit writes a new
 timestamped migration into `supabase/migrations`. Behaviour that drizzle can't model (triggers,
 policies, publications) goes in a custom migration: run
-`pnpm --filter @grouppace/api exec drizzle-kit generate --custom --name=<name>`.
+`pnpm --filter @pacemates/api exec drizzle-kit generate --custom --name=<name>`.
 
 ## Data model
 

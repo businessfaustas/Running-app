@@ -1,5 +1,5 @@
 {
-  "name": "grouppace",
+  "name": "pacemates",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.28.0",
@@ -7,16 +7,16 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --filter @grouppace/web dev",
-    "dev:api": "pnpm --filter @grouppace/api dev",
+    "dev": "pnpm --filter @pacemates/web dev",
+    "dev:api": "pnpm --filter @pacemates/api dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "test": "pnpm -r test",
     "format": "prettier --write .",
-    "db:generate": "pnpm --filter @grouppace/api db:generate",
-    "db:migrate": "pnpm --filter @grouppace/api db:migrate",
-    "db:seed": "pnpm --filter @grouppace/api db:seed"
+    "db:generate": "pnpm --filter @pacemates/api db:generate",
+    "db:migrate": "pnpm --filter @pacemates/api db:migrate",
+    "db:seed": "pnpm --filter @pacemates/api db:seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

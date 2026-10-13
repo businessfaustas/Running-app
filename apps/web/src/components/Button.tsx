@@ -1,9 +1,9 @@
 import { LoaderCircle } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentProps } from 'react'
 import { Link, type LinkProps } from 'react-router'
 import { buttonClass, type Size, type Variant } from './buttonClass'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ComponentProps<'button'> {
   variant?: Variant
   size?: Size
   loading?: boolean

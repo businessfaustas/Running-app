@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { SPORT_TYPES, VIBE_TAGS } from './domain'
 
-export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
+export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data turi būti MMMM-MM-DD')
 
 /** Query string for `GET /slots`. */
 export const listSlotsQuerySchema = z
@@ -25,28 +25,28 @@ export const listSlotsQuerySchema = z
 
 export type ListSlotsQuery = z.infer<typeof listSlotsQuerySchema>
 
-const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:mm')
+const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Laikas turi būti VV:mm')
 
 /** Validates a new workout before it's sent to the backend (used by the form and the API). */
 export const newSlotInputSchema = z
   .object({
-    title: z.string().trim().min(3, 'Give it a name').max(120),
+    title: z.string().trim().min(3, 'Sugalvok pavadinimą').max(120),
     sportType: z.enum(SPORT_TYPES),
     date: isoDateSchema,
     startTime: timeSchema,
     endTime: timeSchema.nullable(),
-    distanceKm: z.number().positive('Distance must be above 0').max(400),
-    targetPace: z.string().trim().min(1, 'Add a target pace or speed').max(60),
+    distanceKm: z.number().positive('Atstumas turi būti didesnis nei 0').max(400),
+    targetPace: z.string().trim().min(1, 'Nurodyk tempą arba greitį').max(60),
     vibeTag: z.enum(VIBE_TAGS),
     description: z.string().trim().max(1000).nullable(),
     meetingPoint: z.object({
-      name: z.string().trim().min(2, 'Name the meeting point').max(120),
+      name: z.string().trim().min(2, 'Įvardyk susitikimo vietą').max(120),
       lat: z.number().min(-90).max(90),
       lng: z.number().min(-180).max(180),
     }),
     maxParticipants: z.number().int().min(2).max(200).nullable(),
   })
   .refine((s) => s.endTime === null || s.endTime > s.startTime, {
-    message: 'It has to finish after it starts',
+    message: 'Pabaiga turi būti po pradžios',
     path: ['endTime'],
   })

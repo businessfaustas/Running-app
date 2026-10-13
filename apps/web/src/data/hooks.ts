@@ -1,4 +1,4 @@
-import type { NewSlotInput, ProfileUpdate } from '@grouppace/shared'
+import type { NewSlotInput, ProfileUpdate } from '@pacemates/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { backend } from '../backend'

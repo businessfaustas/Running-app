@@ -1,4 +1,4 @@
-import type { SportType, VibeTag } from '@grouppace/shared'
+import type { SportType, VibeTag } from '@pacemates/shared'
 import {
   Bike,
   Coffee,
@@ -14,8 +14,6 @@ import {
 
 interface SportMeta {
   label: string
-  /** Noun for sentences: "a run", "a ride". */
-  noun: string
   Icon: LucideIcon
   /** CSS colour used as the card/pin accent (exposed to Tailwind as `--accent`). */
   accent: string
@@ -24,42 +22,18 @@ interface SportMeta {
 }
 
 export const SPORT_META: Record<SportType, SportMeta> = {
-  RUN: {
-    label: 'Run',
-    noun: 'run',
-    Icon: Footprints,
-    accent: 'var(--color-volt)',
-    measure: 'pace',
-  },
-  TRACK: {
-    label: 'Track',
-    noun: 'track session',
-    Icon: Timer,
-    accent: 'var(--color-ice)',
-    measure: 'pace',
-  },
-  CYCLING: {
-    label: 'Road ride',
-    noun: 'ride',
-    Icon: Bike,
-    accent: 'var(--color-blaze)',
-    measure: 'speed',
-  },
-  GRAVEL: {
-    label: 'Gravel',
-    noun: 'gravel ride',
-    Icon: Mountain,
-    accent: 'var(--color-dune)',
-    measure: 'speed',
-  },
+  RUN: { label: 'Bėgimas', Icon: Footprints, accent: 'var(--color-volt)', measure: 'pace' },
+  TRACK: { label: 'Stadionas', Icon: Timer, accent: 'var(--color-ice)', measure: 'pace' },
+  CYCLING: { label: 'Plentas', Icon: Bike, accent: 'var(--color-blaze)', measure: 'speed' },
+  GRAVEL: { label: 'Žvyrkelis', Icon: Mountain, accent: 'var(--color-dune)', measure: 'speed' },
 }
 
 export const SPORT_ORDER: SportType[] = ['RUN', 'TRACK', 'CYCLING', 'GRAVEL']
 
 export const SPORT_FILTERS = [
-  { id: 'ALL', label: 'All', sports: null },
-  { id: 'RUN', label: 'Run', sports: ['RUN', 'TRACK'] },
-  { id: 'RIDE', label: 'Ride', sports: ['CYCLING', 'GRAVEL'] },
+  { id: 'ALL', label: 'Visi', sports: null },
+  { id: 'RUN', label: 'Bėgimas', sports: ['RUN', 'TRACK'] },
+  { id: 'RIDE', label: 'Dviratis', sports: ['CYCLING', 'GRAVEL'] },
 ] as const satisfies readonly { id: string; label: string; sports: readonly SportType[] | null }[]
 
 export type SportFilter = (typeof SPORT_FILTERS)[number]['id']
@@ -70,15 +44,11 @@ export function matchesSportFilter(sport: SportType, filter: SportFilter): boole
 }
 
 export const VIBE_META: Record<VibeTag, { label: string; Icon: LucideIcon; blurb: string }> = {
-  ZONE_2_COFFEE: {
-    label: 'Easy + coffee',
-    Icon: Coffee,
-    blurb: 'Conversational pace, coffee afterwards',
-  },
-  SOCIAL_CHAT: { label: 'Social', Icon: MessagesSquare, blurb: 'Relaxed, nobody gets dropped' },
-  PACE_PUSH: { label: 'Pace push', Icon: Gauge, blurb: 'Working hard at a set pace' },
-  LONG_RUN: { label: 'Long one', Icon: Route, blurb: 'Steady miles, time on feet' },
-  INTERVALS: { label: 'Intervals', Icon: Repeat, blurb: 'Reps with recovery between' },
+  ZONE_2_COFFEE: { label: 'Lengvai + kava', Icon: Coffee, blurb: 'Šnekamasis tempas, po to kava' },
+  SOCIAL_CHAT: { label: 'Pabendrauti', Icon: MessagesSquare, blurb: 'Ramiai, niekas neatsilieka' },
+  PACE_PUSH: { label: 'Tempas', Icon: Gauge, blurb: 'Dirbam stipriai nustatytu tempu' },
+  LONG_RUN: { label: 'Ilgoji', Icon: Route, blurb: 'Tolygūs kilometrai, laikas ant kojų' },
+  INTERVALS: { label: 'Intervalai', Icon: Repeat, blurb: 'Pakartojimai su poilsiu tarp jų' },
 }
 
 export const VIBE_ORDER: VibeTag[] = [

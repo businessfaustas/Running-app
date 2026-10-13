@@ -1,6 +1,7 @@
-import { MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
+import { MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
 import { describe, expect, it } from 'vitest'
 import { createDemoBackend, type KeyValueStorage } from './demo'
+import { MESSAGES } from './messages'
 import { BackendError } from './types'
 
 const NOW = new Date('2026-10-13T09:00:00')
@@ -15,8 +16,8 @@ function setup(storage = memoryStorage()) {
   return createDemoBackend({ storage, now: () => NOW, latencyMs: 0 })
 }
 
-const fullRide = MOCK_SLOTS.find((s) => s.title === 'After-Work Road Ride')!
-const coffeeRun = MOCK_SLOTS.find((s) => s.title === '15km Zone 2 Coffee Run')!
+const fullRide = MOCK_SLOTS.find((s) => s.id.endsWith('06'))!
+const coffeeRun = MOCK_SLOTS.find((s) => s.id.endsWith('04'))!
 const cancelledRide = MOCK_SLOTS.find((s) => s.status === 'CANCELLED')!
 
 describe('demo backend', () => {
@@ -43,7 +44,7 @@ describe('demo backend', () => {
     const reloaded = setup(storage)
     await expect(
       reloaded.signIn({ email: 'ana@example.com', password: 'wrong-password' }),
-    ).rejects.toThrow('Wrong email or password')
+    ).rejects.toThrow(MESSAGES.wrongCredentials)
     await reloaded.signIn({ email: 'ana@example.com', password: 'longenough' })
     expect((await reloaded.getSession())?.userId).toBe(session!.userId)
   })
@@ -56,7 +57,7 @@ describe('demo backend', () => {
     await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
     await expect(
       backend.signUp({ name: 'Ana 2', email: 'A@B.co', password: 'longenough' }),
-    ).rejects.toThrow('already an account')
+    ).rejects.toThrow(MESSAGES.emailTaken)
   })
 
   it('joins and leaves, keeping counts and FULL status in sync', async () => {
@@ -74,24 +75,24 @@ describe('demo backend', () => {
     detail = await backend.getSlot(coffeeRun.id)
     expect(detail?.participants.some((p) => p.id === me)).toBe(false)
 
-    await expect(backend.joinSlot(fullRide.id)).rejects.toThrow('full')
-    await expect(backend.joinSlot(cancelledRide.id)).rejects.toThrow('cancelled')
+    await expect(backend.joinSlot(fullRide.id)).rejects.toThrow(MESSAGES.full)
+    await expect(backend.joinSlot(cancelledRide.id)).rejects.toThrow(MESSAGES.cancelled)
   })
 
   it('reopens a full workout when someone leaves', async () => {
     const backend = setup()
-    await backend.signInAsSample!() // Maya, who is riding the full ride
+    await backend.signInAsSample!() // Gabija, who is riding the full ride
     await backend.leaveSlot(fullRide.id)
     expect((await backend.getSlot(fullRide.id))?.status).toBe('OPEN')
   })
 
   it('lets hosts cancel but not leave their own workout', async () => {
     const backend = setup()
-    await backend.signInAsSample!() // Maya hosts the coffee run
-    await expect(backend.leaveSlot(coffeeRun.id)).rejects.toThrow("Hosts can't leave")
+    await backend.signInAsSample!() // Gabija hosts the coffee run
+    await expect(backend.leaveSlot(coffeeRun.id)).rejects.toThrow(MESSAGES.hostCantLeave)
     await backend.cancelSlot(coffeeRun.id)
     expect((await backend.getSlot(coffeeRun.id))?.status).toBe('CANCELLED')
-    await expect(backend.cancelSlot(fullRide.id)).rejects.toThrow('Only the host')
+    await expect(backend.cancelSlot(fullRide.id)).rejects.toThrow(MESSAGES.hostOnlyCancel)
   })
 
   it('creates workouts with the host already going', async () => {
@@ -141,7 +142,7 @@ describe('demo backend', () => {
     const backend = setup()
     await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
     expect(await backend.listMessages(coffeeRun.id)).toEqual([])
-    await expect(backend.sendMessage(coffeeRun.id, 'hi')).rejects.toThrow('Join the workout')
+    await expect(backend.sendMessage(coffeeRun.id, 'hi')).rejects.toThrow(MESSAGES.joinToChat)
 
     await backend.joinSlot(coffeeRun.id)
     const before = await backend.listMessages(coffeeRun.id)
@@ -164,6 +165,6 @@ describe('demo backend', () => {
     await backend.signInAsSample!()
     const updated = await backend.updateProfile({ bio: 'Sub-3:30 or bust' })
     expect(updated).toMatchObject({ name: MOCK_USERS[0]!.name, bio: 'Sub-3:30 or bust' })
-    await expect(backend.updateProfile({ name: ' ' })).rejects.toThrow('Enter your name')
+    await expect(backend.updateProfile({ name: ' ' })).rejects.toThrow(MESSAGES.nameRequired)
   })
 })

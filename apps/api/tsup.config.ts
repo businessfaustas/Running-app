@@ -6,5 +6,5 @@ export default defineConfig({
   target: 'node22',
   clean: true,
   // The shared workspace package ships TypeScript source, so bundle it in.
-  noExternal: ['@grouppace/shared'],
+  noExternal: ['@pacemates/shared'],
 })

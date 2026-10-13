@@ -1,4 +1,4 @@
-import type { ListSlotsQuery, SlotSummary, UserSummary } from '@grouppace/shared'
+import type { ListSlotsQuery, SlotSummary, UserSummary } from '@pacemates/shared'
 import { and, asc, eq, gte, inArray, lte, sql, type SQL } from 'drizzle-orm'
 import { db } from '../db/client'
 import { profiles, slotParticipants, workoutSlots } from '../db/schema'

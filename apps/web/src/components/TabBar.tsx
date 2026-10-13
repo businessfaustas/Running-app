@@ -2,63 +2,52 @@ import clsx from 'clsx'
 import {
   CalendarCheck2,
   Compass,
+  Flame,
   MessageCircle,
-  Plus,
   UserRound,
   type LucideIcon,
 } from 'lucide-react'
 import { NavLink } from 'react-router'
 
 const TABS: { to: string; label: string; Icon: LucideIcon; end?: boolean }[] = [
-  { to: '/', label: 'Discover', Icon: Compass, end: true },
-  { to: '/plans', label: 'Plans', Icon: CalendarCheck2 },
-  { to: '/inbox', label: 'Chats', Icon: MessageCircle },
-  { to: '/profile', label: 'Profile', Icon: UserRound },
+  { to: '/', label: 'Atrasti', Icon: Compass, end: true },
+  { to: '/plans', label: 'Planai', Icon: CalendarCheck2 },
+  { to: '/inspire', label: 'Įkvėpimas', Icon: Flame },
+  { to: '/inbox', label: 'Pokalbiai', Icon: MessageCircle },
+  { to: '/profile', label: 'Profilis', Icon: UserRound },
 ]
 
-function Tab({ to, label, Icon, end }: (typeof TABS)[number]) {
-  return (
-    <NavLink
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        clsx(
-          'flex flex-1 flex-col items-center justify-center gap-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors',
-          isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300',
-        )
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <Icon className="size-[22px]" strokeWidth={isActive ? 2.25 : 1.75} aria-hidden />
-          {label}
-        </>
-      )}
-    </NavLink>
-  )
-}
-
+/** Floating pill; the active tab grows into a volt chip with its name. */
 export function TabBar() {
-  const [discover, plans, chats, profile] = TABS
   return (
     <nav
-      aria-label="Main"
-      className="z-30 shrink-0 border-t border-line bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
+      aria-label="Pagrindinis meniu"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)]"
     >
-      <div className="flex items-stretch">
-        <Tab {...discover!} />
-        <Tab {...plans!} />
-        <div className="flex flex-1 items-center justify-center">
+      <div className="pointer-events-auto mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#0b0e1c]/90 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
+        {TABS.map(({ to, label, Icon, end }) => (
           <NavLink
-            to="/workouts/new"
-            aria-label="Post a workout"
-            className="grid size-11 place-items-center rounded-full bg-volt text-black transition active:scale-95"
+            key={to}
+            to={to}
+            end={end}
+            aria-label={label}
+            className={({ isActive }) =>
+              clsx(
+                'flex h-12 items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out',
+                isActive
+                  ? 'bg-volt px-4 text-black'
+                  : 'w-12 text-slate-400 hover:bg-white/5 hover:text-white',
+              )
+            }
           >
-            <Plus className="size-6" strokeWidth={2.5} aria-hidden />
+            {({ isActive }) => (
+              <>
+                <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.4 : 1.9} aria-hidden />
+                {isActive && <span className="text-[13px] font-bold whitespace-nowrap">{label}</span>}
+              </>
+            )}
           </NavLink>
-        </div>
-        <Tab {...chats!} />
-        <Tab {...profile!} />
+        ))}
       </div>
     </nav>
   )

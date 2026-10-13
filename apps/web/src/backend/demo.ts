@@ -11,8 +11,9 @@ import {
   type SlotStatus,
   type SlotSummary,
   type UserSlot,
-} from '@grouppace/shared'
-import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
+} from '@pacemates/shared'
+import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
+import { MESSAGES } from './messages'
 import { BackendError, type Backend, type Session } from './types'
 
 /*
@@ -21,7 +22,7 @@ import { BackendError, type Backend, type Session } from './types'
  * joins, messages) is saved to storage on this device only.
  */
 
-export const DEMO_STORAGE_KEY = 'grouppace:demo:v1'
+export const DEMO_STORAGE_KEY = 'pacemates:demo:v1'
 
 export interface KeyValueStorage {
   getItem(key: string): string | null
@@ -139,13 +140,13 @@ export function createDemoBackend({
   }
 
   function requireUserId(): string {
-    if (!state.sessionUserId) throw new BackendError('Sign in to do that')
+    if (!state.sessionUserId) throw new BackendError(MESSAGES.signInFirst)
     return state.sessionUserId
   }
 
   function profileOf(userId: string): Profile {
     const profile = state.profiles[userId] ?? MOCK_USERS.find((u) => u.id === userId)
-    if (!profile) throw new BackendError('Athlete not found')
+    if (!profile) throw new BackendError(MESSAGES.athleteNotFound)
     return profile
   }
 
@@ -164,7 +165,7 @@ export function createDemoBackend({
 
   function findSlot(slotId: string): StoredSlot {
     const slot = allSlots().find((s) => s.id === slotId)
-    if (!slot) throw new BackendError('That workout no longer exists')
+    if (!slot) throw new BackendError(MESSAGES.workoutGone)
     return slot
   }
 
@@ -261,7 +262,7 @@ export function createDemoBackend({
       const normalized = email.trim().toLowerCase()
       const account = state.accounts.find((a) => a.email === normalized)
       if (!account || account.passwordHash !== (await hashPassword(normalized, password))) {
-        throw new BackendError('Wrong email or password')
+        throw new BackendError(MESSAGES.wrongCredentials)
       }
       state.sessionUserId = account.userId
       save()
@@ -271,11 +272,11 @@ export function createDemoBackend({
     async signUp({ name, email, password }) {
       await pause()
       const normalized = email.trim().toLowerCase()
-      if (!/^\S+@\S+\.\S+$/.test(normalized)) throw new BackendError('Enter a valid email')
-      if (password.length < 8) throw new BackendError('Use at least 8 characters for the password')
-      if (name.trim().length < 2) throw new BackendError('Enter your name')
+      if (!/^\S+@\S+\.\S+$/.test(normalized)) throw new BackendError(MESSAGES.invalidEmail)
+      if (password.length < 8) throw new BackendError(MESSAGES.shortPassword)
+      if (name.trim().length < 2) throw new BackendError(MESSAGES.nameRequired)
       if (state.accounts.some((a) => a.email === normalized)) {
-        throw new BackendError('There is already an account with that email')
+        throw new BackendError(MESSAGES.emailTaken)
       }
       const userId = crypto.randomUUID()
       state.accounts.push({
@@ -324,7 +325,7 @@ export function createDemoBackend({
       await pause()
       const userId = requireUserId()
       const name = patch.name?.trim()
-      if (name !== undefined && name.length < 2) throw new BackendError('Enter your name')
+      if (name !== undefined && name.length < 2) throw new BackendError(MESSAGES.nameRequired)
       const updated = { ...profileOf(userId), ...patch, ...(name ? { name } : {}) }
       state.profiles[userId] = updated
       save()
@@ -396,7 +397,7 @@ export function createDemoBackend({
       await pause()
       const userId = requireUserId()
       const slot = findSlot(slotId)
-      if (slot.hostId !== userId) throw new BackendError('Only the host can cancel this workout')
+      if (slot.hostId !== userId) throw new BackendError(MESSAGES.hostOnlyCancel)
       state.statusOverrides[slotId] = 'CANCELLED'
       save()
     },
@@ -408,9 +409,9 @@ export function createDemoBackend({
       const roster = rosterOf(slot)
       if (roster.some((p) => p.userId === userId)) return
       const status = statusOf(slot, roster)
-      if (status === 'CANCELLED') throw new BackendError('This workout was cancelled')
-      if (status === 'COMPLETED') throw new BackendError('This workout already happened')
-      if (status === 'FULL') throw new BackendError('This workout is full')
+      if (status === 'CANCELLED') throw new BackendError(MESSAGES.cancelled)
+      if (status === 'COMPLETED') throw new BackendError(MESSAGES.completed)
+      if (status === 'FULL') throw new BackendError(MESSAGES.full)
       state.rosters[slotId] = [
         ...roster,
         { userId, status: 'ACCEPTED', joinedAt: now().toISOString() },
@@ -423,7 +424,7 @@ export function createDemoBackend({
       const userId = requireUserId()
       const slot = findSlot(slotId)
       if (slot.hostId === userId) {
-        throw new BackendError("Hosts can't leave their own workout. Cancel it instead.")
+        throw new BackendError(MESSAGES.hostCantLeave)
       }
       state.rosters[slotId] = rosterOf(slot).filter((p) => p.userId !== userId)
       save()
@@ -442,10 +443,10 @@ export function createDemoBackend({
       await pause()
       const userId = requireUserId()
       const slot = findSlot(slotId)
-      if (!isMember(slot, userId)) throw new BackendError('Join the workout to post in the chat')
+      if (!isMember(slot, userId)) throw new BackendError(MESSAGES.joinToChat)
       const text = content.trim()
-      if (text.length === 0) throw new BackendError('Write something first')
-      if (text.length > 2000) throw new BackendError('That message is too long')
+      if (text.length === 0) throw new BackendError(MESSAGES.emptyMessage)
+      if (text.length > 2000) throw new BackendError(MESSAGES.longMessage)
       const stored: StoredMessage = {
         id: crypto.randomUUID(),
         slotId,
@@ -490,7 +491,7 @@ export function createDemoBackend({
 /** localStorage when it's usable, otherwise an in-memory stand-in. */
 export function browserStorage(): KeyValueStorage {
   try {
-    const probe = '__grouppace_probe__'
+    const probe = '__pacemates_probe__'
     window.localStorage.setItem(probe, '1')
     window.localStorage.removeItem(probe)
     return window.localStorage

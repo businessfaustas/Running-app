@@ -1,6 +1,6 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 
-import type { SlotSummary, UserSlot } from '@grouppace/shared'
+import type { SlotSummary, UserSlot } from '@pacemates/shared'
 import clsx from 'clsx'
 import { MapPin } from 'lucide-react'
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
@@ -10,7 +10,7 @@ import { DEFAULT_CENTER, MAP_STYLE_URL } from '../../lib/map'
 import { SlotCard } from '../slots/SlotCard'
 import { SPORT_META } from '../slots/meta'
 
-const FIT_OPTIONS = { padding: { top: 56, bottom: 170, left: 48, right: 48 }, maxZoom: 14 }
+const FIT_OPTIONS = { padding: { top: 56, bottom: 260, left: 48, right: 48 }, maxZoom: 14 }
 
 type Bounds = [[number, number], [number, number]]
 
@@ -86,15 +86,17 @@ function SlotMap({ slots, focusedSlotId, onFocusSlot, roles }: DiscoverMapProps)
         ))}
       </MapGL>
 
-      <div className="pointer-events-none absolute inset-x-3 bottom-3">
+      <div className="pointer-events-none absolute inset-x-3 bottom-[calc(var(--nav-space)+10px)]">
         {focused ? (
           <div className="pointer-events-auto h-27 motion-safe:animate-rise" key={focused.id}>
             <SlotCard slot={focused} focused role={roles.get(focused.id)} />
           </div>
         ) : (
-          <p className="mx-auto flex w-fit items-center gap-1.5 rounded-full border border-line bg-raised/95 px-3 py-1.5 text-[13px] text-zinc-300 shadow-lg">
+          <p className="mx-auto flex w-fit items-center gap-1.5 rounded-full border border-white/10 bg-raised/95 px-4 py-2 text-[13px] font-semibold text-slate-200 shadow-lg backdrop-blur">
             <MapPin className="size-3.5 text-volt" aria-hidden />
-            {slots.length > 0 ? 'Tap a pin to see the workout' : 'No meeting spots on this day'}
+            {slots.length > 0
+              ? 'Bakstelk smeigtuką ir pamatysi treniruotę'
+              : 'Šią dieną susitikimų nėra'}
           </p>
         )}
       </div>
@@ -107,7 +109,7 @@ function Pin({ slot, focused }: { slot: SlotSummary; focused: boolean }) {
   return (
     <button
       type="button"
-      aria-label={`${slot.title}, ${slot.startTime} at ${slot.meetingPoint.name}`}
+      aria-label={`${slot.title}, ${slot.startTime}, ${slot.meetingPoint.name}`}
       aria-pressed={focused}
       style={{ '--accent': accent } as CSSProperties}
       className={clsx(

@@ -1,4 +1,4 @@
-import type { DefaultPaces, Profile, SportDiscipline } from '@grouppace/shared'
+import type { DefaultPaces, Profile, SportDiscipline } from '@pacemates/shared'
 import clsx from 'clsx'
 import { Bike, Footprints } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
@@ -16,10 +16,10 @@ const SPEED_RE = /^\d{1,2}(?:[.,]\d)?$/
 type PaceKey = keyof DefaultPaces
 const PACE_FIELDS: { key: PaceKey; label: string; kind: 'pace' | 'speed'; placeholder: string }[] =
   [
-    { key: 'running_easy', label: 'Easy run', kind: 'pace', placeholder: '5:45' },
-    { key: 'running_tempo', label: 'Tempo run', kind: 'pace', placeholder: '4:50' },
-    { key: 'cycling_avg', label: 'Road ride', kind: 'speed', placeholder: '28' },
-    { key: 'gravel_avg', label: 'Gravel', kind: 'speed', placeholder: '23' },
+    { key: 'running_easy', label: 'Lengvas bėgimas', kind: 'pace', placeholder: '5:45' },
+    { key: 'running_tempo', label: 'Tempinis bėgimas', kind: 'pace', placeholder: '4:50' },
+    { key: 'cycling_avg', label: 'Plentas', kind: 'speed', placeholder: '28' },
+    { key: 'gravel_avg', label: 'Žvyrkelis', kind: 'speed', placeholder: '23' },
   ]
 
 /** "5:30/km" → "5:30", "28 km/h" → "28" for editing. */
@@ -29,7 +29,7 @@ export function EditProfilePage() {
   const me = useMe()
   return (
     <div className="flex h-full flex-col">
-      <TopBar title="Edit profile" fallback="/profile" />
+      <TopBar title="Redaguoti profilį" fallback="/profile" />
       {me.data ? <ProfileForm profile={me.data} /> : null}
     </div>
   )
@@ -56,11 +56,11 @@ function ProfileForm({ profile }: { profile: Profile }) {
   const paceError = (key: PaceKey, kind: 'pace' | 'speed') => {
     const value = paces[key].trim()
     if (!value) return null
-    if (kind === 'pace' && !PACE_RE.test(value)) return 'Use minutes:seconds, like 5:30'
-    if (kind === 'speed' && !SPEED_RE.test(value)) return 'Use a number, like 28'
+    if (kind === 'pace' && !PACE_RE.test(value)) return 'Rašyk min:sek, pvz., 5:30'
+    if (kind === 'speed' && !SPEED_RE.test(value)) return 'Rašyk skaičių, pvz., 28'
     return null
   }
-  const nameError = name.trim().length < 2 ? 'Enter your name' : null
+  const nameError = name.trim().length < 2 ? 'Įvesk savo vardą' : null
   const hasErrors = Boolean(nameError) || PACE_FIELDS.some((f) => paceError(f.key, f.kind))
 
   const toggleSport = (sport: SportDiscipline) =>
@@ -87,7 +87,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       },
       {
         onSuccess: () => {
-          toast('Profile saved')
+          toast('Profilis išsaugotas')
           navigate('/profile', { replace: true })
         },
         onError: toastError,
@@ -99,21 +99,25 @@ function ProfileForm({ profile }: { profile: Profile }) {
     <form onSubmit={save} className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pt-5 pb-8">
         {welcome && (
-          <div className="rounded-xl border border-volt/30 bg-volt/10 px-4 py-3 text-sm text-zinc-200">
-            <p className="font-semibold text-white">Welcome to GroupPace</p>
-            Add your usual paces so hosts and other athletes can see if you'll fit their group.
+          <div className="rounded-[22px] bg-blue px-4 py-4 text-sm text-white/90">
+            <p className="headline text-[26px] text-white">
+              Sveiki atvykę į Pace<span className="text-volt">Mates</span>
+            </p>
+            <p className="mt-1">
+              Nurodyk savo įprastus tempus – organizatoriai ir kiti matys, ar tau tiks jų grupė.
+            </p>
           </div>
         )}
 
         <div className="flex items-center gap-3">
-          <Avatar user={{ ...profile, name: name || profile.name }} size={56} />
-          <p className="text-[13px] text-zinc-500">
-            {profile.avatarUrl ? 'Profile photo' : 'Your initials stand in until you add a photo.'}
+          <Avatar user={{ ...profile, name: name || profile.name }} size={64} />
+          <p className="text-[13px] text-slate-500">
+            {profile.avatarUrl ? 'Profilio nuotrauka' : 'Kol neturi nuotraukos, rodomi tavo inicialai.'}
           </p>
         </div>
 
         <TextField
-          label="Name"
+          label="Vardas ir pavardė"
           value={name}
           maxLength={80}
           autoComplete="name"
@@ -121,20 +125,20 @@ function ProfileForm({ profile }: { profile: Profile }) {
           onChange={(e) => setName(e.target.value)}
         />
         <TextArea
-          label="About you"
-          placeholder="What you're training for, what you like in a group…"
+          label="Apie tave"
+          placeholder="Kam ruošiesi, kas tau patinka grupėje…"
           maxLength={280}
           value={bio}
           onChange={(e) => setBio(e.target.value)}
         />
 
         <div>
-          <p className="mb-2 text-[13px] font-medium text-zinc-300">Sports</p>
+          <p className="mb-2 text-[13px] font-medium text-slate-300">Sportas</p>
           <div className="flex gap-2">
             {(
               [
-                ['running', 'Running', Footprints],
-                ['cycling', 'Cycling', Bike],
+                ['running', 'Bėgimas', Footprints],
+                ['cycling', 'Dviratis', Bike],
               ] as const
             ).map(([id, label, Icon]) => {
               const active = sports.includes(id)
@@ -145,10 +149,8 @@ function ProfileForm({ profile }: { profile: Profile }) {
                   aria-pressed={active}
                   onClick={() => toggleSport(id)}
                   className={clsx(
-                    'flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border text-[15px] font-medium transition-colors',
-                    active
-                      ? 'border-zinc-100 bg-zinc-100 text-black'
-                      : 'border-line text-zinc-300 hover:border-zinc-600',
+                    'flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-bold transition-colors',
+                    active ? 'bg-volt text-black' : 'bg-raised text-slate-300 hover:text-white',
                   )}
                 >
                   <Icon className="size-4" aria-hidden />
@@ -160,9 +162,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
         </div>
 
         <div>
-          <p className="text-[13px] font-medium text-zinc-300">Usual paces</p>
-          <p className="mb-3 text-[13px] text-zinc-500">
-            Used to show whether a group is your speed. Leave blank what you don't do.
+          <p className="text-[13px] font-medium text-slate-300">Įprasti tempai</p>
+          <p className="mb-3 text-[13px] text-slate-500">
+            Pagal juos rodome, ar grupė bėga tavo tempu. Ko nedarai – palik tuščią.
           </p>
           <div className="grid grid-cols-2 gap-3">
             {PACE_FIELDS.map(({ key, label, kind, placeholder }) => (
@@ -181,18 +183,18 @@ function ProfileForm({ profile }: { profile: Profile }) {
         </div>
 
         <TextField
-          label="Strava athlete ID (optional)"
+          label="Strava ID (nebūtina)"
           placeholder="12345678"
           inputMode="numeric"
           value={stravaId}
-          hint="The number at the end of your Strava profile link."
+          hint="Skaičius tavo Strava profilio nuorodos gale."
           onChange={(e) => setStravaId(e.target.value)}
         />
       </div>
 
-      <div className="shrink-0 border-t border-line px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="shrink-0 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         <Button type="submit" size="lg" className="w-full" loading={update.isPending}>
-          Save
+          Išsaugoti
         </Button>
       </div>
     </form>

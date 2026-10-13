@@ -7,7 +7,7 @@ import type {
   SlotDetail,
   SlotSummary,
   UserSlot,
-} from '@grouppace/shared'
+} from '@pacemates/shared'
 
 export interface Session {
   userId: string

@@ -5,7 +5,7 @@ import {
   SPORT_TYPES,
   VIBE_TAGS,
   type DefaultPaces,
-} from '@grouppace/shared'
+} from '@pacemates/shared'
 import { sql } from 'drizzle-orm'
 import {
   check,

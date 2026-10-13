@@ -1,4 +1,4 @@
-import { minutesToTime, timeToMinutes, type SlotSummary, type UserSlot } from '@grouppace/shared'
+import { minutesToTime, timeToMinutes, type SlotSummary, type UserSlot } from '@pacemates/shared'
 import { Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router'
@@ -6,14 +6,14 @@ import { useNow } from '../../lib/useNow'
 import { SlotCard } from '../slots/SlotCard'
 import { layoutDay } from './layout'
 
-export const HOUR_HEIGHT = 96
+export const HOUR_HEIGHT = 100
 /** Tall enough for the card's rows; shorter workouts are drawn at this height. */
-export const MIN_CARD_HEIGHT = 104
+export const MIN_CARD_HEIGHT = 112
 /** Used to size cards whose host didn't give an end time. */
 const DEFAULT_DURATION_MIN = 60
 const AXIS_WIDTH = 52
 const PADDING_TOP = 12
-const PADDING_BOTTOM = 40
+const PADDING_BOTTOM = 24
 const DAY_HEIGHT = 24 * HOUR_HEIGHT
 /** Tapping empty space suggests a start time on this grid. */
 const SNAP_MINUTES = 15
@@ -98,7 +98,10 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
     >
       {!isLoading && slots.length === 0 && <EmptyDay />}
 
-      <div className="relative" style={{ height: DAY_HEIGHT + PADDING_TOP + PADDING_BOTTOM }}>
+      <div
+        className="relative"
+        style={{ height: `calc(${DAY_HEIGHT + PADDING_TOP + PADDING_BOTTOM}px + var(--nav-space))` }}
+      >
         <div
           className="absolute inset-x-0"
           style={{ top: PADDING_TOP, height: DAY_HEIGHT }}
@@ -107,14 +110,14 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
           <HourGrid />
 
           <ol
-            aria-label="Workouts"
+            aria-label="Treniruotės"
             className="pointer-events-none absolute inset-y-0 right-3"
             style={{ left: AXIS_WIDTH }}
           >
             {isLoading ? (
               <Skeletons />
             ) : (
-              placed.map(({ slot, endMin, top, height, durationHeight, column, columns }) => (
+              placed.map(({ slot, endMin, top, height, column, columns }) => (
                 <li
                   key={slot.id}
                   className="pointer-events-auto absolute p-[3px] motion-safe:animate-rise"
@@ -129,7 +132,6 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
                     slot={slot}
                     focused={slot.id === focusedSlotId}
                     dimmed={isToday && endMin <= nowMinutes}
-                    durationRatio={durationHeight / height}
                     role={roles.get(slot.id)}
                   />
                 </li>
@@ -147,10 +149,14 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
                 onClick={() =>
                   navigate(`/workouts/new?date=${date}&time=${minutesToTime(draftMinute)}`)
                 }
-                className="flex size-full items-start gap-2 rounded-xl border border-dashed border-zinc-500 bg-white/[0.04] p-3 text-left text-[13px] font-semibold text-white transition hover:bg-white/[0.07]"
+                className="flex size-full items-start gap-2 rounded-[20px] border-2 border-dashed border-volt/60 bg-volt/[0.06] p-3 text-left text-[13px] font-bold text-white transition hover:bg-volt/10"
               >
-                <Plus className="size-4 text-volt" aria-hidden />
-                Post a workout at {minutesToTime(draftMinute)}
+                <span className="grid size-6 place-items-center rounded-full bg-volt text-black">
+                  <Plus className="size-4" strokeWidth={3} aria-hidden />
+                </span>
+                <span className="pt-0.5">
+                  Sukurti treniruotę {minutesToTime(draftMinute)}
+                </span>
               </button>
             </div>
           )}
@@ -168,13 +174,13 @@ function HourGrid() {
       {Array.from({ length: 25 }, (_, hour) => (
         <div key={hour}>
           <span
-            className="absolute -translate-y-1/2 pr-2.5 text-right font-display text-[13px] font-semibold text-zinc-500 tabular"
+            className="absolute -translate-y-1/2 pr-2.5 text-right font-display text-[14px] font-semibold text-slate-500 tabular"
             style={{ top: minutesToPx(hour * 60), width: AXIS_WIDTH }}
           >
             {minutesToTime(hour * 60)}
           </span>
           <span
-            className="absolute right-0 h-px bg-line/70"
+            className="absolute right-0 h-px bg-white/[0.06]"
             style={{ top: minutesToPx(hour * 60), left: AXIS_WIDTH }}
           />
         </div>
@@ -194,12 +200,12 @@ function NowIndicator({ minutes }: { minutes: number }) {
         className="absolute flex -translate-y-1/2 justify-end pr-1"
         style={{ width: AXIS_WIDTH }}
       >
-        <span className="rounded bg-volt px-1 py-px font-display text-[13px] font-bold text-black tabular">
+        <span className="rounded-full bg-volt px-1.5 py-px font-display text-[13px] font-bold text-black tabular shadow-[0_0_16px_rgb(212_255_63/0.5)]">
           {minutesToTime(minutes)}
         </span>
       </span>
       <span
-        className="absolute right-0 h-px -translate-y-1/2 bg-volt"
+        className="absolute right-0 h-0.5 -translate-y-1/2 bg-volt shadow-[0_0_10px_rgb(212_255_63/0.6)]"
         style={{ left: AXIS_WIDTH }}
       />
     </div>
@@ -228,7 +234,7 @@ function Skeletons() {
         width: `${100 / columns}%`,
       }}
     >
-      <div className="size-full animate-pulse rounded-xl bg-surface" />
+      <div className="size-full animate-pulse rounded-[20px] bg-surface" />
     </li>
   ))
 }
@@ -236,10 +242,10 @@ function Skeletons() {
 function EmptyDay() {
   return (
     <div className="pointer-events-none sticky top-5 z-30 h-0">
-      <div className="mx-auto w-fit max-w-[calc(100%-2rem)] rounded-xl border border-line bg-raised px-4 py-3 text-center shadow-xl shadow-black/40">
-        <p className="text-sm font-semibold text-white">Nothing planned yet</p>
-        <p className="mt-0.5 text-[13px] text-zinc-400">
-          Tap a time on the grid to post the first one.
+      <div className="mx-auto w-fit max-w-[calc(100%-2rem)] rounded-[22px] border border-white/10 bg-raised/95 px-5 py-4 text-center shadow-2xl shadow-black/50 backdrop-blur">
+        <p className="headline text-[22px]">Kol kas tuščia</p>
+        <p className="mt-1 text-[13px] text-slate-400">
+          Bakstelk laiką juostoje ir būk pirmas, kuris pakvies kitus.
         </p>
       </div>
     </div>

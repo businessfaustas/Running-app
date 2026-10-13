@@ -14,7 +14,7 @@ export function Toaster() {
           key={t.id}
           role={t.tone === 'error' ? 'alert' : 'status'}
           className={clsx(
-            'flex max-w-sm items-center gap-2 rounded-full border border-line bg-raised py-2.5 pr-4 pl-3 text-sm font-medium text-white shadow-xl shadow-black/50 motion-safe:animate-rise',
+            'flex max-w-sm items-center gap-2 rounded-full border border-white/10 bg-raised/95 py-2.5 pr-4 pl-3 backdrop-blur text-sm font-medium text-white shadow-xl shadow-black/50 motion-safe:animate-rise',
           )}
         >
           {t.tone === 'success' ? (

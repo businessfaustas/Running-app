@@ -1,4 +1,4 @@
-import type { UserSummary } from '@grouppace/shared'
+import type { UserSummary } from '@pacemates/shared'
 import clsx from 'clsx'
 import { useState } from 'react'
 

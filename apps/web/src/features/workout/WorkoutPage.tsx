@@ -1,10 +1,13 @@
-import { paceFit, toISODate, usualPace, type Participant, type SlotDetail } from '@grouppace/shared'
+import { paceFit, toISODate, usualPace, type Participant, type SlotDetail } from '@pacemates/shared'
 import clsx from 'clsx'
 import {
+  ArrowRight,
   CalendarX2,
   Check,
   ChevronRight,
+  Lightbulb,
   Lock,
+  MapPin,
   MessageCircle,
   Navigation,
   Share,
@@ -13,10 +16,12 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { Button, ButtonLink } from '../../components/Button'
+import { roundButtonClass } from '../../components/buttonClass'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EmptyState } from '../../components/EmptyState'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { TopBar } from '../../components/TopBar'
+import { factFor } from '../../content/inspiration'
 import { useSession } from '../../data/auth'
 import {
   useCancelSlot,
@@ -26,7 +31,17 @@ import {
   useMessages,
   useSlot,
 } from '../../data/hooks'
-import { duration, firstName, formatKm, isPast, relativeDay } from '../../lib/format'
+import { celebrate } from '../../lib/celebrate'
+import {
+  countOf,
+  duration,
+  firstName,
+  formatKm,
+  isPast,
+  relativeDay,
+  WORDS,
+} from '../../lib/format'
+import { photoFor } from '../../lib/photos'
 import { toast, toastError } from '../../lib/toast'
 import { SPORT_META, VIBE_META } from '../slots/meta'
 import { PaceFitBadge } from './PaceFitBadge'
@@ -40,8 +55,8 @@ export function WorkoutPage() {
     return (
       <div className="flex h-full flex-col">
         <TopBar />
-        <EmptyState Icon={CalendarX2} title="Workout not found">
-          It may have been removed, or the link is wrong.
+        <EmptyState Icon={CalendarX2} title="Treniruotė nerasta">
+          Galbūt ji ištrinta arba nuoroda neteisinga.
         </EmptyState>
       </div>
     )
@@ -62,116 +77,132 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
   const myFit = me.data
     ? paceFit(slot.targetPace, slot.sportType, slot.vibeTag, me.data.defaultPaces)
     : null
+  const fact = factFor(slot.sportType, slot.id)
 
   return (
     <div className="flex h-full flex-col" style={{ '--accent': sport.accent } as CSSProperties}>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="relative h-60 shrink-0">
-          <LazyLocationMap point={slot.meetingPoint} accent={sport.accent} zoom={14.5} />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-ink to-transparent" />
+        <div className="relative h-[400px] shrink-0 overflow-hidden">
+          <img
+            src={photoFor(slot.sportType, slot.vibeTag)}
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-black/50" />
           <TopBar overlay fallback="/" actions={<ShareButton slot={slot} />} />
+
+          <div className="absolute inset-x-0 bottom-0 px-4 pb-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1.5 rounded-full bg-(--accent) px-3 py-1 text-[12px] font-bold text-black">
+                <sport.Icon className="size-3.5" aria-hidden />
+                {sport.label}
+              </span>
+              <span className="glass rounded-full px-3 py-1 text-[12px] font-bold text-white">
+                {relativeDay(slot.date, today)}, {slot.startTime}
+              </span>
+            </div>
+            <h1 className="headline mt-3 text-[44px] text-white drop-shadow-lg">{slot.title}</h1>
+            <Link
+              to={`/athletes/${slot.host.id}`}
+              className="glass mt-4 flex w-fit max-w-full items-center gap-2.5 rounded-full py-1.5 pr-4 pl-1.5 transition hover:bg-white/15"
+            >
+              <Avatar user={slot.host} size={34} />
+              <span className="min-w-0 leading-tight">
+                <span className="block text-[11px] text-white/70">Organizuoja</span>
+                <span className="block truncate text-[14px] font-bold text-white">
+                  {slot.host.name}
+                </span>
+              </span>
+              <ChevronRight className="size-4 text-white/60" aria-hidden />
+            </Link>
+          </div>
         </div>
 
-        <div className="relative -mt-4 px-4 pb-8">
-          <p className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wider text-(--accent) uppercase">
-            <sport.Icon className="size-3.5" aria-hidden />
-            {sport.label} · {relativeDay(slot.date, today)}
-          </p>
-          <h1 className="mt-1.5 text-[26px] leading-tight font-bold tracking-tight text-white">
-            {slot.title}
-          </h1>
+        <div className="px-4 pb-8">
           {slot.status === 'CANCELLED' && (
-            <p className="mt-3 rounded-xl bg-red-500/10 px-3 py-2.5 text-sm font-medium text-red-300">
-              The host cancelled this workout.
+            <p className="mb-3 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]">
+              Organizatorius atšaukė šią treniruotę.
             </p>
           )}
 
-          <Link
-            to={`/athletes/${slot.host.id}`}
-            className="mt-4 flex items-center gap-3 rounded-xl py-1 transition hover:opacity-90"
-          >
-            <Avatar user={slot.host} size={40} />
-            <div className="min-w-0 flex-1">
-              <p className="text-[12px] text-zinc-500">Hosted by</p>
-              <p className="truncate text-[15px] font-semibold text-white">{slot.host.name}</p>
-            </div>
-            <ChevronRight className="size-5 text-zinc-600" aria-hidden />
-          </Link>
-
-          <dl className="mt-5 grid grid-cols-3 divide-x divide-line rounded-xl border border-line bg-surface">
+          <dl className="grid grid-cols-3 gap-2">
             <Stat
-              label="Start"
+              label="Pradžia"
               value={slot.startTime}
-              sub={time ?? (slot.endTime ? null : 'Open end')}
+              sub={time ?? 'Laisva pabaiga'}
             />
-            <Stat label="Distance" value={`${formatKm(slot.distanceKm)} km`} />
+            <Stat label="Atstumas" value={formatKm(slot.distanceKm)} unit="km" />
             <Stat
-              label={sport.measure === 'pace' ? 'Pace' : 'Speed'}
+              label={sport.measure === 'pace' ? 'Tempas' : 'Greitis'}
               value={slot.targetPace}
               small
             />
           </dl>
 
-          {myFit && !isMember && (
-            <p className="mt-3 flex items-center gap-2 text-[13px] text-zinc-400">
+          {myFit && !isMember && me.data && (
+            <p className="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-slate-400">
               <PaceFitBadge fit={myFit} />
-              {me.data && (
-                <span>
-                  Your usual: {usualPace(slot.sportType, slot.vibeTag, me.data.defaultPaces)}
-                </span>
-              )}
+              <span>
+                Tavo įprastas: {usualPace(slot.sportType, slot.vibeTag, me.data.defaultPaces)}
+              </span>
             </p>
           )}
 
-          <section className="mt-6">
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-raised text-zinc-300">
-                <vibe.Icon className="size-4" aria-hidden />
+          <section className="mt-4 rounded-[24px] border border-white/[0.06] bg-surface p-4">
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-(--accent)/15 text-(--accent)">
+                <vibe.Icon className="size-5" aria-hidden />
               </span>
               <div>
-                <p className="text-[15px] font-semibold text-white">{vibe.label}</p>
-                <p className="text-[13px] text-zinc-400">{vibe.blurb}</p>
+                <p className="text-[15px] font-bold text-white">{vibe.label}</p>
+                <p className="text-[13px] text-slate-400">{vibe.blurb}</p>
               </div>
             </div>
             {slot.description && (
-              <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-line text-zinc-300">
+              <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-line text-slate-300">
                 {slot.description}
               </p>
             )}
           </section>
 
-          <Section title="Meeting point">
-            <div className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3.5">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-medium text-white">
-                  {slot.meetingPoint.name}
-                </p>
-                <p className="text-[13px] text-zinc-500">
-                  {relativeDay(slot.date, today)} at {slot.startTime}
-                </p>
+          <Section title="Susitikimo vieta">
+            <div className="overflow-hidden rounded-[24px] border border-white/[0.06] bg-surface">
+              <div className="h-40">
+                <LazyLocationMap point={slot.meetingPoint} accent={sport.accent} zoom={14.5} />
               </div>
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${slot.meetingPoint.lat},${slot.meetingPoint.lng}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-raised px-3 py-2 text-[13px] font-semibold text-white transition hover:bg-[#26262a]"
-              >
-                <Navigation className="size-3.5" aria-hidden />
-                Directions
-              </a>
+              <div className="flex items-center gap-3 p-3.5">
+                <MapPin className="size-5 shrink-0 text-(--accent)" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-[15px] leading-snug font-bold text-white">
+                    {slot.meetingPoint.name}
+                  </p>
+                  <p className="text-[13px] text-slate-500">
+                    {relativeDay(slot.date, today)}, {slot.startTime}
+                  </p>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${slot.meetingPoint.lat},${slot.meetingPoint.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[13px] font-bold text-black transition active:scale-95"
+                >
+                  <Navigation className="size-3.5" aria-hidden />
+                  Maršrutas
+                </a>
+              </div>
             </div>
           </Section>
 
           <Section
-            title="Going"
+            title="Dalyvauja"
             aside={
-              <span className="text-zinc-500 tabular">
+              <span className="font-bold text-slate-400 tabular">
                 {going.length}
-                {slot.maxParticipants ? ` of ${slot.maxParticipants}` : ''}
+                {slot.maxParticipants ? ` iš ${slot.maxParticipants}` : ''}
               </span>
             }
           >
-            <ul className="divide-y divide-line">
+            <ul className="rounded-[24px] border border-white/[0.06] bg-surface px-3.5">
               {going.map((p) => (
                 <ParticipantRow
                   key={p.id}
@@ -186,9 +217,33 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
             )}
           </Section>
 
-          <Section title="Group chat">
+          <Section title="Grupės pokalbis">
             <ChatTeaser slot={slot} isMember={isMember} />
           </Section>
+
+          <Link
+            to="/inspire"
+            className="relative mt-7 block overflow-hidden rounded-[24px] bg-blue p-5 transition active:scale-[0.99]"
+          >
+            <span
+              aria-hidden
+              className="absolute -top-10 -right-10 size-40 rounded-full bg-white/10 blur-xl"
+            />
+            <span className="relative flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/75 uppercase">
+              <Lightbulb className="size-3.5" aria-hidden />
+              Ar žinojai?
+            </span>
+            <span className="headline relative mt-2 block text-[52px] text-volt">
+              {fact.figure}
+            </span>
+            <span className="relative mt-1 block text-[15px] leading-snug text-white/90">
+              {fact.text}
+            </span>
+            <span className="relative mt-3 flex items-center gap-1 text-[13px] font-bold text-white">
+              Daugiau įkvėpimo
+              <ArrowRight className="size-4" aria-hidden />
+            </span>
+          </Link>
         </div>
       </div>
 
@@ -200,26 +255,29 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
 function Stat({
   label,
   value,
+  unit,
   sub,
   small = false,
 }: {
   label: string
   value: string
+  unit?: string
   sub?: string | null
   small?: boolean
 }) {
   return (
-    <div className="min-w-0 px-3 py-3">
-      <dt className="text-[11px] font-medium tracking-wider text-zinc-500 uppercase">{label}</dt>
+    <div className="min-w-0 rounded-[20px] border border-white/[0.06] bg-surface px-3 py-3">
+      <dt className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">{label}</dt>
       <dd
         className={clsx(
-          'mt-0.5 font-display leading-tight font-bold text-white tabular',
-          small ? 'text-[17px]' : 'text-[22px]',
+          'mt-1 font-display leading-none font-bold text-white italic tabular',
+          small ? 'text-[19px]' : 'text-[28px]',
         )}
       >
         {value}
+        {unit && <span className="ml-0.5 text-[15px] text-slate-400 not-italic">{unit}</span>}
       </dd>
-      {sub && <dd className="text-[12px] text-zinc-500">{sub}</dd>}
+      {sub && <dd className="mt-1 text-[12px] text-slate-500">{sub}</dd>}
     </div>
   )
 }
@@ -235,10 +293,8 @@ function Section({
 }) {
   return (
     <section className="mt-7">
-      <div className="mb-2.5 flex items-baseline justify-between">
-        <h2 className="font-display text-[17px] font-bold tracking-wide text-white uppercase">
-          {title}
-        </h2>
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="headline text-[24px] text-white">{title}</h2>
         {aside && <span className="text-[13px]">{aside}</span>}
       </div>
       {children}
@@ -257,26 +313,28 @@ function ParticipantRow({
 }) {
   const pace = usualPace(slot.sportType, slot.vibeTag, participant.defaultPaces)
   const fit = paceFit(slot.targetPace, slot.sportType, slot.vibeTag, participant.defaultPaces)
-  const dot = fit === 'match' ? 'bg-volt' : fit === 'close' ? 'bg-dune' : 'bg-zinc-600'
+  const dot = fit === 'match' ? 'bg-volt' : fit === 'close' ? 'bg-dune' : 'bg-slate-600'
 
   return (
-    <li>
+    <li className="border-b border-white/[0.06] last:border-0">
       <Link
         to={`/athletes/${participant.id}`}
-        className="flex items-center gap-3 py-2.5 transition hover:opacity-90"
+        className="flex items-center gap-3 py-3 transition hover:opacity-90"
       >
-        <Avatar user={participant} size={36} />
+        <Avatar user={participant} size={40} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-medium text-white">
+          <p className="truncate text-[15px] font-semibold text-white">
             {participant.name}
-            {isMe && <span className="text-zinc-500"> (you)</span>}
+            {isMe && <span className="text-slate-500"> (tu)</span>}
           </p>
-          {participant.isHost && <p className="text-[12px] text-zinc-500">Host</p>}
+          {participant.isHost && (
+            <p className="text-[12px] font-semibold text-(--accent)">Organizatorius</p>
+          )}
         </div>
         {pace && (
           <span
-            className="flex items-center gap-1.5 text-[12.5px] text-zinc-400 tabular"
-            title={fit ? `Usual pace compared with this workout's target` : undefined}
+            className="flex items-center gap-1.5 text-[12.5px] text-slate-400 tabular"
+            title={fit ? 'Įprastas tempas, palyginti su treniruotės tikslu' : undefined}
           >
             <span aria-hidden className={clsx('size-1.5 rounded-full', dot)} />
             {pace}
@@ -290,15 +348,15 @@ function ParticipantRow({
 function SpotsLeft({ taken, max }: { taken: number; max: number }) {
   const left = Math.max(0, max - taken)
   return (
-    <div className="mt-3">
-      <div className="h-1.5 overflow-hidden rounded-full bg-raised">
+    <div className="mt-3 px-1">
+      <div className="h-2 overflow-hidden rounded-full bg-raised">
         <div
           className={clsx('h-full rounded-full', left === 0 ? 'bg-blaze' : 'bg-(--accent)')}
           style={{ width: `${Math.min(100, (taken / max) * 100)}%` }}
         />
       </div>
-      <p className="mt-1.5 text-[12.5px] text-zinc-500">
-        {left === 0 ? 'Full' : `${left} ${left === 1 ? 'spot' : 'spots'} left`}
+      <p className="mt-1.5 text-[12.5px] font-semibold text-slate-400">
+        {left === 0 ? 'Vietų nebėra' : `Liko ${countOf(left, WORDS.spot)}`}
       </p>
     </div>
   )
@@ -308,9 +366,9 @@ function ChatTeaser({ slot, isMember }: { slot: SlotDetail; isMember: boolean })
   const messages = useMessages(slot.id, isMember)
   if (!isMember) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-dashed border-line p-3.5 text-[13px] text-zinc-400">
+      <div className="flex items-center gap-3 rounded-[20px] border border-dashed border-white/15 p-4 text-[13px] text-slate-400">
         <Lock className="size-4 shrink-0" aria-hidden />
-        Only people who are going can read and post in the chat.
+        Pokalbį skaityti ir jame rašyti gali tik dalyviai.
       </div>
     )
   }
@@ -318,24 +376,26 @@ function ChatTeaser({ slot, isMember }: { slot: SlotDetail; isMember: boolean })
   return (
     <Link
       to={`/workouts/${slot.id}/chat`}
-      className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3.5 transition hover:bg-[#1a1a1d]"
+      className="flex items-center gap-3 rounded-[20px] border border-white/[0.06] bg-surface p-4 transition hover:bg-raised"
     >
-      <MessageCircle className="size-5 shrink-0 text-zinc-400" aria-hidden />
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-blue text-white">
+        <MessageCircle className="size-5" aria-hidden />
+      </span>
       <div className="min-w-0 flex-1">
         {last ? (
           <>
-            <p className="text-[12px] text-zinc-500">
-              {messages.data!.length} {messages.data!.length === 1 ? 'message' : 'messages'}
+            <p className="text-[12px] font-semibold text-slate-500">
+              {countOf(messages.data!.length, WORDS.message)}
             </p>
-            <p className="truncate text-[14px] text-zinc-200">
-              <span className="font-semibold">{firstName(last.sender.name)}:</span> {last.content}
+            <p className="truncate text-[14px] text-slate-200">
+              <span className="font-bold">{firstName(last.sender.name)}:</span> {last.content}
             </p>
           </>
         ) : (
-          <p className="text-[14px] text-zinc-300">No messages yet. Say hi to the group.</p>
+          <p className="text-[14px] text-slate-300">Žinučių dar nėra. Pasisveikink su grupe!</p>
         )}
       </div>
-      <ChevronRight className="size-5 text-zinc-600" aria-hidden />
+      <ChevronRight className="size-5 text-slate-600" aria-hidden />
     </Link>
   )
 }
@@ -355,15 +415,17 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 
   let content: ReactNode
   if (slot.status === 'CANCELLED') {
-    content = <p className="w-full text-center text-sm text-zinc-400">This workout was cancelled</p>
+    content = <p className="w-full text-center text-sm text-slate-400">Ši treniruotė atšaukta</p>
   } else if (finished) {
-    content = <p className="w-full text-center text-sm text-zinc-400">This workout has finished</p>
+    content = (
+      <p className="w-full text-center text-sm text-slate-400">Ši treniruotė jau pasibaigė</p>
+    )
   } else if (!session) {
     content = (
       <>
         <Summary going={going} max={slot.maxParticipants} />
         <ButtonLink to={`/signin?next=${encodeURIComponent(location.pathname)}`} size="lg">
-          Sign in to join
+          Prisijunk ir dalyvauk
         </ButtonLink>
       </>
     )
@@ -371,16 +433,11 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
     content = (
       <>
         <Button variant="danger" size="lg" onClick={() => setConfirm('cancel')}>
-          Cancel workout
+          Atšaukti
         </Button>
-        <ButtonLink
-          to={`/workouts/${slot.id}/chat`}
-          variant="secondary"
-          size="lg"
-          className="flex-1"
-        >
+        <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="flex-1">
           <MessageCircle className="size-4" aria-hidden />
-          Group chat
+          Grupės pokalbis
         </ButtonLink>
       </>
     )
@@ -388,12 +445,12 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
     content = (
       <>
         <Button variant="secondary" size="lg" onClick={() => setConfirm('leave')}>
-          <Check className="size-4 text-volt" aria-hidden />
-          Going
+          <Check className="size-4 text-volt" strokeWidth={3} aria-hidden />
+          Dalyvauju
         </Button>
         <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="flex-1">
           <MessageCircle className="size-4" aria-hidden />
-          Open chat
+          Pokalbis
         </ButtonLink>
       </>
     )
@@ -402,7 +459,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
       <>
         <Summary going={going} max={slot.maxParticipants} />
         <Button size="lg" disabled>
-          Full
+          Vietų nebėra
         </Button>
       </>
     )
@@ -412,16 +469,16 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
         <Summary going={going} max={slot.maxParticipants} />
         <Button
           size="lg"
-          className="min-w-36"
+          className="min-w-40"
           loading={join.isPending}
           onClick={() =>
             join.mutate(slot.id, {
-              onSuccess: () => toast("You're in. See you there!"),
+              onSuccess: () => celebrate({ kind: 'joined', slotId: slot.id, title: slot.title }),
               onError: toastError,
             })
           }
         >
-          I'm in
+          Dalyvausiu
         </Button>
       </>
     )
@@ -429,14 +486,14 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 
   return (
     <>
-      <div className="shrink-0 border-t border-line bg-ink/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
+      <div className="shrink-0 rounded-t-[28px] border-t border-white/[0.06] bg-surface px-4 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-3">{content}</div>
       </div>
 
       <ConfirmDialog
         open={confirm === 'leave'}
-        title="Leave this workout?"
-        confirmLabel="Leave"
+        title="Nebedalyvausi?"
+        confirmLabel="Atsisakyti"
         destructive
         busy={leave.isPending}
         onClose={() => setConfirm(null)}
@@ -444,20 +501,20 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           leave.mutate(slot.id, {
             onSuccess: () => {
               setConfirm(null)
-              toast('You left the workout')
+              toast('Atsisakei dalyvavimo')
             },
             onError: toastError,
           })
         }
       >
-        {firstName(slot.host.name)} will see one fewer person coming. You can join again while
-        there's space.
+        {firstName(slot.host.name)} matys vienu dalyviu mažiau. Kol yra vietų, gali vėl
+        prisijungti.
       </ConfirmDialog>
 
       <ConfirmDialog
         open={confirm === 'cancel'}
-        title="Cancel this workout?"
-        confirmLabel="Cancel workout"
+        title="Atšaukti treniruotę?"
+        confirmLabel="Atšaukti treniruotę"
         destructive
         busy={cancel.isPending}
         onClose={() => setConfirm(null)}
@@ -465,14 +522,14 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           cancel.mutate(slot.id, {
             onSuccess: () => {
               setConfirm(null)
-              toast('Workout cancelled')
+              toast('Treniruotė atšaukta')
               navigate('/', { replace: true })
             },
             onError: toastError,
           })
         }
       >
-        Everyone who's going will see it as cancelled. This can't be undone.
+        Visi dalyviai matys, kad ji atšaukta. Šio veiksmo sugrąžinti negalima.
       </ConfirmDialog>
     </>
   )
@@ -480,9 +537,12 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 
 function Summary({ going, max }: { going: number; max: number | null }) {
   return (
-    <p className="text-[13px] text-zinc-400">
-      <span className="font-display text-xl font-bold text-white tabular">{going}</span>
-      {max ? <span className="tabular"> / {max}</span> : null} going
+    <p className="leading-none">
+      <span className="font-display text-[30px] font-bold text-white italic tabular">
+        {going}
+        {max ? <span className="text-slate-500">/{max}</span> : null}
+      </span>
+      <span className="mt-0.5 block text-[12px] font-semibold text-slate-400">dalyvauja</span>
     </p>
   )
 }
@@ -490,25 +550,20 @@ function Summary({ going, max }: { going: number; max: number | null }) {
 function ShareButton({ slot }: { slot: SlotDetail }) {
   const share = async () => {
     const url = window.location.href
-    const text = `${slot.title}: ${relativeDay(slot.date, toISODate(new Date()))} at ${slot.startTime}`
+    const text = `${slot.title}: ${relativeDay(slot.date, toISODate(new Date()))}, ${slot.startTime}`
     try {
       if (navigator.share) {
         await navigator.share({ title: slot.title, text, url })
       } else {
         await navigator.clipboard.writeText(url)
-        toast('Link copied')
+        toast('Nuoroda nukopijuota')
       }
     } catch {
       // The share sheet was dismissed.
     }
   }
   return (
-    <button
-      type="button"
-      onClick={share}
-      aria-label="Share workout"
-      className="grid size-10 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/75 active:scale-95"
-    >
+    <button type="button" onClick={share} aria-label="Dalintis" className={roundButtonClass()}>
       <Share className="size-[18px]" aria-hidden />
     </button>
   )
@@ -517,13 +572,16 @@ function ShareButton({ slot }: { slot: SlotDetail }) {
 function WorkoutSkeleton() {
   return (
     <div className="flex h-full flex-col">
-      <div className="relative h-60 animate-pulse bg-surface">
+      <div className="relative h-[400px] animate-pulse bg-surface">
         <TopBar overlay />
       </div>
       <div className="space-y-3 px-4 pt-4">
-        <div className="h-3 w-32 animate-pulse rounded bg-surface" />
-        <div className="h-7 w-3/4 animate-pulse rounded bg-surface" />
-        <div className="h-20 animate-pulse rounded-xl bg-surface" />
+        <div className="grid grid-cols-3 gap-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-20 animate-pulse rounded-[20px] bg-surface" />
+          ))}
+        </div>
+        <div className="h-24 animate-pulse rounded-[24px] bg-surface" />
       </div>
     </div>
   )

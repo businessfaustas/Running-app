@@ -3,7 +3,7 @@ import { queryClient } from './db/client'
 import { env } from './env'
 
 const server = createApp().listen(env.PORT, () => {
-  console.log(`GroupPace API listening on http://localhost:${env.PORT}`)
+  console.log(`PaceMates API listening on http://localhost:${env.PORT}`)
 })
 
 function shutdown() {

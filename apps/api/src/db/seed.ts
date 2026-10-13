@@ -1,5 +1,5 @@
-import { addDays, toISODate } from '@grouppace/shared'
-import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
+import { addDays, toISODate } from '@pacemates/shared'
+import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { db, queryClient } from './client'
 import { profiles, slotMessages, slotParticipants, workoutSlots } from './schema'
@@ -18,7 +18,7 @@ const today = toISODate(new Date())
 
 await db.transaction(async (tx) => {
   for (const user of MOCK_USERS) {
-    const email = `${user.name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`
+    const email = `${user.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`
     await tx.execute(sql`
       insert into auth.users (
         instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data,

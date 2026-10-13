@@ -1,34 +1,95 @@
-import { addDays, fromISODate, timeToMinutes, toISODate } from '@grouppace/shared'
+import { addDays, fromISODate, timeToMinutes, toISODate } from '@pacemates/shared'
 
-const LOCALE = 'en-GB'
-const weekdayShort = new Intl.DateTimeFormat(LOCALE, { weekday: 'short' })
-const shortDate = new Intl.DateTimeFormat(LOCALE, {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-})
-const longDate = new Intl.DateTimeFormat(LOCALE, {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-})
-const clock = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
-const dayMonth = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short' })
+/*
+ * Lithuanian formatting. Intl's short lt-LT date styles read oddly ("10-15, kt"), so the
+ * compact forms are spelled out here.
+ */
 
-export const weekday = (date: string) => weekdayShort.format(fromISODate(date))
+const WEEKDAYS_SHORT = ['Sk', 'Pr', 'An', 'Tr', 'Kt', 'Pn', 'Št']
+const MONTHS_SHORT = [
+  'saus.',
+  'vas.',
+  'kov.',
+  'bal.',
+  'geg.',
+  'birž.',
+  'liep.',
+  'rugp.',
+  'rugs.',
+  'spal.',
+  'lapkr.',
+  'gruod.',
+]
+const weekdayLong = new Intl.DateTimeFormat('lt-LT', { weekday: 'long' })
+const dayMonthLong = new Intl.DateTimeFormat('lt-LT', { day: 'numeric', month: 'long' })
+const clock = new Intl.DateTimeFormat('lt-LT', { hour: '2-digit', minute: '2-digit' })
+const pluralRules = new Intl.PluralRules('lt-LT')
 
-/** "Today", "Tomorrow", "Yesterday", otherwise "Thu 15 Oct". */
-export function relativeDay(date: string, today: string): string {
-  if (date === today) return 'Today'
-  if (date === addDays(today, 1)) return 'Tomorrow'
-  if (date === addDays(today, -1)) return 'Yesterday'
-  return shortDate.format(fromISODate(date))
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+
+export interface PluralForms {
+  /** 1, 21, 31… */
+  one: string
+  /** 2–9, 22–29… */
+  few: string
+  /** 0, 10–20, 30… */
+  other: string
 }
 
-/** "Tuesday 13 October". */
-export const longDay = (date: string) => longDate.format(fromISODate(date))
+/** Picks the Lithuanian form for `n`: treniruotė / treniruotės / treniruočių. */
+export function plural(n: number, forms: PluralForms): string {
+  const category = pluralRules.select(n)
+  return category === 'one' ? forms.one : category === 'few' ? forms.few : forms.other
+}
 
-export const formatKm = (km: number) => (Number.isInteger(km) ? String(km) : km.toFixed(1))
+/** "3 treniruotės". */
+export const countOf = (n: number, forms: PluralForms) => `${n} ${plural(n, forms)}`
+
+export const WORDS = {
+  workout: { one: 'treniruotė', few: 'treniruotės', other: 'treniruočių' },
+  spot: { one: 'vieta', few: 'vietos', other: 'vietų' },
+  message: { one: 'žinutė', few: 'žinutės', other: 'žinučių' },
+  person: { one: 'dalyvis', few: 'dalyviai', other: 'dalyvių' },
+} satisfies Record<string, PluralForms>
+
+/** "Pr", "An"… */
+export const weekday = (date: string) => WEEKDAYS_SHORT[fromISODate(date).getDay()]!
+
+/** "spalio 15 d." */
+export const dayMonth = (date: string) => dayMonthLong.format(fromISODate(date))
+
+/** "Šiandien", "Rytoj", "Vakar", otherwise "Kt, spalio 15 d." */
+export function relativeDay(date: string, today: string): string {
+  if (date === today) return 'Šiandien'
+  if (date === addDays(today, 1)) return 'Rytoj'
+  if (date === addDays(today, -1)) return 'Vakar'
+  return `${weekday(date)}, ${dayMonth(date)}`
+}
+
+const ON_WEEKDAY = [
+  'Sekmadienį',
+  'Pirmadienį',
+  'Antradienį',
+  'Trečiadienį',
+  'Ketvirtadienį',
+  'Penktadienį',
+  'Šeštadienį',
+]
+
+/** "Šiandien", "Rytoj", or "Ketvirtadienį" – for "… Vilniuje" headlines. */
+export function whenHeadline(date: string, today: string): string {
+  if (date === today) return 'Šiandien'
+  if (date === addDays(today, 1)) return 'Rytoj'
+  return ON_WEEKDAY[fromISODate(date).getDay()]!
+}
+
+/** "Ketvirtadienis, spalio 15 d." */
+export const longDay = (date: string) =>
+  `${capitalize(weekdayLong.format(fromISODate(date)))}, ${dayMonth(date)}`
+
+/** Lithuanian decimals use a comma: "21,1". */
+export const formatKm = (km: number) =>
+  Number.isInteger(km) ? String(km) : km.toFixed(1).replace('.', ',')
 
 export const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name
 
@@ -38,38 +99,51 @@ function minutesBetween(start: string, end: string | null): number | null {
   return minutes > 0 ? minutes : null
 }
 
-/** "1 h 30 min", "45 min"; null without an end time. */
-export function duration(start: string, end: string | null): string | null {
-  const minutes = minutesBetween(start, end)
-  if (minutes === null) return null
+/** "1 val. 30 min.", "45 min." */
+export function formatMinutes(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (h === 0) return `${m} min`
-  return m === 0 ? `${h} h` : `${h} h ${m} min`
+  if (h === 0) return `${m} min.`
+  return m === 0 ? `${h} val.` : `${h} val. ${m} min.`
 }
 
-/** "1h30", "45m": for tight spaces. */
+/** Null without an end time. */
+export function duration(start: string, end: string | null): string | null {
+  const minutes = minutesBetween(start, end)
+  return minutes === null ? null : formatMinutes(minutes)
+}
+
+/** "1:30 val.", "45 min.": for tight spaces. */
 export function shortDuration(start: string, end: string | null): string | null {
   const minutes = minutesBetween(start, end)
   if (minutes === null) return null
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (h === 0) return `${m}m`
-  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
+  if (h === 0) return `${m} min.`
+  return `${h}:${String(m).padStart(2, '0')} val.`
 }
 
-/** Chat-list style timestamp: "09:41", "Yesterday", "Mon", "12 Oct". */
+/** Chat-list style timestamp: "09:41", "Vakar", "Pr", "spal. 12". */
 export function messageTime(iso: string, now = new Date()): string {
   const at = new Date(iso)
   const day = toISODate(at)
   const today = toISODate(now)
   if (day === today) return clock.format(at)
-  if (day === addDays(today, -1)) return 'Yesterday'
-  if (day > addDays(today, -7)) return weekdayShort.format(at)
-  return dayMonth.format(at)
+  if (day === addDays(today, -1)) return 'Vakar'
+  if (day > addDays(today, -7)) return WEEKDAYS_SHORT[at.getDay()]!
+  return `${MONTHS_SHORT[at.getMonth()]} ${at.getDate()}`
 }
 
 export const clockTime = (iso: string) => clock.format(new Date(iso))
+
+/** "Labas rytas" / "Laba diena" / "Labas vakaras" / "Labanakt". */
+export function greeting(now = new Date()): string {
+  const hour = now.getHours()
+  if (hour < 5) return 'Labanakt'
+  if (hour < 11) return 'Labas rytas'
+  if (hour < 18) return 'Laba diena'
+  return 'Labas vakaras'
+}
 
 /** True once the workout's end (or start, without an end) has passed. */
 export function isPast(date: string, start: string, end: string | null, now = new Date()) {
@@ -77,4 +151,15 @@ export function isPast(date: string, start: string, end: string | null, now = ne
   if (date !== today) return date < today
   const minutes = now.getHours() * 60 + now.getMinutes()
   return timeToMinutes(end ?? start) <= minutes
+}
+
+/** "Po 40 min.", "Po 3 val.", "Rytoj, 07:00" – how soon a workout starts. */
+export function startsIn(date: string, start: string, now = new Date()): string {
+  const at = fromISODate(date)
+  at.setMinutes(timeToMinutes(start))
+  const minutes = Math.round((at.getTime() - now.getTime()) / 60_000)
+  if (minutes <= 0) return 'Jau vyksta'
+  if (minutes < 60) return `Po ${minutes} min.`
+  if (date === toISODate(now)) return `Po ${Math.floor(minutes / 60)} val.`
+  return `${relativeDay(date, toISODate(now))}, ${start}`
 }

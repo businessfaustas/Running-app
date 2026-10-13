@@ -1,0 +1,22 @@
+/** User-facing backend errors, shared by both backends so they read the same. */
+export const MESSAGES = {
+  signInFirst: 'Prisijunk, kad galėtum tai padaryti',
+  athleteNotFound: 'Sportininkas nerastas',
+  workoutGone: 'Šios treniruotės nebėra',
+  wrongCredentials: 'Neteisingas el. paštas arba slaptažodis',
+  invalidEmail: 'Įvesk tinkamą el. pašto adresą',
+  shortPassword: 'Slaptažodis turi būti bent 8 simbolių',
+  nameRequired: 'Įvesk savo vardą',
+  emailTaken: 'Paskyra su šiuo el. paštu jau yra',
+  emailNotConfirmed: 'Pirma patvirtink el. paštą – nuorodą rasi laiške',
+  hostOnlyCancel: 'Atšaukti gali tik organizatorius',
+  cancelled: 'Ši treniruotė atšaukta',
+  completed: 'Ši treniruotė jau įvyko',
+  full: 'Visos vietos užimtos',
+  hostCantLeave: 'Organizatorius negali išeiti – gali atšaukti treniruotę',
+  joinToChat: 'Prisijunk prie treniruotės, kad galėtum rašyti',
+  emptyMessage: 'Parašyk ką nors',
+  longMessage: 'Žinutė per ilga',
+  notAllowed: 'Neturi teisės to daryti',
+  offline: 'Nėra ryšio su serveriu. Bandyk dar kartą.',
+} as const

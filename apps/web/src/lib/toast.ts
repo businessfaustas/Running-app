@@ -20,5 +20,5 @@ export function toast(message: string, tone: Toast['tone'] = 'success') {
 
 /** Shows an error from a failed mutation in plain words. */
 export function toastError(error: unknown) {
-  toast(error instanceof Error ? error.message : 'Something went wrong', 'error')
+  toast(error instanceof Error ? error.message : 'Kažkas nepavyko. Bandyk dar kartą.', 'error')
 }

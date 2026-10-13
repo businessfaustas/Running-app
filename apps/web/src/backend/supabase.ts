@@ -5,12 +5,13 @@ import type {
   SlotDetail,
   SlotSummary,
   UserSlot,
-} from '@grouppace/shared'
+} from '@pacemates/shared'
 import {
   createClient,
   type PostgrestError,
   type Session as AuthSession,
 } from '@supabase/supabase-js'
+import { MESSAGES } from './messages'
 import { BackendError, type Backend, type Session } from './types'
 
 /*
@@ -41,14 +42,16 @@ const MESSAGE_COLUMNS = 'id, slot_id, content, created_at, sender:profiles(id, n
 
 /** Database errors that are worth showing as they are, reworded for people. */
 const FRIENDLY_ERRORS: [RegExp, string][] = [
-  [/workout is full/i, 'This workout is full'],
-  [/workout is cancelled/i, 'This workout was cancelled'],
-  [/workout is completed/i, 'This workout already happened'],
-  [/invalid login credentials/i, 'Wrong email or password'],
-  [/email not confirmed/i, 'Confirm your email first: check your inbox for the link'],
-  [/user already registered/i, 'There is already an account with that email'],
-  [/password should be at least/i, 'Use at least 8 characters for the password'],
-  [/row-level security/i, "You're not allowed to do that"],
+  [/workout is full/i, MESSAGES.full],
+  [/workout is cancelled/i, MESSAGES.cancelled],
+  [/workout is completed/i, MESSAGES.completed],
+  [/invalid login credentials/i, MESSAGES.wrongCredentials],
+  [/email not confirmed/i, MESSAGES.emailNotConfirmed],
+  [/user already registered/i, MESSAGES.emailTaken],
+  [/password should be at least/i, MESSAGES.shortPassword],
+  [/row-level security/i, MESSAGES.notAllowed],
+  [/sign in to post/i, MESSAGES.signInFirst],
+  [/failed to fetch|network ?error/i, MESSAGES.offline],
 ]
 
 function fail(error: PostgrestError | { message: string }): never {
@@ -73,7 +76,7 @@ const toMessage = (row: MessageRow): ChatMessage => ({
   createdAt: row.created_at,
   sender: row.sender
     ? { id: row.sender.id, name: row.sender.name, avatarUrl: row.sender.avatar_url }
-    : { id: 'unknown', name: 'Someone', avatarUrl: null },
+    : { id: 'unknown', name: 'Kažkas', avatarUrl: null },
 })
 
 const toSession = (session: AuthSession | null): Session | null =>
@@ -84,7 +87,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
 
   async function requireUserId(): Promise<string> {
     const { data } = await supabase.auth.getSession()
-    if (!data.session) throw new BackendError('Sign in to do that')
+    if (!data.session) throw new BackendError(MESSAGES.signInFirst)
     return data.session.user.id
   }
 
@@ -109,7 +112,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
 
     async signUp({ name, email, password }) {
-      if (password.length < 8) throw new BackendError('Use at least 8 characters for the password')
+      if (password.length < 8) throw new BackendError(MESSAGES.shortPassword)
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -144,7 +147,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       if (patch.defaultPaces !== undefined) row.default_paces = patch.defaultPaces
       if (patch.stravaId !== undefined) row.strava_id = patch.stravaId
       if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl
-      if (row.name !== undefined && row.name.length < 2) throw new BackendError('Enter your name')
+      if (row.name !== undefined && row.name.length < 2) throw new BackendError(MESSAGES.nameRequired)
       const { data, error } = await supabase
         .from('profiles')
         .update(row)
@@ -189,7 +192,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .eq('host_id', userId)
         .select('id')
       if (error) fail(error)
-      if (data.length === 0) throw new BackendError('Only the host can cancel this workout')
+      if (data.length === 0) throw new BackendError(MESSAGES.hostOnlyCancel)
     },
 
     async joinSlot(slotId) {
@@ -208,7 +211,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .eq('id', slotId)
         .maybeSingle<{ host_id: string }>()
       if (slot?.host_id === userId) {
-        throw new BackendError("Hosts can't leave their own workout. Cancel it instead.")
+        throw new BackendError(MESSAGES.hostCantLeave)
       }
       const { error } = await supabase
         .from('slot_participants')
@@ -232,7 +235,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async sendMessage(slotId, content) {
       const userId = await requireUserId()
       const text = content.trim()
-      if (text.length === 0) throw new BackendError('Write something first')
+      if (text.length === 0) throw new BackendError(MESSAGES.emptyMessage)
       const { data, error } = await supabase
         .from('slot_messages')
         .insert({ slot_id: slotId, sender_id: userId, content: text })
@@ -240,7 +243,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .single<MessageRow>()
       if (error) {
         if (/row-level security/i.test(error.message)) {
-          throw new BackendError('Join the workout to post in the chat')
+          throw new BackendError(MESSAGES.joinToChat)
         }
         fail(error)
       }

@@ -7,7 +7,7 @@ import {
   type NewSlotInput,
   type SportType,
   type VibeTag,
-} from '@grouppace/shared'
+} from '@pacemates/shared'
 import clsx from 'clsx'
 import { Check, LocateFixed, MapPin, Minus, Plus, X } from 'lucide-react'
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
@@ -16,12 +16,14 @@ import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { useCreateSlot, useMe, useSlots } from '../../data/hooks'
-import { formatKm, relativeDay } from '../../lib/format'
+import { celebrate } from '../../lib/celebrate'
+import { formatKm, formatMinutes, relativeDay } from '../../lib/format'
+import { PHOTOS } from '../../lib/photos'
 import { toast, toastError } from '../../lib/toast'
 import { useDiscoverStore } from '../discover/store'
 import { SPORT_META, SPORT_ORDER, VIBE_META, VIBE_ORDER } from '../slots/meta'
 
-const STEPS = ['Sport', 'When', 'Distance', 'Vibe', 'Where', 'Details'] as const
+const STEPS = ['Sportas', 'Laikas', 'Atstumas', 'Pobūdis', 'Vieta', 'Detalės'] as const
 const DURATIONS = [30, 45, 60, 75, 90, 120, 150, 180, 240]
 const DISTANCE_PRESETS: Record<SportType, number[]> = {
   RUN: [5, 8, 10, 15, 21.1, 30],
@@ -47,10 +49,19 @@ interface Draft {
   maxParticipants: number | null
 }
 
-const formatDuration = (minutes: number) => {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h} h ${m}`
+const SPORT_PHOTO: Record<SportType, { src: string; position: string }> = {
+  RUN: { src: PHOTOS.runCrew, position: '50% 40%' },
+  TRACK: { src: PHOTOS.runCoast, position: '50% 60%' },
+  CYCLING: { src: PHOTOS.rideGroup, position: '50% 45%' },
+  GRAVEL: { src: PHOTOS.rideGroup, position: '20% 70%' },
+}
+
+/** What the workout is, for generated names: "10 km bėgimas kompanijoje". */
+const NOUN: Record<SportType, string> = {
+  RUN: 'bėgimas',
+  TRACK: 'treniruotė stadione',
+  CYCLING: 'važiavimas plentu',
+  GRAVEL: 'žvyrkelio išvyka',
 }
 
 function defaultStart(date: string, today: string): string {
@@ -62,16 +73,15 @@ function defaultStart(date: string, today: string): string {
 
 function suggestTitle(draft: Draft): string {
   if (!draft.sportType || !draft.vibeTag) return ''
-  const noun = SPORT_META[draft.sportType].noun
+  const noun = NOUN[draft.sportType]
   const km = Number(draft.distanceKm.replace(',', '.'))
   const distance = km > 0 ? `${formatKm(km)} km ` : ''
-  const ride = SPORT_META[draft.sportType].measure === 'speed'
   const title = {
-    ZONE_2_COFFEE: `${distance}easy ${noun} + coffee`,
-    SOCIAL_CHAT: `Social ${distance}${noun}`,
-    LONG_RUN: `${distance}long ${noun}`,
-    PACE_PUSH: `${distance}${ride ? 'fast' : 'tempo'} ${noun}`,
-    INTERVALS: `${noun === 'track session' ? 'Track' : 'Interval'} session`,
+    ZONE_2_COFFEE: `${distance}lengvai + kava`,
+    SOCIAL_CHAT: `${distance}${noun} kompanijoje`,
+    LONG_RUN: `Ilgoji: ${distance}${noun}`,
+    PACE_PUSH: `Tempas: ${distance}${noun}`,
+    INTERVALS: draft.sportType === 'TRACK' ? 'Intervalai stadione' : 'Intervalų treniruotė',
   }[draft.vibeTag]
   return title.charAt(0).toUpperCase() + title.slice(1)
 }
@@ -111,26 +121,29 @@ function stepError(step: number, draft: Draft): string | null {
   const measure = draft.sportType ? SPORT_META[draft.sportType].measure : 'pace'
   switch (step) {
     case 0:
-      return draft.sportType ? null : 'Pick a sport'
+      return draft.sportType ? null : 'Pasirink sportą'
     case 1:
-      if (!/^\d\d:\d\d$/.test(draft.startTime)) return 'Pick a start time'
+      if (!/^\d\d:\d\d$/.test(draft.startTime)) return 'Pasirink pradžios laiką'
       return timeToMinutes(draft.startTime) + draft.durationMin > 24 * 60
-        ? 'It has to finish by midnight'
+        ? 'Treniruotė turi baigtis iki vidurnakčio'
         : null
     case 2: {
       const km = Number(draft.distanceKm.replace(',', '.'))
-      if (!(km > 0) || km > 400) return 'Enter a distance'
+      if (!(km > 0) || km > 400) return 'Įvesk atstumą'
       const re = measure === 'pace' ? PACE_RE : SPEED_RE
-      const example = measure === 'pace' ? 'like 5:30' : 'like 28'
-      if (!re.test(draft.paceFrom.trim())) return `Enter a target ${measure}, ${example}`
-      if (draft.paceTo.trim() && !re.test(draft.paceTo.trim())) return `Check the second ${measure}`
+      if (!re.test(draft.paceFrom.trim())) {
+        return measure === 'pace'
+          ? 'Įvesk tikslinį tempą, pvz., 5:30'
+          : 'Įvesk vidutinį greitį, pvz., 28'
+      }
+      if (draft.paceTo.trim() && !re.test(draft.paceTo.trim())) return 'Patikrink antrą reikšmę'
       return null
     }
     case 3:
-      return draft.vibeTag ? null : 'Pick a vibe'
+      return draft.vibeTag ? null : 'Pasirink pobūdį'
     case 4:
-      if (!draft.meetingPoint) return 'Tap the map to drop a pin'
-      return draft.meetingPoint.name.trim().length >= 2 ? null : 'Name the meeting point'
+      if (!draft.meetingPoint) return 'Bakstelk žemėlapį ir pažymėk vietą'
+      return draft.meetingPoint.name.trim().length >= 2 ? null : 'Įvardyk susitikimo vietą'
     default: {
       const parsed = newSlotInputSchema.safeParse(toInput(draft))
       return parsed.success ? null : parsed.error.issues[0]!.message
@@ -202,8 +215,8 @@ export function CreateWorkoutPage() {
     create.mutate(toInput(draft), {
       onSuccess: (slot) => {
         showSlot(slot.id, slot.date)
-        toast('Workout posted')
         navigate('/', { replace: true })
+        celebrate({ kind: 'posted', slotId: slot.id, title: slot.title })
       },
       onError: toastError,
     })
@@ -213,27 +226,32 @@ export function CreateWorkoutPage() {
 
   return (
     <div className="flex h-full flex-col" style={{ '--accent': accent } as CSSProperties}>
-      <header className="shrink-0 border-b border-line pt-[env(safe-area-inset-top)]">
-        <div className="flex h-14 items-center justify-between px-2">
+      <header className="shrink-0 pt-[env(safe-area-inset-top)]">
+        <div className="flex h-16 items-center justify-between px-3">
           <button
             type="button"
             onClick={close}
-            aria-label="Close"
-            className="grid size-10 place-items-center rounded-full text-zinc-300 hover:bg-white/5"
+            aria-label="Uždaryti"
+            className="grid size-11 place-items-center rounded-full bg-raised text-white transition hover:bg-[#1f2440] active:scale-95"
           >
             <X className="size-5" aria-hidden />
           </button>
-          <p className="text-[15px] font-semibold">New workout</p>
-          <p className="w-10 text-center text-[13px] text-zinc-500 tabular">
+          <p className="text-center leading-tight">
+            <span className="block text-[11px] font-bold tracking-[0.14em] text-slate-500 uppercase">
+              Nauja treniruotė
+            </span>
+            <span className="block text-[15px] font-bold">{STEPS[step]}</span>
+          </p>
+          <p className="grid size-11 place-items-center font-display text-[17px] font-bold text-slate-400 italic tabular">
             {step + 1}/{STEPS.length}
           </p>
         </div>
-        <div className="flex gap-1 px-4 pb-3" aria-hidden>
+        <div className="flex gap-1.5 px-4 pb-3" aria-hidden>
           {STEPS.map((name, i) => (
             <span
               key={name}
               className={clsx(
-                'h-1 flex-1 rounded-full transition-colors duration-300',
+                'h-1.5 flex-1 rounded-full transition-colors duration-300',
                 i <= step ? 'bg-(--accent)' : 'bg-raised',
               )}
             />
@@ -253,20 +271,20 @@ export function CreateWorkoutPage() {
           {step === 5 && <DetailsStep draft={draft} update={update} today={today} />}
         </div>
         {showErrors && error && (
-          <p role="alert" className="mt-4 text-sm font-medium text-red-400">
+          <p role="alert" className="mt-4 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]">
             {error}
           </p>
         )}
       </main>
 
-      <footer className="flex shrink-0 gap-3 border-t border-line px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <footer className="flex shrink-0 gap-3 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         {step > 0 && (
           <Button variant="secondary" size="lg" onClick={() => setStep(step - 1)}>
-            Back
+            Atgal
           </Button>
         )}
         <Button size="lg" className="flex-1" onClick={next} loading={create.isPending}>
-          {last ? 'Post workout' : 'Next'}
+          {last ? 'Paskelbti treniruotę' : 'Toliau'}
         </Button>
       </footer>
     </div>
@@ -276,10 +294,8 @@ export function CreateWorkoutPage() {
 function Question({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="mb-5">
-      <h1 className="font-display text-[28px] leading-tight font-bold tracking-wide uppercase">
-        {title}
-      </h1>
-      {hint && <p className="mt-1 text-sm text-zinc-400">{hint}</p>}
+      <h1 className="headline text-[40px]">{title}</h1>
+      {hint && <p className="mt-2 text-sm text-slate-400">{hint}</p>}
     </div>
   )
 }
@@ -301,10 +317,10 @@ function Choice({
       aria-pressed={selected}
       onClick={onClick}
       className={clsx(
-        'rounded-xl border text-left transition-colors duration-150 active:scale-[0.98]',
+        'rounded-[22px] border-2 text-left transition-colors duration-150 active:scale-[0.98]',
         selected
           ? 'border-(--accent) bg-(--accent)/10 text-white'
-          : 'border-line bg-surface text-zinc-200 hover:border-zinc-600',
+          : 'border-transparent bg-surface text-slate-200 hover:bg-raised',
         className,
       )}
     >
@@ -328,10 +344,8 @@ function Chip({
       aria-pressed={selected}
       onClick={onClick}
       className={clsx(
-        'h-9 shrink-0 rounded-full border px-3.5 text-[13px] font-medium tabular transition-colors',
-        selected
-          ? 'border-zinc-100 bg-zinc-100 text-black'
-          : 'border-line text-zinc-300 hover:border-zinc-600',
+        'h-10 shrink-0 rounded-full px-4 text-[13px] font-bold tabular transition-colors',
+        selected ? 'bg-white text-black' : 'bg-raised text-slate-300 hover:text-white',
       )}
     >
       {children}
@@ -342,20 +356,45 @@ function Chip({
 function SportStep({ draft, onChoose }: { draft: Draft; onChoose: (s: SportType) => void }) {
   return (
     <>
-      <Question title="What are you doing?" />
+      <Question title="Ką veiksi?" hint="Pasirink sportą – nuo jo priklausys tempas ir atstumai." />
       <div className="grid grid-cols-2 gap-3">
         {SPORT_ORDER.map((sport) => {
           const meta = SPORT_META[sport]
+          const photo = SPORT_PHOTO[sport]
+          const selected = draft.sportType === sport
           return (
-            <Choice
+            <button
               key={sport}
-              selected={draft.sportType === sport}
+              type="button"
+              aria-pressed={selected}
               onClick={() => onChoose(sport)}
-              className="flex h-28 flex-col justify-between p-4"
+              style={{ '--tile': meta.accent } as CSSProperties}
+              className={clsx(
+                'relative flex h-44 flex-col justify-end overflow-hidden rounded-[24px] p-4 text-left transition active:scale-[0.98]',
+                selected ? 'ring-3 ring-(--tile)' : 'ring-1 ring-white/10',
+              )}
             >
-              <meta.Icon className="size-6" style={{ color: meta.accent }} aria-hidden />
-              <span className="text-[15px] font-semibold">{meta.label}</span>
-            </Choice>
+              <img
+                src={photo.src}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+                style={{ objectPosition: photo.position }}
+              />
+              <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
+              <span
+                className={clsx(
+                  'absolute top-3 left-3 grid size-9 place-items-center rounded-full',
+                  selected ? 'bg-(--tile) text-black' : 'glass text-white',
+                )}
+              >
+                {selected ? (
+                  <Check className="size-5" strokeWidth={3} aria-hidden />
+                ) : (
+                  <meta.Icon className="size-[18px]" aria-hidden />
+                )}
+              </span>
+              <span className="headline relative text-[28px] text-white">{meta.label}</span>
+            </button>
           )
         })}
       </div>
@@ -376,8 +415,8 @@ function WhenStep({
   const end = endTime(draft)
   return (
     <>
-      <Question title="When?" />
-      <p className="mb-2 text-[13px] font-medium text-zinc-300">Day</p>
+      <Question title="Kada?" />
+      <p className="mb-2 text-[13px] font-bold text-slate-300">Diena</p>
       <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4">
         {days.map((date) => (
           <Chip key={date} selected={draft.date === date} onClick={() => update({ date })}>
@@ -388,7 +427,7 @@ function WhenStep({
 
       <div className="mt-6 grid grid-cols-2 gap-3">
         <TextField
-          label="Start"
+          label="Pradžia"
           type="time"
           step={300}
           value={draft.startTime}
@@ -396,14 +435,14 @@ function WhenStep({
           className="tabular"
         />
         <div>
-          <p className="mb-1.5 text-[13px] font-medium text-zinc-300">Finish</p>
-          <p className="flex h-12 items-center rounded-xl border border-dashed border-line px-3.5 text-[15px] text-zinc-400 tabular">
-            {end ?? 'After midnight'}
+          <p className="mb-1.5 text-[13px] font-medium text-slate-300">Pabaiga</p>
+          <p className="flex h-13 items-center rounded-2xl border border-dashed border-white/15 px-4 text-[15px] text-slate-400 tabular">
+            {end ?? 'Po vidurnakčio'}
           </p>
         </div>
       </div>
 
-      <p className="mt-6 mb-2 text-[13px] font-medium text-zinc-300">How long, roughly?</p>
+      <p className="mt-6 mb-2 text-[13px] font-bold text-slate-300">Kiek maždaug truks?</p>
       <div className="flex flex-wrap gap-2">
         {DURATIONS.map((minutes) => (
           <Chip
@@ -411,7 +450,7 @@ function WhenStep({
             selected={draft.durationMin === minutes}
             onClick={() => update({ durationMin: minutes })}
           >
-            {formatDuration(minutes)}
+            {formatMinutes(minutes)}
           </Chip>
         ))}
       </div>
@@ -437,9 +476,9 @@ function DistanceStep({
       : usual?.cycling_avg
   return (
     <>
-      <Question title="How far, how fast?" />
+      <Question title="Kiek ir kaip greitai?" />
       <TextField
-        label="Distance"
+        label="Atstumas"
         inputMode="decimal"
         placeholder="10"
         suffix="km"
@@ -460,7 +499,7 @@ function DistanceStep({
 
       <div className="mt-7 grid grid-cols-2 gap-3">
         <TextField
-          label={pace ? 'Target pace' : 'Average speed'}
+          label={pace ? 'Tikslinis tempas' : 'Vidutinis greitis'}
           inputMode={pace ? 'text' : 'decimal'}
           placeholder={pace ? '5:15' : '26'}
           suffix={pace ? '/km' : 'km/h'}
@@ -468,7 +507,7 @@ function DistanceStep({
           onChange={(e) => update({ paceFrom: e.target.value })}
         />
         <TextField
-          label="Up to (optional)"
+          label="Iki (nebūtina)"
           inputMode={pace ? 'text' : 'decimal'}
           placeholder={pace ? '5:30' : '28'}
           suffix={pace ? '/km' : 'km/h'}
@@ -476,10 +515,10 @@ function DistanceStep({
           onChange={(e) => update({ paceTo: e.target.value })}
         />
       </div>
-      <p className="mt-2 text-[13px] text-zinc-500">
+      <p className="mt-2 text-[13px] text-slate-500">
         {usualText
-          ? `Your usual is ${usualText}. A range helps people see if they'll fit in.`
-          : 'A range helps people see if they will fit in.'}
+          ? `Tavo įprastas: ${usualText}. Intervalas padeda kitiems suprasti, ar jiems tiks.`
+          : 'Intervalas padeda kitiems suprasti, ar jiems tiks.'}
       </p>
     </>
   )
@@ -488,7 +527,7 @@ function DistanceStep({
 function VibeStep({ draft, update }: { draft: Draft; update: (p: Partial<Draft>) => void }) {
   return (
     <>
-      <Question title="What's the vibe?" />
+      <Question title="Koks pobūdis?" />
       <div className="flex flex-col gap-2">
         {VIBE_ORDER.map((vibe) => {
           const meta = VIBE_META[vibe]
@@ -500,12 +539,17 @@ function VibeStep({ draft, update }: { draft: Draft; update: (p: Partial<Draft>)
               onClick={() => update({ vibeTag: vibe })}
               className="flex items-center gap-3 p-3.5"
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-raised">
-                <meta.Icon className="size-4" aria-hidden />
+              <span
+                className={clsx(
+                  'grid size-11 shrink-0 place-items-center rounded-full',
+                  selected ? 'bg-(--accent) text-black' : 'bg-raised text-white',
+                )}
+              >
+                <meta.Icon className="size-5" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-semibold">{meta.label}</span>
-                <span className="block text-[13px] text-zinc-400">{meta.blurb}</span>
+                <span className="block text-[15px] font-bold">{meta.label}</span>
+                <span className="block text-[13px] text-slate-400">{meta.blurb}</span>
               </span>
               {selected && <Check className="size-5 text-(--accent)" aria-hidden />}
             </Choice>
@@ -514,8 +558,8 @@ function VibeStep({ draft, update }: { draft: Draft; update: (p: Partial<Draft>)
       </div>
       <div className="mt-6">
         <TextArea
-          label="Notes (optional)"
-          placeholder="Route, where exactly to wait, what to bring…"
+          label="Pastabos (nebūtina)"
+          placeholder="Maršrutas, kur tiksliai laukti, ką pasiimti…"
           maxLength={1000}
           value={draft.description}
           onChange={(e) => update({ description: e.target.value })}
@@ -550,7 +594,7 @@ function WhereStep({
 
   const locate = () => {
     if (!navigator.geolocation) {
-      toast("This browser can't share your location", 'error')
+      toast('Ši naršyklė negali nustatyti tavo vietos', 'error')
       return
     }
     setLocating(true)
@@ -561,7 +605,7 @@ function WhereStep({
       },
       () => {
         setLocating(false)
-        toast("Couldn't get your location", 'error')
+        toast('Nepavyko nustatyti tavo vietos', 'error')
       },
       { enableHighAccuracy: true, timeout: 10_000 },
     )
@@ -570,10 +614,10 @@ function WhereStep({
   return (
     <>
       <Question
-        title="Where do you meet?"
-        hint="Tap the map to drop a pin, or pick a known spot."
+        title="Kur susitinkate?"
+        hint="Bakstelk žemėlapį arba pasirink populiarią vietą."
       />
-      <div className="relative h-56 overflow-hidden rounded-xl border border-line">
+      <div className="relative h-60 overflow-hidden rounded-[24px] border border-white/10">
         <LazyLocationMap
           point={lngLat}
           onPick={pick}
@@ -584,16 +628,16 @@ function WhereStep({
           type="button"
           onClick={locate}
           disabled={locating}
-          className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-ink/90 px-3 py-1.5 text-[13px] font-medium text-white shadow-lg backdrop-blur disabled:opacity-60"
+          className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[13px] font-bold text-black shadow-lg disabled:opacity-60"
         >
           <LocateFixed className={clsx('size-4', locating && 'animate-pulse')} aria-hidden />
-          Use my location
+          Mano vieta
         </button>
       </div>
 
       {popular.length > 0 && (
         <>
-          <p className="mt-5 mb-2 text-[13px] font-medium text-zinc-300">Popular spots</p>
+          <p className="mt-5 mb-2 text-[13px] font-bold text-slate-300">Populiarios vietos</p>
           <div className="flex flex-wrap gap-2">
             {popular.map((spot) => (
               <Chip
@@ -613,11 +657,11 @@ function WhereStep({
 
       <div className="mt-5">
         <TextField
-          label="Meeting point name"
-          placeholder="e.g. Vondelpark, by the tea house"
+          label="Susitikimo vietos pavadinimas"
+          placeholder="pvz., Vingio parkas, prie estrados"
           value={point?.name ?? ''}
           disabled={!point}
-          hint={point ? 'What people will look for when they arrive.' : 'Drop a pin first.'}
+          hint={point ? 'Ko žmonės ieškos atvykę.' : 'Pirmiausia pažymėk vietą žemėlapyje.'}
           onChange={(e) => point && update({ meetingPoint: { ...point, name: e.target.value } })}
         />
       </div>
@@ -640,26 +684,26 @@ function DetailsStep({
   const size = draft.maxParticipants ?? 6
   return (
     <>
-      <Question title="Last details" />
+      <Question title="Paskutinės detalės" />
       <TextField
-        label="Name"
+        label="Pavadinimas"
         placeholder={suggestTitle(draft)}
         maxLength={120}
         value={draft.title}
-        hint="Leave it empty to use the suggestion."
+        hint="Palik tuščią – naudosime pasiūlymą."
         onChange={(e) => update({ title: e.target.value })}
       />
 
       <div className="mt-6 flex items-center justify-between">
         <div>
-          <p className="text-[15px] font-medium text-white">Limit group size</p>
-          <p className="text-[13px] text-zinc-500">Including you</p>
+          <p className="text-[15px] font-bold text-white">Riboti grupės dydį</p>
+          <p className="text-[13px] text-slate-500">Įskaitant tave</p>
         </div>
         <button
           type="button"
           role="switch"
           aria-checked={limited}
-          aria-label="Limit group size"
+          aria-label="Riboti grupės dydį"
           onClick={() => update({ maxParticipants: limited ? null : size })}
           className={clsx(
             'relative h-7 w-12 rounded-full transition-colors',
@@ -675,20 +719,22 @@ function DetailsStep({
         </button>
       </div>
       {limited && (
-        <div className="mt-3 flex items-center justify-center gap-6 rounded-xl border border-line bg-surface py-3">
+        <div className="mt-3 flex items-center justify-center gap-6 rounded-[22px] bg-surface py-3">
           <button
             type="button"
-            aria-label="Fewer people"
+            aria-label="Mažiau žmonių"
             onClick={() => update({ maxParticipants: Math.max(2, size - 1) })}
             className="grid size-10 place-items-center rounded-full bg-raised text-white disabled:opacity-40"
             disabled={size <= 2}
           >
             <Minus className="size-4" aria-hidden />
           </button>
-          <span className="w-16 text-center font-display text-3xl font-bold tabular">{size}</span>
+          <span className="w-16 text-center font-display text-4xl font-bold italic tabular">
+            {size}
+          </span>
           <button
             type="button"
-            aria-label="More people"
+            aria-label="Daugiau žmonių"
             onClick={() => update({ maxParticipants: Math.min(50, size + 1) })}
             className="grid size-10 place-items-center rounded-full bg-raised text-white disabled:opacity-40"
             disabled={size >= 50}
@@ -698,30 +744,43 @@ function DetailsStep({
         </div>
       )}
 
-      <div className="mt-7 rounded-xl border border-line bg-surface p-4">
-        <p className="text-[12px] font-semibold tracking-wider text-(--accent) uppercase">
-          {sport.label} · {relativeDay(draft.date, today)}
-        </p>
-        <p className="mt-1 text-[17px] font-semibold text-white">
-          {draft.title.trim() || suggestTitle(draft)}
-        </p>
-        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[14px]">
-          <dt className="text-zinc-500">Time</dt>
-          <dd className="text-zinc-200 tabular">
-            {draft.startTime}
-            {endTime(draft) && `–${endTime(draft)}`}
-          </dd>
-          <dt className="text-zinc-500">Distance</dt>
-          <dd className="text-zinc-200">
-            {formatKm(Number(draft.distanceKm.replace(',', '.')))} km at {targetPace(draft)}
-          </dd>
-          <dt className="text-zinc-500">Vibe</dt>
-          <dd className="text-zinc-200">{vibe.label}</dd>
-          <dt className="text-zinc-500">Meet</dt>
-          <dd className="truncate text-zinc-200">{draft.meetingPoint?.name}</dd>
-          <dt className="text-zinc-500">Group</dt>
-          <dd className="text-zinc-200">{limited ? `Up to ${size}` : 'No limit'}</dd>
-        </dl>
+      <p className="mt-8 mb-2 text-[13px] font-bold text-slate-300">Taip atrodys kitiems</p>
+      <div className="overflow-hidden rounded-[24px] bg-surface">
+        <div className="relative h-32">
+          <img
+            src={SPORT_PHOTO[draft.sportType!].src}
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+            style={{ objectPosition: SPORT_PHOTO[draft.sportType!].position }}
+          />
+          <span className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
+          <span className="absolute bottom-3 left-4 flex items-center gap-1.5 rounded-full bg-(--accent) px-3 py-1 text-[12px] font-bold text-black">
+            <sport.Icon className="size-3.5" aria-hidden />
+            {sport.label} · {relativeDay(draft.date, today)}
+          </span>
+        </div>
+        <div className="p-4 pt-2">
+          <p className="headline text-[28px] text-white">
+            {draft.title.trim() || suggestTitle(draft)}
+          </p>
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[14px]">
+            <dt className="text-slate-500">Laikas</dt>
+            <dd className="text-slate-200 tabular">
+              {draft.startTime}
+              {endTime(draft) && `–${endTime(draft)}`}
+            </dd>
+            <dt className="text-slate-500">Atstumas</dt>
+            <dd className="text-slate-200">
+              {formatKm(Number(draft.distanceKm.replace(',', '.')))} km, {targetPace(draft)}
+            </dd>
+            <dt className="text-slate-500">Pobūdis</dt>
+            <dd className="text-slate-200">{vibe.label}</dd>
+            <dt className="text-slate-500">Vieta</dt>
+            <dd className="truncate text-slate-200">{draft.meetingPoint?.name}</dd>
+            <dt className="text-slate-500">Grupė</dt>
+            <dd className="text-slate-200">{limited ? `Iki ${size} žm.` : 'Be apribojimų'}</dd>
+          </dl>
+        </div>
       </div>
     </>
   )

@@ -1,4 +1,4 @@
-import { toISODate, type ChatMessage, type SlotDetail } from '@grouppace/shared'
+import { toISODate, type ChatMessage, type SlotDetail } from '@pacemates/shared'
 import clsx from 'clsx'
 import { ArrowUp, Lock, MessageCircle } from 'lucide-react'
 import {
@@ -16,7 +16,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { TopBar } from '../../components/TopBar'
 import { useSession } from '../../data/auth'
 import { useMessages, useSendMessage, useSlot } from '../../data/hooks'
-import { clockTime, firstName, relativeDay } from '../../lib/format'
+import { clockTime, countOf, firstName, relativeDay, WORDS } from '../../lib/format'
 import { toastError } from '../../lib/toast'
 import { SPORT_META } from '../slots/meta'
 
@@ -40,27 +40,27 @@ export function ChatPage() {
           slot ? (
             <Link to={`/workouts/${id}`} className="block min-w-0">
               <span className="block truncate">{slot.title}</span>
-              <span className="block truncate text-[12px] font-normal text-zinc-500">
-                {relativeDay(slot.date, toISODate(new Date()))} · {slot.startTime} ·{' '}
-                {slot.participantCount} going
+              <span className="block truncate text-[12px] font-medium text-slate-500">
+                {relativeDay(slot.date, toISODate(new Date()))}, {slot.startTime} ·{' '}
+                {countOf(slot.participantCount, WORDS.person)}
               </span>
             </Link>
           ) : (
-            'Group chat'
+            'Grupės pokalbis'
           )
         }
       />
       {slotQuery.isPending ? null : !slot ? (
-        <EmptyState Icon={MessageCircle} title="Chat not found" />
+        <EmptyState Icon={MessageCircle} title="Pokalbis nerastas" />
       ) : isMember ? (
         <Conversation slot={slot} myId={session!.userId} />
       ) : (
         <EmptyState
           Icon={Lock}
-          title="Join to see the chat"
-          action={<ButtonLink to={`/workouts/${id}`}>See the workout</ButtonLink>}
+          title="Prisijunk prie treniruotės"
+          action={<ButtonLink to={`/workouts/${id}`}>Žiūrėti treniruotę</ButtonLink>}
         >
-          Only people going to {slot.title} can read and post here.
+          Šį pokalbį skaityti ir jame rašyti gali tik treniruotės „{slot.title}“ dalyviai.
         </EmptyState>
       )}
     </div>
@@ -104,8 +104,8 @@ function Conversation({ slot, myId }: { slot: SlotDetail; myId: string }) {
     <>
       <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         {messages.isPending ? null : count === 0 ? (
-          <EmptyState Icon={MessageCircle} title="Start the conversation">
-            Share where exactly you'll wait, or ask about the route.
+          <EmptyState Icon={MessageCircle} title="Pradėk pokalbį">
+            Parašyk, kur tiksliai lauksi, arba paklausk apie maršrutą.
           </EmptyState>
         ) : (
           <MessageList
@@ -118,11 +118,11 @@ function Conversation({ slot, myId }: { slot: SlotDetail; myId: string }) {
 
       <form
         onSubmit={submit}
-        className="shrink-0 border-t border-line bg-ink px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]"
+        className="shrink-0 border-t border-white/[0.06] bg-surface px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]"
       >
         <div className="flex items-end gap-2">
           <label htmlFor="chat-input" className="sr-only">
-            Message
+            Žinutė
           </label>
           <textarea
             id="chat-input"
@@ -131,15 +131,15 @@ function Conversation({ slot, myId }: { slot: SlotDetail; myId: string }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Message the group"
+            placeholder="Rašyk grupei…"
             maxLength={2000}
-            className="max-h-30 min-h-11 flex-1 resize-none rounded-[22px] border border-line bg-raised px-4 py-2.5 text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+            className="max-h-30 min-h-11 flex-1 resize-none rounded-[22px] border border-white/10 bg-raised px-4 py-2.5 text-white placeholder:text-slate-500 focus:border-blue focus:outline-none"
           />
           <button
             type="submit"
             disabled={!draft.trim() || send.isPending}
-            aria-label="Send"
-            className="grid size-11 shrink-0 place-items-center rounded-full bg-volt text-black transition active:scale-95 disabled:bg-raised disabled:text-zinc-600"
+            aria-label="Siųsti"
+            className="grid size-11 shrink-0 place-items-center rounded-full bg-volt text-black transition active:scale-95 disabled:bg-raised disabled:text-slate-600"
           >
             <ArrowUp className="size-5" strokeWidth={2.5} aria-hidden />
           </button>
@@ -175,7 +175,7 @@ function MessageList({
         return (
           <li key={message.id} className={clsx(grouped ? 'mt-0.5' : 'mt-3')}>
             {newDay && (
-              <p className="mb-3 text-center text-[12px] font-medium text-zinc-500">
+              <p className="mx-auto mb-3 w-fit rounded-full bg-raised px-3 py-1 text-center text-[12px] font-bold text-slate-400">
                 {relativeDay(day, today)}
               </p>
             )}
@@ -189,20 +189,20 @@ function MessageList({
                 className={clsx('flex max-w-[78%] flex-col', mine ? 'items-end' : 'items-start')}
               >
                 {!mine && !grouped && (
-                  <span className="mb-0.5 ml-1 text-[12px] font-medium" style={{ color: accent }}>
+                  <span className="mb-0.5 ml-1 text-[12px] font-bold" style={{ color: accent }}>
                     {firstName(message.sender.name)}
                   </span>
                 )}
                 <div
                   className={clsx(
-                    'rounded-[18px] px-3.5 py-2 text-[15px] leading-snug break-words whitespace-pre-wrap',
-                    mine ? 'bg-volt text-black' : 'bg-raised text-zinc-100',
+                    'rounded-[20px] px-3.5 py-2 text-[15px] leading-snug break-words whitespace-pre-wrap',
+                    mine ? 'rounded-br-md bg-blue text-white' : 'rounded-bl-md bg-raised text-slate-100',
                   )}
                 >
                   {message.content}
                 </div>
               </div>
-              <span className="mb-1 shrink-0 text-[11px] text-zinc-600 tabular">
+              <span className="mb-1 shrink-0 text-[11px] text-slate-600 tabular">
                 {clockTime(message.createdAt)}
               </span>
             </div>

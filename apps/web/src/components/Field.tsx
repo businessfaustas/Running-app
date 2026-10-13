@@ -2,8 +2,8 @@ import clsx from 'clsx'
 import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 
 const CONTROL =
-  'w-full rounded-xl border border-line bg-raised px-3.5 text-[15px] text-white placeholder:text-zinc-500 ' +
-  'transition-colors focus:border-zinc-400 focus:outline-none disabled:opacity-60'
+  'w-full rounded-2xl border border-line bg-raised px-4 text-[15px] text-white placeholder:text-slate-500 ' +
+  'transition-colors focus:border-volt/70 focus:outline-none disabled:opacity-60'
 
 interface FieldShellProps {
   label: string
@@ -16,14 +16,14 @@ interface FieldShellProps {
 function FieldShell({ label, hint, error, id, children }: FieldShellProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-zinc-300">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-slate-300">
         {label}
       </label>
       {children}
       {error ? (
-        <p className="mt-1.5 text-[13px] text-red-400">{error}</p>
+        <p className="mt-1.5 text-[13px] text-[#ff7a7a]">{error}</p>
       ) : (
-        hint && <p className="mt-1.5 text-[13px] text-zinc-500">{hint}</p>
+        hint && <p className="mt-1.5 text-[13px] text-slate-500">{hint}</p>
       )}
     </div>
   )
@@ -48,7 +48,7 @@ export function TextField({ label, hint, error, suffix, className, id, ...props 
           aria-invalid={Boolean(error) || undefined}
           className={clsx(
             CONTROL,
-            'h-12',
+            'h-13',
             suffix && 'pr-14',
             error && 'border-red-400/60',
             className,
@@ -56,7 +56,7 @@ export function TextField({ label, hint, error, suffix, className, id, ...props 
           {...props}
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm text-zinc-500">
+          <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm text-slate-500">
             {suffix}
           </span>
         )}

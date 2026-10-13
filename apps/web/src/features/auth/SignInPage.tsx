@@ -6,9 +6,12 @@ import { backend } from '../../backend'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { TextField } from '../../components/Field'
+import { Logo } from '../../components/Logo'
 import { TopBar } from '../../components/TopBar'
 import { useSession } from '../../data/auth'
+import { PHOTOS } from '../../lib/photos'
 import { toastError } from '../../lib/toast'
+import { useSampleSignIn } from './useSampleSignIn'
 
 type Mode = 'signin' | 'signup'
 
@@ -23,12 +26,13 @@ export function SignInPage() {
   const session = useSession()
   const [signedInOnArrival] = useState(() => session !== null)
   const next = safeNext(params.get('next'))
+  const sample = useSampleSignIn(next)
 
   const [mode, setMode] = useState<Mode>(params.get('mode') === 'signup' ? 'signup' : 'signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [busy, setBusy] = useState<'form' | 'sample' | null>(null)
+  const [busy, setBusy] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState<string | null>(null)
 
   // Arrived already signed in (e.g. pressed back after signing in).
@@ -36,7 +40,7 @@ export function SignInPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    setBusy('form')
+    setBusy(true)
     try {
       if (mode === 'signin') {
         await backend.signIn({ email, password })
@@ -49,19 +53,7 @@ export function SignInPage() {
     } catch (error) {
       toastError(error)
     } finally {
-      setBusy(null)
-    }
-  }
-
-  const trySample = async () => {
-    setBusy('sample')
-    try {
-      await backend.signInAsSample?.()
-      navigate(next, { replace: true })
-    } catch (error) {
-      toastError(error)
-    } finally {
-      setBusy(null)
+      setBusy(false)
     }
   }
 
@@ -71,7 +63,7 @@ export function SignInPage() {
         <TopBar />
         <EmptyState
           Icon={MailCheck}
-          title="Check your inbox"
+          title="Patikrink paštą"
           action={
             <Button
               variant="secondary"
@@ -80,99 +72,122 @@ export function SignInPage() {
                 setMode('signin')
               }}
             >
-              Back to sign in
+              Grįžti į prisijungimą
             </Button>
           }
         >
-          We sent a link to {confirmEmail}. Open it to confirm your account, then sign in.
+          Išsiuntėme nuorodą adresu {confirmEmail}. Atidaryk ją, patvirtink paskyrą ir
+          prisijunk.
         </EmptyState>
       </div>
     )
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <TopBar />
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-10">
+    <div className="relative h-full overflow-hidden bg-black">
+      <img
+        src={PHOTOS.runCoast}
+        alt=""
+        className="absolute inset-0 size-full object-cover opacity-80 motion-safe:animate-ken"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/95" />
+      <TopBar overlay />
+
+      <div className="relative h-full overflow-y-auto px-5 pt-[calc(env(safe-area-inset-top)+80px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <div className="mx-auto max-w-sm">
-          <img src="/icon.svg" alt="" className="size-12 rounded-xl" />
-          <h1 className="mt-5 font-display text-[34px] leading-none font-bold tracking-wide uppercase">
-            {mode === 'signin' ? 'Welcome back' : 'Join GroupPace'}
+          <Logo className="text-white" size={22} />
+          <h1 className="headline mt-5 text-[54px] text-white">
+            {mode === 'signin' ? (
+              <>
+                Sveiki
+                <br />
+                <span className="text-volt">sugrįžę</span>
+              </>
+            ) : (
+              <>
+                Bėkim
+                <br />
+                <span className="text-volt">kartu</span>
+              </>
+            )}
           </h1>
-          <p className="mt-2 text-[15px] text-zinc-400">
-            Find people to run and ride with, any time of day.
+          <p className="mt-3 text-[15px] text-white/80">
+            Rask, su kuo bėgti ar minti – bet kuriuo paros metu.
           </p>
 
-          <div className="mt-6 grid grid-cols-2 rounded-full border border-line p-1" role="tablist">
-            {(
-              [
-                ['signin', 'Sign in'],
-                ['signup', 'Create account'],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={mode === id}
-                onClick={() => setMode(id)}
-                className={clsx(
-                  'h-9 rounded-full text-[14px] font-semibold transition-colors',
-                  mode === id ? 'bg-zinc-100 text-black' : 'text-zinc-400 hover:text-white',
-                )}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="glass mt-6 rounded-[28px] p-4">
+            <div className="grid grid-cols-2 rounded-full bg-black/30 p-1" role="tablist">
+              {(
+                [
+                  ['signin', 'Prisijungti'],
+                  ['signup', 'Registruotis'],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === id}
+                  onClick={() => setMode(id)}
+                  className={clsx(
+                    'h-10 rounded-full text-[14px] font-bold transition-colors',
+                    mode === id ? 'bg-white text-black' : 'text-white/70 hover:text-white',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={submit} className="mt-4 space-y-3.5">
+              {mode === 'signup' && (
+                <TextField
+                  label="Vardas ir pavardė"
+                  autoComplete="name"
+                  required
+                  minLength={2}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              )}
+              <TextField
+                label="El. paštas"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextField
+                label="Slaptažodis"
+                type="password"
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                required
+                minLength={mode === 'signup' ? 8 : undefined}
+                hint={mode === 'signup' ? 'Bent 8 simboliai.' : undefined}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button type="submit" size="lg" className="w-full" loading={busy}>
+                {mode === 'signin' ? 'Prisijungti' : 'Sukurti paskyrą'}
+              </Button>
+            </form>
           </div>
 
-          <form onSubmit={submit} className="mt-6 space-y-4">
-            {mode === 'signup' && (
-              <TextField
-                label="Name"
-                autoComplete="name"
-                required
-                minLength={2}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            )}
-            <TextField
-              label="Email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              required
-              minLength={mode === 'signup' ? 8 : undefined}
-              hint={mode === 'signup' ? 'At least 8 characters.' : undefined}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button type="submit" size="lg" className="w-full" loading={busy === 'form'}>
-              {mode === 'signin' ? 'Sign in' : 'Create account'}
-            </Button>
-          </form>
-
-          {backend.mode === 'demo' && (
-            <div className="mt-8 border-t border-line pt-6">
+          {sample && (
+            <div className="mt-5">
               <Button
-                variant="secondary"
+                variant="light"
                 size="lg"
                 className="w-full"
-                loading={busy === 'sample'}
-                onClick={trySample}
+                loading={sample.busy}
+                onClick={sample.signIn}
               >
-                Look around as Maya, a sample athlete
+                Išbandyti kaip Gabija
               </Button>
-              <p className="mt-3 text-center text-[12.5px] leading-relaxed text-zinc-500">
-                Preview mode: accounts, workouts and messages are saved in this browser only.
+              <p className="mt-3 text-center text-[12.5px] leading-relaxed text-white/60">
+                Peržiūros režimas: paskyros, treniruotės ir žinutės saugomos tik šioje
+                naršyklėje.
               </p>
             </div>
           )}

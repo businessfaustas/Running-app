@@ -69,3 +69,55 @@ export interface SlotSummary {
   /** Up to three accepted participants other than the host, earliest joiners first. */
   participantPreview: UserSummary[]
 }
+
+export interface Participant extends UserSummary {
+  status: ParticipantStatus
+  /** ISO timestamp. */
+  joinedAt: string
+  isHost: boolean
+  defaultPaces: DefaultPaces
+}
+
+export interface SlotDetail extends SlotSummary {
+  description: string | null
+  /** Host first, then everyone else in join order. */
+  participants: Participant[]
+}
+
+/** A slot as seen from one user's calendar. */
+export interface UserSlot {
+  slot: SlotSummary
+  role: 'HOST' | 'PARTICIPANT'
+}
+
+export interface ChatMessage {
+  id: string
+  slotId: string
+  sender: UserSummary
+  content: string
+  /** ISO timestamp. */
+  createdAt: string
+}
+
+export interface ChatThread {
+  slot: SlotSummary
+  lastMessage: ChatMessage | null
+}
+
+export interface NewSlotInput {
+  title: string
+  sportType: SportType
+  date: string
+  startTime: string
+  endTime: string | null
+  distanceKm: number
+  targetPace: string
+  vibeTag: VibeTag
+  description: string | null
+  meetingPoint: { name: string; lat: number; lng: number }
+  maxParticipants: number | null
+}
+
+export type ProfileUpdate = Partial<
+  Pick<Profile, 'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl'>
+>

@@ -1,24 +1,65 @@
 import type { SportType, VibeTag } from '@grouppace/shared'
-import { Bike, Footprints, Mountain, Timer, type LucideIcon } from 'lucide-react'
+import {
+  Bike,
+  Coffee,
+  Footprints,
+  Gauge,
+  MessagesSquare,
+  Mountain,
+  Repeat,
+  Route,
+  Timer,
+  type LucideIcon,
+} from 'lucide-react'
 
 interface SportMeta {
   label: string
+  /** Noun for sentences: "a run", "a ride". */
+  noun: string
   Icon: LucideIcon
   /** CSS colour used as the card/pin accent (exposed to Tailwind as `--accent`). */
   accent: string
+  /** Pace for runs, speed for rides. */
+  measure: 'pace' | 'speed'
 }
 
 export const SPORT_META: Record<SportType, SportMeta> = {
-  RUN: { label: 'Run', Icon: Footprints, accent: 'var(--color-volt)' },
-  TRACK: { label: 'Track', Icon: Timer, accent: 'var(--color-ice)' },
-  CYCLING: { label: 'Road ride', Icon: Bike, accent: 'var(--color-blaze)' },
-  GRAVEL: { label: 'Gravel', Icon: Mountain, accent: 'var(--color-dune)' },
+  RUN: {
+    label: 'Run',
+    noun: 'run',
+    Icon: Footprints,
+    accent: 'var(--color-volt)',
+    measure: 'pace',
+  },
+  TRACK: {
+    label: 'Track',
+    noun: 'track session',
+    Icon: Timer,
+    accent: 'var(--color-ice)',
+    measure: 'pace',
+  },
+  CYCLING: {
+    label: 'Road ride',
+    noun: 'ride',
+    Icon: Bike,
+    accent: 'var(--color-blaze)',
+    measure: 'speed',
+  },
+  GRAVEL: {
+    label: 'Gravel',
+    noun: 'gravel ride',
+    Icon: Mountain,
+    accent: 'var(--color-dune)',
+    measure: 'speed',
+  },
 }
+
+export const SPORT_ORDER: SportType[] = ['RUN', 'TRACK', 'CYCLING', 'GRAVEL']
 
 export const SPORT_FILTERS = [
   { id: 'ALL', label: 'All', sports: null },
   { id: 'RUN', label: 'Run', sports: ['RUN', 'TRACK'] },
-  { id: 'BIKE', label: 'Bike', sports: ['CYCLING', 'GRAVEL'] },
+  { id: 'RIDE', label: 'Ride', sports: ['CYCLING', 'GRAVEL'] },
 ] as const satisfies readonly { id: string; label: string; sports: readonly SportType[] | null }[]
 
 export type SportFilter = (typeof SPORT_FILTERS)[number]['id']
@@ -28,10 +69,22 @@ export function matchesSportFilter(sport: SportType, filter: SportFilter): boole
   return sports === null || (sports as readonly SportType[]).includes(sport)
 }
 
-export const VIBE_META: Record<VibeTag, { emoji: string; label: string }> = {
-  ZONE_2_COFFEE: { emoji: '☕', label: 'Zone 2 + Coffee' },
-  PACE_PUSH: { emoji: '⏱️', label: 'Pace Push' },
-  SOCIAL_CHAT: { emoji: '🗣️', label: 'Social' },
-  LONG_RUN: { emoji: '🛣️', label: 'Long Run' },
-  INTERVALS: { emoji: '🔁', label: 'Intervals' },
+export const VIBE_META: Record<VibeTag, { label: string; Icon: LucideIcon; blurb: string }> = {
+  ZONE_2_COFFEE: {
+    label: 'Easy + coffee',
+    Icon: Coffee,
+    blurb: 'Conversational pace, coffee afterwards',
+  },
+  SOCIAL_CHAT: { label: 'Social', Icon: MessagesSquare, blurb: 'Relaxed, nobody gets dropped' },
+  PACE_PUSH: { label: 'Pace push', Icon: Gauge, blurb: 'Working hard at a set pace' },
+  LONG_RUN: { label: 'Long one', Icon: Route, blurb: 'Steady miles, time on feet' },
+  INTERVALS: { label: 'Intervals', Icon: Repeat, blurb: 'Reps with recovery between' },
 }
+
+export const VIBE_ORDER: VibeTag[] = [
+  'ZONE_2_COFFEE',
+  'SOCIAL_CHAT',
+  'LONG_RUN',
+  'PACE_PUSH',
+  'INTERVALS',
+]

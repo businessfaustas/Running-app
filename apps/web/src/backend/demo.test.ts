@@ -1,0 +1,169 @@
+import { MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
+import { describe, expect, it } from 'vitest'
+import { createDemoBackend, type KeyValueStorage } from './demo'
+import { BackendError } from './types'
+
+const NOW = new Date('2026-10-13T09:00:00')
+const TODAY = '2026-10-13'
+
+function memoryStorage(): KeyValueStorage {
+  const data = new Map<string, string>()
+  return { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) }
+}
+
+function setup(storage = memoryStorage()) {
+  return createDemoBackend({ storage, now: () => NOW, latencyMs: 0 })
+}
+
+const fullRide = MOCK_SLOTS.find((s) => s.title === 'After-Work Road Ride')!
+const coffeeRun = MOCK_SLOTS.find((s) => s.title === '15km Zone 2 Coffee Run')!
+const cancelledRide = MOCK_SLOTS.find((s) => s.status === 'CANCELLED')!
+
+describe('demo backend', () => {
+  it('dates the sample workouts around today and derives FULL from the head-count', async () => {
+    const backend = setup()
+    const slots = await backend.listSlots({ from: TODAY, to: TODAY })
+    expect(slots.length).toBe(MOCK_SLOTS.filter((s) => s.dayOffset === 0).length)
+    expect(slots.find((s) => s.id === fullRide.id)).toMatchObject({
+      status: 'FULL',
+      participantCount: 6,
+    })
+    expect(slots.map((s) => s.startTime)).toEqual([...slots.map((s) => s.startTime)].sort())
+  })
+
+  it('signs up, persists the account and signs back in', async () => {
+    const storage = memoryStorage()
+    const backend = setup(storage)
+    await backend.signUp({ name: 'Ana Runner', email: 'Ana@Example.com', password: 'longenough' })
+    const session = await backend.getSession()
+    expect(session?.email).toBe('ana@example.com')
+    expect((await backend.getProfile(session!.userId))?.name).toBe('Ana Runner')
+
+    await backend.signOut()
+    const reloaded = setup(storage)
+    await expect(
+      reloaded.signIn({ email: 'ana@example.com', password: 'wrong-password' }),
+    ).rejects.toThrow('Wrong email or password')
+    await reloaded.signIn({ email: 'ana@example.com', password: 'longenough' })
+    expect((await reloaded.getSession())?.userId).toBe(session!.userId)
+  })
+
+  it('rejects duplicate emails and short passwords', async () => {
+    const backend = setup()
+    await expect(
+      backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'short' }),
+    ).rejects.toBeInstanceOf(BackendError)
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    await expect(
+      backend.signUp({ name: 'Ana 2', email: 'A@B.co', password: 'longenough' }),
+    ).rejects.toThrow('already an account')
+  })
+
+  it('joins and leaves, keeping counts and FULL status in sync', async () => {
+    const backend = setup()
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    const me = (await backend.getSession())!.userId
+
+    await backend.joinSlot(coffeeRun.id)
+    let detail = await backend.getSlot(coffeeRun.id)
+    expect(detail?.participantCount).toBe(coffeeRun.participantIds.length + 2)
+    expect(detail?.participants.at(-1)?.id).toBe(me)
+    expect(detail?.participants[0]?.isHost).toBe(true)
+
+    await backend.leaveSlot(coffeeRun.id)
+    detail = await backend.getSlot(coffeeRun.id)
+    expect(detail?.participants.some((p) => p.id === me)).toBe(false)
+
+    await expect(backend.joinSlot(fullRide.id)).rejects.toThrow('full')
+    await expect(backend.joinSlot(cancelledRide.id)).rejects.toThrow('cancelled')
+  })
+
+  it('reopens a full workout when someone leaves', async () => {
+    const backend = setup()
+    await backend.signInAsSample!() // Maya, who is riding the full ride
+    await backend.leaveSlot(fullRide.id)
+    expect((await backend.getSlot(fullRide.id))?.status).toBe('OPEN')
+  })
+
+  it('lets hosts cancel but not leave their own workout', async () => {
+    const backend = setup()
+    await backend.signInAsSample!() // Maya hosts the coffee run
+    await expect(backend.leaveSlot(coffeeRun.id)).rejects.toThrow("Hosts can't leave")
+    await backend.cancelSlot(coffeeRun.id)
+    expect((await backend.getSlot(coffeeRun.id))?.status).toBe('CANCELLED')
+    await expect(backend.cancelSlot(fullRide.id)).rejects.toThrow('Only the host')
+  })
+
+  it('creates workouts with the host already going', async () => {
+    const backend = setup()
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    const created = await backend.createSlot({
+      title: 'Friday shakeout',
+      sportType: 'RUN',
+      date: '2026-10-16',
+      startTime: '07:00',
+      endTime: '07:45',
+      distanceKm: 6,
+      targetPace: '5:45 /km',
+      vibeTag: 'SOCIAL_CHAT',
+      description: null,
+      meetingPoint: { name: 'Vondelpark', lat: 52.358, lng: 4.8686 },
+      maxParticipants: 4,
+    })
+    expect(created).toMatchObject({ participantCount: 1, status: 'OPEN', host: { name: 'Ana' } })
+    const friday = await backend.listSlots({ from: '2026-10-16', to: '2026-10-16' })
+    expect(friday.some((s) => s.id === created.id)).toBe(true)
+    const mine = await backend.listUserSlots((await backend.getSession())!.userId)
+    expect(mine).toEqual([expect.objectContaining({ role: 'HOST' })])
+  })
+
+  it('validates new workouts', async () => {
+    const backend = setup()
+    await backend.signInAsSample!()
+    await expect(
+      backend.createSlot({
+        title: 'X',
+        sportType: 'RUN',
+        date: TODAY,
+        startTime: '10:00',
+        endTime: '09:00',
+        distanceKm: 5,
+        targetPace: '6:00 /km',
+        vibeTag: 'SOCIAL_CHAT',
+        description: null,
+        meetingPoint: { name: 'Park', lat: 52, lng: 4 },
+        maxParticipants: null,
+      }),
+    ).rejects.toBeInstanceOf(BackendError)
+  })
+
+  it('only shows the chat to participants', async () => {
+    const backend = setup()
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    expect(await backend.listMessages(coffeeRun.id)).toEqual([])
+    await expect(backend.sendMessage(coffeeRun.id, 'hi')).rejects.toThrow('Join the workout')
+
+    await backend.joinSlot(coffeeRun.id)
+    const before = await backend.listMessages(coffeeRun.id)
+    expect(before.length).toBeGreaterThan(0)
+
+    let notified = 0
+    const stop = backend.subscribeToMessages(coffeeRun.id, () => notified++)
+    await backend.sendMessage(coffeeRun.id, '  See you at 10  ')
+    stop()
+    const after = await backend.listMessages(coffeeRun.id)
+    expect(after.at(-1)).toMatchObject({ content: 'See you at 10', sender: { name: 'Ana' } })
+    expect(notified).toBe(1)
+
+    const threads = await backend.listThreads()
+    expect(threads[0]?.slot.id).toBe(coffeeRun.id)
+  })
+
+  it('lets athletes edit their profile', async () => {
+    const backend = setup()
+    await backend.signInAsSample!()
+    const updated = await backend.updateProfile({ bio: 'Sub-3:30 or bust' })
+    expect(updated).toMatchObject({ name: MOCK_USERS[0]!.name, bio: 'Sub-3:30 or bust' })
+    await expect(backend.updateProfile({ name: ' ' })).rejects.toThrow('Enter your name')
+  })
+})

@@ -2,16 +2,17 @@ import type { UserSummary } from '@grouppace/shared'
 import clsx from 'clsx'
 import { useState } from 'react'
 
-const GRADIENTS = [
-  ['#6366f1', '#a855f7'],
-  ['#0ea5e9', '#22d3ee'],
-  ['#f43f5e', '#fb923c'],
-  ['#10b981', '#84cc16'],
-  ['#f59e0b', '#f97316'],
-  ['#ec4899', '#8b5cf6'],
-  ['#14b8a6', '#0ea5e9'],
-  ['#64748b', '#94a3b8'],
-] as const
+// Muted, flat fills for athletes without a photo.
+const FILLS = [
+  '#3f5a8a',
+  '#2f6f6a',
+  '#7a4b8c',
+  '#8a5a2f',
+  '#3d6b3a',
+  '#8a3f4f',
+  '#4f4f8a',
+  '#5f6670',
+]
 
 function hash(value: string): number {
   let h = 0
@@ -34,30 +35,30 @@ interface AvatarProps {
   className?: string
 }
 
-/** Photo when available, otherwise initials on a gradient derived from the user id. */
-export function Avatar({ user, size = 28, className }: AvatarProps) {
+/** Photo when available, otherwise initials on a colour derived from the user id. */
+export function Avatar({ user, size = 32, className }: AvatarProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const showImage = user.avatarUrl !== null && user.avatarUrl !== failedSrc
-  const [from, to] = GRADIENTS[hash(user.id) % GRADIENTS.length]!
 
   return (
     <span
-      title={user.name}
       className={clsx(
-        'inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-semibold text-white',
+        'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-semibold text-white/90',
         className,
       )}
       style={{
         width: size,
         height: size,
-        fontSize: Math.round(size * 0.38),
-        backgroundImage: `linear-gradient(135deg, ${from}, ${to})`,
+        fontSize: Math.max(9, Math.round(size * 0.36)),
+        backgroundColor: FILLS[hash(user.id) % FILLS.length],
       }}
+      aria-hidden
     >
       {showImage ? (
         <img
           src={user.avatarUrl!}
           alt=""
+          loading="lazy"
           className="size-full object-cover"
           onError={() => setFailedSrc(user.avatarUrl)}
         />
@@ -68,11 +69,20 @@ export function Avatar({ user, size = 28, className }: AvatarProps) {
   )
 }
 
-export function AvatarStack({ users, size = 20 }: { users: UserSummary[]; size?: number }) {
+export function AvatarStack({
+  users,
+  size = 22,
+  ring = 'ring-surface',
+}: {
+  users: UserSummary[]
+  size?: number
+  /** Ring colour matching the background, so overlapping faces stay separated. */
+  ring?: string
+}) {
   return (
-    <span className="flex -space-x-1">
+    <span className="flex -space-x-1.5">
       {users.map((user) => (
-        <Avatar key={user.id} user={user} size={size} className="ring-2 ring-slate-900" />
+        <Avatar key={user.id} user={user} size={size} className={clsx('ring-2', ring)} />
       ))}
     </span>
   )

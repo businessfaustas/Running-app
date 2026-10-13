@@ -1,21 +1,37 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
+@import '@fontsource/barlow-condensed/latin-600.css';
+@import '@fontsource/barlow-condensed/latin-700.css';
 
 @theme {
   --font-sans:
     'Inter Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  /* Condensed numerals and headings, the way race bibs and watch faces read. */
+  --font-display: 'Barlow Condensed', 'Inter Variable', system-ui, sans-serif;
 
-  /* Energetic accents on a slate base. Sports map onto these in features/slots/meta.ts. */
+  /* Neutral near-black surfaces. */
+  --color-ink: #0b0b0c;
+  --color-surface: #151517;
+  --color-raised: #1e1e21;
+  --color-line: #2a2a2e;
+
+  /* Brand + sport accents. Sports map onto these in features/slots/meta.ts. */
   --color-volt: #ccff00;
-  --color-blaze: #ff5500;
-  --color-ice: #00e5ff;
-  --color-dune: #ffb800;
+  --color-blaze: #ff5a1f;
+  --color-ice: #4cc9f0;
+  --color-dune: #f2b134;
 
-  --animate-card-in: card-in 280ms ease-out both;
-  @keyframes card-in {
+  --animate-rise: rise 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  @keyframes rise {
     from {
       opacity: 0;
-      transform: translateY(6px) scale(0.98);
+      transform: translateY(8px);
+    }
+  }
+  --animate-fade: fade 180ms ease-out both;
+  @keyframes fade {
+    from {
+      opacity: 0;
     }
   }
 }
@@ -26,9 +42,22 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  html,
   body {
-    @apply bg-slate-950 font-sans text-slate-100 antialiased;
+    @apply bg-ink;
+  }
+
+  body {
+    @apply font-sans text-zinc-100 antialiased;
     font-feature-settings: 'cv11', 'ss01';
+    overscroll-behavior-y: none;
+  }
+
+  /* iOS zooms into inputs under 16px. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
   }
 }
 
@@ -37,4 +66,8 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
 }

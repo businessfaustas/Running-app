@@ -1,96 +1,110 @@
-import { addDays, toISODate } from '@grouppace/shared'
-import { lazy, Suspense, useMemo } from 'react'
-import { AppHeader } from './features/header/AppHeader'
-import { matchesSportFilter } from './features/slots/meta'
-import { useSlots } from './features/slots/useSlots'
-import { Timeline } from './features/timeline/Timeline'
-import { useTimelineStore } from './store/useTimelineStore'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { Compass } from 'lucide-react'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router'
+import { ButtonLink } from './components/Button'
+import { EmptyState } from './components/EmptyState'
+import { TabBar } from './components/TabBar'
+import { Toaster } from './components/Toaster'
+import { useAuthSync } from './data/auth'
+import { queryClient } from './data/queryClient'
+import { RequireAuth } from './features/auth/RequireAuth'
+import { SignInPage } from './features/auth/SignInPage'
+import { CreateWorkoutPage } from './features/create/CreateWorkoutPage'
+import { DiscoverPage } from './features/discover/DiscoverPage'
+import { InboxPage } from './features/inbox/InboxPage'
+import { PlansPage } from './features/plans/PlansPage'
+import { EditProfilePage } from './features/profile/EditProfilePage'
+import { AthletePage, MyProfilePage } from './features/profile/ProfilePages'
+import { ChatPage } from './features/workout/ChatPage'
+import { WorkoutPage } from './features/workout/WorkoutPage'
 
-const MapView = lazy(() => import('./features/map/MapView'))
+/** Phone-shaped column, centred on larger screens. */
+function Shell() {
+  useAuthSync()
+  return (
+    <div className="mx-auto flex h-dvh max-w-xl flex-col bg-ink sm:border-x sm:border-line">
+      <div className="min-h-0 flex-1">
+        <Outlet />
+      </div>
+      <Toaster />
+    </div>
+  )
+}
 
-const DAYS_AHEAD = 7
+/** Top-level sections share the bottom tab bar. */
+function TabLayout() {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1">
+        <Outlet />
+      </div>
+      <TabBar />
+    </div>
+  )
+}
+
+function NotFound() {
+  return (
+    <EmptyState
+      Icon={Compass}
+      title="Nothing here"
+      action={<ButtonLink to="/">Go to Discover</ButtonLink>}
+    >
+      That page doesn't exist.
+    </EmptyState>
+  )
+}
+
+const router = createBrowserRouter([
+  {
+    element: <Shell />,
+    errorElement: <NotFound />,
+    children: [
+      {
+        element: <TabLayout />,
+        children: [
+          { index: true, element: <DiscoverPage /> },
+          { path: 'plans', element: <PlansPage /> },
+          { path: 'inbox', element: <InboxPage /> },
+          { path: 'profile', element: <MyProfilePage /> },
+        ],
+      },
+      {
+        path: 'workouts/new',
+        element: (
+          <RequireAuth>
+            <CreateWorkoutPage />
+          </RequireAuth>
+        ),
+      },
+      { path: 'workouts/:id', element: <WorkoutPage /> },
+      {
+        path: 'workouts/:id/chat',
+        element: (
+          <RequireAuth>
+            <ChatPage />
+          </RequireAuth>
+        ),
+      },
+      { path: 'athletes/:id', element: <AthletePage /> },
+      {
+        path: 'profile/edit',
+        element: (
+          <RequireAuth>
+            <EditProfilePage />
+          </RequireAuth>
+        ),
+      },
+      { path: 'signin', element: <SignInPage /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+])
 
 export function App() {
-  const today = toISODate(new Date())
-  const days = useMemo(
-    () => Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i)),
-    [today],
-  )
-
-  const selectedDate = useTimelineStore((s) => s.selectedDate)
-  const sportFilter = useTimelineStore((s) => s.sportFilter)
-  const view = useTimelineStore((s) => s.view)
-  const selectedSlotId = useTimelineStore((s) => s.selectedSlotId)
-  const setSelectedDate = useTimelineStore((s) => s.setSelectedDate)
-  const setSportFilter = useTimelineStore((s) => s.setSportFilter)
-  const setView = useTimelineStore((s) => s.setView)
-  const toggleSlot = useTimelineStore((s) => s.toggleSlot)
-
-  const slotsQuery = useSlots(days[0]!, days.at(-1)!)
-
-  const visibleSlots = useMemo(
-    () => (slotsQuery.data ?? []).filter((slot) => matchesSportFilter(slot.sportType, sportFilter)),
-    [slotsQuery.data, sportFilter],
-  )
-  const countsByDate = useMemo(() => {
-    const counts: Record<string, number> = {}
-    for (const slot of visibleSlots) counts[slot.date] = (counts[slot.date] ?? 0) + 1
-    return counts
-  }, [visibleSlots])
-  const daySlots = useMemo(
-    () => visibleSlots.filter((slot) => slot.date === selectedDate),
-    [visibleSlots, selectedDate],
-  )
-
   return (
-    <div className="mx-auto flex h-dvh max-w-2xl flex-col bg-slate-950 sm:border-x sm:border-white/5">
-      <AppHeader
-        days={days}
-        today={today}
-        selectedDate={selectedDate}
-        countsByDate={countsByDate}
-        onSelectDate={setSelectedDate}
-        sportFilter={sportFilter}
-        onSportFilterChange={setSportFilter}
-        view={view}
-        onViewChange={setView}
-      />
-
-      <main className="relative min-h-0 flex-1">
-        {slotsQuery.isError ? (
-          <div className="grid h-full place-items-center p-6 text-center">
-            <div>
-              <p className="text-sm font-semibold text-white">Couldn't load workouts</p>
-              <p className="mt-1 text-xs text-slate-400">{slotsQuery.error.message}</p>
-              <button
-                type="button"
-                onClick={() => void slotsQuery.refetch()}
-                className="mt-4 rounded-full bg-volt px-4 py-2 text-xs font-semibold text-slate-950 active:scale-95"
-              >
-                Try again
-              </button>
-            </div>
-          </div>
-        ) : view === 'timeline' ? (
-          <Timeline
-            date={selectedDate}
-            slots={daySlots}
-            isToday={selectedDate === today}
-            isLoading={slotsQuery.isPending}
-            selectedSlotId={selectedSlotId}
-            onSelectSlot={toggleSlot}
-          />
-        ) : (
-          <Suspense fallback={<div className="h-full animate-pulse bg-slate-900" />}>
-            <MapView
-              slots={daySlots}
-              selectedSlotId={selectedSlotId}
-              onSelectSlot={toggleSlot}
-              onOpenInTimeline={() => setView('timeline')}
-            />
-          </Suspense>
-        )}
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   )
 }

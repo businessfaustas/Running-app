@@ -1,9 +1,14 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** Base URL of the GroupPace API. Unset → the app runs on built-in mock data. */
-  readonly VITE_API_URL?: string
-  /** MapLibre style URL; defaults to CARTO Dark Matter (no key needed). */
+  /** Supabase project URL. Unset → the app runs in on-device preview mode. */
+  readonly VITE_SUPABASE_URL?: string
+  readonly VITE_SUPABASE_ANON_KEY?: string
+  /** Names used by the Vercel ↔ Supabase integration. */
+  readonly NEXT_PUBLIC_SUPABASE_URL?: string
+  readonly NEXT_PUBLIC_SUPABASE_ANON_KEY?: string
+  readonly NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string
+  /** MapLibre style URL; defaults to OpenFreeMap Dark (no key needed). */
   readonly VITE_MAP_STYLE_URL?: string
 }
 

@@ -1,8 +1,8 @@
 import { addDays, toISODate } from '@grouppace/shared'
-import { MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
+import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@grouppace/shared/mock'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { db, queryClient } from './client'
-import { profiles, slotParticipants, workoutSlots } from './schema'
+import { profiles, slotMessages, slotParticipants, workoutSlots } from './schema'
 
 /*
  * Loads the shared mock athletes and workouts, dated relative to today. Safe to re-run:
@@ -58,6 +58,7 @@ await db.transaction(async (tx) => {
       distanceKm: mock.distanceKm,
       targetPace: mock.targetPace,
       vibeTag: mock.vibeTag,
+      description: mock.description,
       meetingPointName: mock.meetingPoint.name,
       location: { lng: mock.meetingPoint.lng, lat: mock.meetingPoint.lat },
       maxParticipants: mock.maxParticipants,
@@ -79,9 +80,19 @@ await db.transaction(async (tx) => {
       await tx.update(workoutSlots).set({ status: mock.status }).where(eq(workoutSlots.id, mock.id))
     }
   }
+
+  // Chat history (replaced along with the slots, which cascade to their messages).
+  await tx.insert(slotMessages).values(
+    MOCK_MESSAGES.map((m) => ({
+      slotId: m.slotId,
+      senderId: m.senderId,
+      content: m.content,
+      createdAt: new Date(Date.now() - m.minutesAgo * 60_000),
+    })),
+  )
 })
 
 console.log(
-  `Seeded ${MOCK_USERS.length} athletes and ${MOCK_SLOTS.length} workouts around ${today}.`,
+  `Seeded ${MOCK_USERS.length} athletes, ${MOCK_SLOTS.length} workouts and ${MOCK_MESSAGES.length} messages around ${today}.`,
 )
 await queryClient.end()

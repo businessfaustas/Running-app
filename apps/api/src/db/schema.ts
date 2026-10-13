@@ -81,6 +81,8 @@ export const workoutSlots = pgTable(
     /** Display string: "5:15–5:30 /km" for runs, "28 km/h" for rides. */
     targetPace: text('target_pace').notNull(),
     vibeTag: vibeTag('vibe_tag').notNull(),
+    /** The host's notes: route, what to bring, where exactly to wait. */
+    description: text('description'),
     meetingPointName: text('meeting_point_name').notNull(),
     location: pointGeometry('location').notNull(),
     /** Max group size including the host; null = unlimited. */
@@ -95,6 +97,10 @@ export const workoutSlots = pgTable(
     index('workout_slots_location_geog_idx').using('gist', sql`(${t.location}::geography)`),
     check('workout_slots_title_length', sql`char_length(${t.title}) between 1 and 120`),
     check('workout_slots_distance_positive', sql`${t.distanceKm} > 0`),
+    check(
+      'workout_slots_description_length',
+      sql`${t.description} is null or char_length(${t.description}) <= 1000`,
+    ),
     check(
       'workout_slots_end_after_start',
       sql`${t.endTime} is null or ${t.endTime} > ${t.startTime}`,

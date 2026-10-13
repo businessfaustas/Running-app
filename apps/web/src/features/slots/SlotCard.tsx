@@ -1,6 +1,7 @@
 import type { SlotSummary, UserSlot } from '@grouppace/shared'
 import clsx from 'clsx'
 import type { CSSProperties } from 'react'
+import { Ban } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatar, AvatarStack } from '../../components/Avatar'
 import { firstName, formatKm } from '../../lib/format'
@@ -65,7 +66,7 @@ export function SlotCard({ slot, focused, dimmed, durationRatio = 1, role }: Slo
 
       <span
         className={clsx(
-          'flex min-w-0 flex-1 flex-col py-2 pr-2.5 pl-3',
+          'flex min-w-0 flex-1 flex-col py-2 pr-2.5 pl-3 @max-[119px]:pr-1.5 @max-[119px]:pl-2.5',
           (dimmed || cancelled) && 'opacity-45',
         )}
       >
@@ -75,7 +76,7 @@ export function SlotCard({ slot, focused, dimmed, durationRatio = 1, role }: Slo
             {slot.endTime && (
               <span className="hidden text-zinc-500 @min-[170px]:inline">–{slot.endTime}</span>
             )}
-            <span className="font-sans text-[12px] font-medium tracking-normal text-zinc-400 @min-[170px]:hidden">
+            <span className="font-sans text-[12px] font-medium tracking-normal text-zinc-400 @min-[170px]:hidden @max-[119px]:hidden">
               {' '}
               · {formatKm(slot.distanceKm)} km
             </span>
@@ -109,12 +110,15 @@ export function SlotCard({ slot, focused, dimmed, durationRatio = 1, role }: Slo
         </span>
 
         <span className="flex items-center justify-between gap-2 pt-1.5">
-          <span className="flex min-w-0 items-center gap-1 text-[11.5px] text-zinc-400">
+          <span className="flex min-w-0 items-center gap-1 text-[11.5px] text-zinc-400 @max-[119px]:hidden">
             <vibe.Icon className="size-3.5 shrink-0" aria-hidden />
             <span className="hidden truncate @min-[200px]:inline">{vibe.label}</span>
           </span>
           {cancelled ? (
-            <span className="shrink-0 text-[11.5px] font-semibold text-blaze">Cancelled</span>
+            <span className="shrink-0 text-[11.5px] font-semibold text-blaze">
+              <span className="@max-[119px]:hidden">Cancelled</span>
+              <Ban className="hidden size-3.5 @max-[119px]:block" aria-label="Cancelled" />
+            </span>
           ) : (
             <Attendance slot={slot} />
           )}

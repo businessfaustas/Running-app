@@ -63,24 +63,29 @@ pnpm dev            # http://localhost:5173, preview mode, no backend needed
 
 Other scripts: `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`.
 
-### Running against a real database
+### Making it multi-user (Supabase)
 
-1. **Start Supabase locally** with the [Supabase CLI](https://supabase.com/docs/guides/cli).
-   Run `supabase init` once to create `supabase/config.toml` (the migrations already exist).
-   Then run `supabase start`, followed by `supabase db reset`, which applies `supabase/migrations`.
-   For a hosted project, use `supabase link` and then `supabase db push`.
-2. **Configure and seed the API**
+The web app talks to Supabase directly; row-level security in the database decides who can do
+what, so no separate server is needed.
+
+1. **Create a Supabase project.** From Vercel, add Supabase from the Marketplace
+   (vercel.com/marketplace/supabase, or your project's Storage tab) and connect it to this project.
+   That adds `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, which the app reads.
+   (Elsewhere, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.)
+2. **Create the tables** (once, from a computer with this repo):
    ```bash
-   cp apps/api/.env.example apps/api/.env   # DATABASE_URL defaults to local Supabase
-   pnpm db:seed                             # 10 athletes, 15 workouts dated around today
-   pnpm dev:api                             # http://localhost:4000
+   pnpm install
+   # Supabase → Connect → "Session pooler" connection string
+   DATABASE_URL="postgresql://postgres.xxxx:password@aws-0-…pooler.supabase.com:5432/postgres" pnpm db:migrate
+   DATABASE_URL="…same…" pnpm db:seed   # optional: the sample athletes, workouts and chats
    ```
-3. **Point the web app at the API**: `echo "VITE_API_URL=http://localhost:4000" > apps/web/.env.local`,
-   then `pnpm dev`.
+3. **Point sign-up emails at the app:** Supabase → Authentication → URL Configuration → set the
+   Site URL to your Vercel address. New accounts confirm their email before signing in.
+4. **Redeploy** on Vercel so the build picks up the Supabase variables.
 
-`pnpm db:migrate` (drizzle-kit) can apply the same migrations directly. The target database needs
-the Supabase `auth` schema, the roles and the `supabase_realtime` publication, so use it against a
-Supabase database.
+For local development, `supabase start` (Supabase CLI) runs the whole stack; then use its local
+URL and anon key in `apps/web/.env.local` and `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+for the two commands above.
 
 ### Changing the schema
 
@@ -94,8 +99,8 @@ policies, publications) goes in a custom migration: run
 - **profiles**: one row per Supabase Auth user, created by the `on_auth_user_created` trigger.
   Columns: `name`, `avatar_url`, `bio`, `sports` (`running`/`cycling`), `default_paces` (jsonb),
   `strava_id`.
-- **workout_slots** ("beacons"): `sport_type` (`RUN`/`CYCLING`/`GRAVEL`/`TRACK`), local `date`,
-  `start_time` and `end_time`, `distance_km`, `target_pace`, `vibe_tag`, `meeting_point_name`,
+- **workout_slots**: `sport_type` (`RUN`/`CYCLING`/`GRAVEL`/`TRACK`), local `date`,
+  `start_time` and `end_time`, `distance_km`, `target_pace`, `vibe_tag`, `description`, `meeting_point_name`,
   `location` (PostGIS `geometry(Point, 4326)`, GiST-indexed as `geography` for radius search in
   metres), `max_participants` (group size including the host; null means unlimited), and `status`.
 - **slot_participants**: `(slot_id, user_id)`, `status` (`ACCEPTED`/`PENDING`), `joined_at`.
@@ -108,19 +113,24 @@ Rules enforced in the database (see `supabase/migrations/*_triggers_rls_realtime
   joins can't overbook it.
 - `status` switches between `OPEN` and `FULL` automatically as people join and leave, or when the
   host changes the capacity.
-- RLS: signed-in users can browse slots and attendance. Users can only host or join as
-  themselves. Hosts can't leave their own slot. Only accepted participants can read or post in a
-  slot's chat.
+- Row-level security: anyone, signed in or not, can browse workouts, attendance and profiles.
+  Users can only host, join or edit as themselves. Hosts can't leave their own workout. Only
+  accepted participants can read or post in a workout's chat.
 
-## API
+The app reads through SQL functions (`list_slots`, `get_slot`, `list_user_slots`, `list_threads`,
+`create_slot` in `supabase/migrations/*_app_functions.sql`) that return the JSON shapes in
+`packages/shared/src/domain.ts`.
+
+## API (optional)
+
+The web app doesn't need it; it's kept for server-side jobs later, and holds the seed script.
 
 | Method | Path      | Notes                                                                                           |
 | ------ | --------- | ----------------------------------------------------------------------------------------------- |
 | GET    | `/health` | Liveness check                                                                                  |
 | GET    | `/slots`  | `from`, `to` (`YYYY-MM-DD`, required); `sport=RUN,TRACK`; `lat`, `lng`, `radiusKm` (default 25) |
 
-`/slots` returns `SlotSummary[]` (see `packages/shared/src/domain.ts`). The mock data source in the
-web app returns the same shape.
+`/slots` returns `SlotSummary[]` (see `packages/shared/src/domain.ts`).
 
 ## Maps
 

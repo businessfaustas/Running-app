@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string
   destructive?: boolean
   busy?: boolean
+  /** E.g. until the person has typed a confirmation word. */
+  confirmDisabled?: boolean
   onConfirm: () => void
   onClose: () => void
 }
@@ -22,6 +24,7 @@ export function ConfirmDialog({
   cancelLabel = 'Grįžti',
   destructive = false,
   busy = false,
+  confirmDisabled = false,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
@@ -48,7 +51,12 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button variant={destructive ? 'danger' : 'primary'} loading={busy} onClick={onConfirm}>
+          <Button
+            variant={destructive ? 'danger' : 'primary'}
+            loading={busy}
+            disabled={confirmDisabled}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </Button>
         </div>

@@ -41,6 +41,8 @@ export interface Profile extends UserSummary {
   sports: SportDiscipline[]
   defaultPaces: DefaultPaces
   stravaId: string | null
+  /** False until the athlete finishes (or skips) the onboarding steps after signing up. */
+  onboarded: boolean
 }
 
 /** Dates are local calendar dates (`YYYY-MM-DD`), times are local wall-clock `HH:mm`. */
@@ -119,5 +121,5 @@ export interface NewSlotInput {
 }
 
 export type ProfileUpdate = Partial<
-  Pick<Profile, 'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl'>
+  Pick<Profile, 'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl' | 'onboarded'>
 >

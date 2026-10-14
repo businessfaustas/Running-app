@@ -1,22 +1,19 @@
-import { LogOut, Pencil, UserRound, UserX } from 'lucide-react'
+import { Pencil, Settings, UserRound, UserX } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router'
-import { backend } from '../../backend'
 import { roundButtonClass } from '../../components/buttonClass'
 import { EmptyState } from '../../components/EmptyState'
+import { ErrorState } from '../../components/ErrorState'
 import { Logo } from '../../components/Logo'
 import { PageHeader } from '../../components/PageHeader'
 import { TopBar } from '../../components/TopBar'
 import { useSession } from '../../data/auth'
 import { useMe, useProfile } from '../../data/hooks'
 import { PHOTOS } from '../../lib/photos'
-import { toast } from '../../lib/toast'
 import { SignedOutPrompt } from '../auth/RequireAuth'
 import { ProfileView } from './ProfileView'
 
 function ProfileSkeleton() {
-  return (
-    <div className="h-72 animate-pulse rounded-b-[32px] bg-blue/40" />
-  )
+  return <div className="h-72 animate-pulse rounded-b-[32px] bg-blue/40" />
 }
 
 /** The Profile tab. */
@@ -24,12 +21,6 @@ export function MyProfilePage() {
   const session = useSession()
   const me = useMe()
   const navigate = useNavigate()
-
-  const signOut = async () => {
-    await backend.signOut()
-    toast('Atsijungei. Iki greito!')
-    navigate('/')
-  }
 
   if (!session) {
     return (
@@ -44,7 +35,11 @@ export function MyProfilePage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      {!me.data ? (
+      {me.isError ? (
+        <div className="pt-[env(safe-area-inset-top)]">
+          <ErrorState error={me.error} onRetry={() => me.refetch()} />
+        </div>
+      ) : !me.data ? (
         <ProfileSkeleton />
       ) : (
         <ProfileView
@@ -64,11 +59,11 @@ export function MyProfilePage() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Atsijungti"
-                  onClick={signOut}
+                  aria-label="Nustatymai"
+                  onClick={() => navigate('/settings')}
                   className={roundButtonClass()}
                 >
-                  <LogOut className="size-[18px]" aria-hidden />
+                  <Settings className="size-[18px]" aria-hidden />
                 </button>
               </div>
             </div>
@@ -86,6 +81,14 @@ export function AthletePage() {
   const profile = useProfile(id)
 
   if (profile.isPending) return <ProfileSkeleton />
+  if (profile.isError) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopBar />
+        <ErrorState error={profile.error} onRetry={() => profile.refetch()} />
+      </div>
+    )
+  }
   if (!profile.data) {
     return (
       <div className="flex h-full flex-col">

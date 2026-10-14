@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { Button, ButtonLink } from '../../components/Button'
+import { FullScreenLoader } from '../../components/FullScreenLoader'
 import { useAuthReady, useSession } from '../../data/auth'
 import { PHOTOS } from '../../lib/photos'
 import { useSampleSignIn } from './useSampleSignIn'
@@ -13,7 +14,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const ready = useAuthReady()
   const session = useSession()
   const location = useLocation()
-  if (!ready) return null
+  if (!ready) return <FullScreenLoader />
   if (!session) return <Navigate to={signInPath(location.pathname + location.search)} replace />
   return children
 }

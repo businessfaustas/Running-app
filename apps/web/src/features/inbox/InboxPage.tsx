@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { AvatarStack } from '../../components/Avatar'
 import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
+import { ErrorState } from '../../components/ErrorState'
 import { PageHeader } from '../../components/PageHeader'
 import { useSession } from '../../data/auth'
 import { useThreads } from '../../data/hooks'
@@ -32,6 +33,9 @@ export function InboxPage() {
 
 function Threads({ myId }: { myId: string }) {
   const threads = useThreads()
+  if (threads.isError) {
+    return <ErrorState error={threads.error} onRetry={() => threads.refetch()} />
+  }
   if (threads.isPending) {
     return (
       <div className="space-y-2.5 px-4 pt-3">
@@ -83,9 +87,7 @@ function ThreadRow({ thread, myId }: { thread: ChatThread; myId: string }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <p className="min-w-0 flex-1 truncate text-[15px] font-bold text-white">
-              {slot.title}
-            </p>
+            <p className="min-w-0 flex-1 truncate text-[15px] font-bold text-white">{slot.title}</p>
             {lastMessage && (
               <span className="shrink-0 text-[12px] font-semibold text-slate-500 tabular">
                 {messageTime(lastMessage.createdAt)}

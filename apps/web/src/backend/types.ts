@@ -14,6 +14,9 @@ export interface Session {
   email: string | null
 }
 
+/** What changed, for screens that care (the reset-password page waits for recovery). */
+export type AuthEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'PASSWORD_RECOVERY' | 'USER_UPDATED' | 'OTHER'
+
 /** Errors whose message is safe to show to the user as-is. */
 export class BackendError extends Error {
   override name = 'BackendError'
@@ -32,7 +35,7 @@ export interface Backend {
   readonly mode: 'demo' | 'supabase'
 
   getSession(): Promise<Session | null>
-  onAuthChange(listener: (session: Session | null) => void): () => void
+  onAuthChange(listener: (session: Session | null, event: AuthEvent) => void): () => void
   signIn(credentials: { email: string; password: string }): Promise<void>
   /** `needsEmailConfirmation`: the account exists but the user must click the emailed link. */
   signUp(input: {
@@ -40,8 +43,21 @@ export interface Backend {
     email: string
     password: string
   }): Promise<{ needsEmailConfirmation: boolean }>
+  /** Sends the sign-up confirmation email again. */
+  resendConfirmation(email: string): Promise<void>
+  /**
+   * Emails a link that opens /reset-password signed in for recovery. Succeeds whether or not
+   * the address has an account, so the form can't be used to find out who's registered.
+   */
+  requestPasswordReset(email: string): Promise<void>
+  /** New password for the signed-in user, including a password-recovery session. */
+  updatePassword(password: string): Promise<void>
+  /** Deletes the signed-in user's account and everything that belongs to it, then signs out. */
+  deleteAccount(): Promise<void>
   /** Demo only: sign in as one of the sample athletes. */
   signInAsSample?: () => Promise<void>
+  /** Demo only: forget everything saved on this device. */
+  resetDemo?: () => Promise<void>
   signOut(): Promise<void>
 
   getProfile(userId: string): Promise<Profile | null>

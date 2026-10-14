@@ -18,5 +18,19 @@ export const MESSAGES = {
   emptyMessage: 'Parašyk ką nors',
   longMessage: 'Žinutė per ilga',
   notAllowed: 'Neturi teisės to daryti',
-  offline: 'Nėra ryšio su serveriu. Bandyk dar kartą.',
+  offline: 'Nėra ryšio su serveriu. Patikrink internetą ir bandyk dar kartą.',
+  weakPassword: 'Slaptažodį turi sudaryti bent 8 simboliai: raidės ir bent vienas skaičius',
+  samePassword: 'Naujas slaptažodis turi skirtis nuo dabartinio',
+  rateLimited: 'Per daug bandymų per trumpą laiką. Palauk minutę ir bandyk vėl.',
+  emailRateLimited: 'Laiškas jau išsiųstas. Palauk minutę ir, jei jo nėra, bandyk vėl.',
+  linkExpired: 'Nuoroda nebegalioja arba jau panaudota. Paprašyk naujos.',
+  sessionExpired: 'Sesija baigėsi. Prisijunk iš naujo.',
+  reauthNeeded: 'Dėl saugumo prisijunk iš naujo ir pakeisk slaptažodį dar kartą',
+  signupsDisabled: 'Registracija šiuo metu išjungta',
+  invalidInput: 'Patikrink įvestus duomenis – kažkas per ilga arba netinkamo formato',
+  sampleHasNoPassword: 'Pavyzdinė paskyra neturi slaptažodžio – susikurk savo paskyrą',
+  unknown: 'Kažkas nepavyko. Bandyk dar kartą.',
 } as const
+
+/** "Palauk 42 s ir bandyk vėl." */
+export const waitSeconds = (seconds: number) => `Palauk ${seconds} s ir bandyk vėl.`

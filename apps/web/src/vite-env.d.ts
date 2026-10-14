@@ -10,6 +10,10 @@ interface ImportMetaEnv {
   readonly NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string
   /** MapLibre style URL; defaults to OpenFreeMap Dark (no key needed). */
   readonly VITE_MAP_STYLE_URL?: string
+  /** Sentry DSN for error tracking (public by design). Unset → errors only go to the console. */
+  readonly VITE_SENTRY_DSN?: string
+  /** Release name for error reports; set automatically from the Vercel commit at build time. */
+  readonly VITE_APP_VERSION?: string
 }
 
 interface ImportMeta {

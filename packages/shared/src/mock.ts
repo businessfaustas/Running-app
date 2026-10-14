@@ -21,6 +21,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '5:30/km', cycling_avg: '27 km/h' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(2),
@@ -30,6 +31,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['cycling'],
     defaultPaces: { cycling_avg: '31 km/h' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(3),
@@ -39,6 +41,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running'],
     defaultPaces: { running_easy: '5:45/km', running_tempo: '4:50/km' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(4),
@@ -48,6 +51,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running'],
     defaultPaces: { running_easy: '5:00/km', running_tempo: '4:05/km' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(5),
@@ -57,6 +61,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['cycling'],
     defaultPaces: { gravel_avg: '24 km/h', cycling_avg: '29 km/h' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(6),
@@ -66,6 +71,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running'],
     defaultPaces: { running_easy: '5:40/km' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(7),
@@ -75,6 +81,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '5:20/km', cycling_avg: '30 km/h' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(8),
@@ -84,6 +91,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running'],
     defaultPaces: { running_easy: '5:50/km' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(9),
@@ -93,6 +101,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running'],
     defaultPaces: { running_easy: '6:10/km' },
     stravaId: null,
+    onboarded: true,
   },
   {
     id: user(10),
@@ -102,6 +111,7 @@ export const MOCK_USERS: Profile[] = [
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '4:55/km', cycling_avg: '28 km/h' },
     stravaId: null,
+    onboarded: true,
   },
 ]
 
@@ -190,7 +200,8 @@ export const MOCK_SLOTS: MockSlotRecord[] = [
     meetingPoint: SPOTS.leuStadium,
     maxParticipants: 10,
     status: 'OPEN',
-    description: '8 × 400 m su 200 m risnele tarp jų. Tinka visiems, išsiskirstom takais pagal tempą.',
+    description:
+      '8 × 400 m su 200 m risnele tarp jų. Tinka visiems, išsiskirstom takais pagal tempą.',
     participantIds: [user(9), user(7), user(1), user(4)],
   },
   {
@@ -277,7 +288,8 @@ export const MOCK_SLOTS: MockSlotRecord[] = [
     meetingPoint: SPOTS.vingisStage,
     maxParticipants: 5,
     status: 'OPEN',
-    description: '4 × 2 km slenksčio tempu, 2 min. lengvai tarp jų. Po 19 val. praverstų žibintuvėlis.',
+    description:
+      '4 × 2 km slenksčio tempu, 2 min. lengvai tarp jų. Po 19 val. praverstų žibintuvėlis.',
     participantIds: [],
   },
   {
@@ -294,7 +306,8 @@ export const MOCK_SLOTS: MockSlotRecord[] = [
     meetingPoint: SPOTS.bernardine,
     maxParticipants: 4,
     status: 'OPEN',
-    description: 'Du ratai per Bernardinų sodą ir Kalnų parką su žibintuvėliais. Gera dienos pabaiga.',
+    description:
+      'Du ratai per Bernardinų sodą ir Kalnų parką su žibintuvėliais. Gera dienos pabaiga.',
     participantIds: [user(10)],
   },
   // ── Rytoj ──────────────────────────────────────────────────────────────

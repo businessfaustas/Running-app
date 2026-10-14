@@ -6,8 +6,11 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
+import { ErrorState } from '../../components/ErrorState'
+import { FullScreenLoader } from '../../components/FullScreenLoader'
 import { TopBar } from '../../components/TopBar'
 import { useMe, useUpdateProfile } from '../../data/hooks'
+import { nameError } from '../../lib/validation'
 import { toast, toastError } from '../../lib/toast'
 
 const PACE_RE = /^\d{1,2}:[0-5]\d$/
@@ -30,7 +33,13 @@ export function EditProfilePage() {
   return (
     <div className="flex h-full flex-col">
       <TopBar title="Redaguoti profilį" fallback="/profile" />
-      {me.data ? <ProfileForm profile={me.data} /> : null}
+      {me.isError ? (
+        <ErrorState error={me.error} onRetry={() => me.refetch()} />
+      ) : me.data ? (
+        <ProfileForm profile={me.data} />
+      ) : (
+        <FullScreenLoader />
+      )}
     </div>
   )
 }
@@ -60,8 +69,15 @@ function ProfileForm({ profile }: { profile: Profile }) {
     if (kind === 'speed' && !SPEED_RE.test(value)) return 'Rašyk skaičių, pvz., 28'
     return null
   }
-  const nameError = name.trim().length < 2 ? 'Įvesk savo vardą' : null
-  const hasErrors = Boolean(nameError) || PACE_FIELDS.some((f) => paceError(f.key, f.kind))
+  const nameProblem = nameError(name)
+  const stravaError =
+    stravaId.trim() && !/^\d{1,20}$/.test(stravaId.trim())
+      ? 'Strava ID sudaro tik skaičiai, pvz., 12345678'
+      : null
+  const bioError = bio.length > 280 ? 'Aprašymas per ilgas (iki 280 simbolių)' : null
+  const hasErrors =
+    Boolean(nameProblem || stravaError || bioError) ||
+    PACE_FIELDS.some((f) => paceError(f.key, f.kind))
 
   const toggleSport = (sport: SportDiscipline) =>
     setSports((current) =>
@@ -112,7 +128,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
         <div className="flex items-center gap-3">
           <Avatar user={{ ...profile, name: name || profile.name }} size={64} />
           <p className="text-[13px] text-slate-500">
-            {profile.avatarUrl ? 'Profilio nuotrauka' : 'Kol neturi nuotraukos, rodomi tavo inicialai.'}
+            {profile.avatarUrl
+              ? 'Profilio nuotrauka'
+              : 'Kol neturi nuotraukos, rodomi tavo inicialai.'}
           </p>
         </div>
 
@@ -121,7 +139,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           value={name}
           maxLength={80}
           autoComplete="name"
-          error={submitted ? nameError : null}
+          error={submitted ? nameProblem : null}
           onChange={(e) => setName(e.target.value)}
         />
         <TextArea
@@ -129,6 +147,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           placeholder="Kam ruošiesi, kas tau patinka grupėje…"
           maxLength={280}
           value={bio}
+          error={submitted ? bioError : null}
           onChange={(e) => setBio(e.target.value)}
         />
 
@@ -187,6 +206,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           placeholder="12345678"
           inputMode="numeric"
           value={stravaId}
+          error={submitted ? stravaError : null}
           hint="Skaičius tavo Strava profilio nuorodos gale."
           onChange={(e) => setStravaId(e.target.value)}
         />

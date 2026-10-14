@@ -13,10 +13,12 @@ import { Link, useParams } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
+import { ErrorState } from '../../components/ErrorState'
 import { TopBar } from '../../components/TopBar'
 import { useSession } from '../../data/auth'
 import { useMessages, useSendMessage, useSlot } from '../../data/hooks'
 import { clockTime, countOf, firstName, relativeDay, WORDS } from '../../lib/format'
+import { track } from '../../lib/analytics'
 import { toastError } from '../../lib/toast'
 import { SPORT_META } from '../slots/meta'
 
@@ -50,7 +52,11 @@ export function ChatPage() {
           )
         }
       />
-      {slotQuery.isPending ? null : !slot ? (
+      {slotQuery.isPending ? (
+        <ChatSkeleton />
+      ) : slotQuery.isError ? (
+        <ErrorState error={slotQuery.error} onRetry={() => slotQuery.refetch()} />
+      ) : !slot ? (
         <EmptyState Icon={MessageCircle} title="Pokalbis nerastas" />
       ) : isMember ? (
         <Conversation slot={slot} myId={session!.userId} />
@@ -93,7 +99,13 @@ function Conversation({ slot, myId }: { slot: SlotDetail; myId: string }) {
     event?.preventDefault()
     const text = draft.trim()
     if (!text || send.isPending) return
-    send.mutate(text, { onSuccess: () => setDraft(''), onError: toastError })
+    send.mutate(text, {
+      onSuccess: () => {
+        setDraft('')
+        track('message_sent')
+      },
+      onError: toastError,
+    })
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -103,7 +115,11 @@ function Conversation({ slot, myId }: { slot: SlotDetail; myId: string }) {
   return (
     <>
       <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
-        {messages.isPending ? null : count === 0 ? (
+        {messages.isPending ? (
+          <p className="py-10 text-center text-[13px] text-slate-500">Kraunamos žinutės…</p>
+        ) : messages.isError ? (
+          <ErrorState error={messages.error} onRetry={() => messages.refetch()} />
+        ) : count === 0 ? (
           <EmptyState Icon={MessageCircle} title="Pradėk pokalbį">
             Parašyk, kur tiksliai lauksi, arba paklausk apie maršrutą.
           </EmptyState>
@@ -196,7 +212,9 @@ function MessageList({
                 <div
                   className={clsx(
                     'rounded-[20px] px-3.5 py-2 text-[15px] leading-snug break-words whitespace-pre-wrap',
-                    mine ? 'rounded-br-md bg-blue text-white' : 'rounded-bl-md bg-raised text-slate-100',
+                    mine
+                      ? 'rounded-br-md bg-blue text-white'
+                      : 'rounded-bl-md bg-raised text-slate-100',
                   )}
                 >
                   {message.content}
@@ -210,5 +228,19 @@ function MessageList({
         )
       })}
     </ol>
+  )
+}
+
+function ChatSkeleton() {
+  return (
+    <div aria-busy className="flex-1 space-y-4 px-3 py-6">
+      {[60, 75, 45, 70].map((width, i) => (
+        <div
+          key={i}
+          className={`h-12 animate-pulse rounded-[20px] bg-surface ${i % 2 ? 'ml-auto' : 'ml-9'}`}
+          style={{ width: `${width}%` }}
+        />
+      ))}
+    </div>
   )
 }

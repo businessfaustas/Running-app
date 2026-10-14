@@ -100,7 +100,9 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
 
       <div
         className="relative"
-        style={{ height: `calc(${DAY_HEIGHT + PADDING_TOP + PADDING_BOTTOM}px + var(--nav-space))` }}
+        style={{
+          height: `calc(${DAY_HEIGHT + PADDING_TOP + PADDING_BOTTOM}px + var(--nav-space))`,
+        }}
       >
         <div
           className="absolute inset-x-0"
@@ -154,9 +156,7 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
                 <span className="grid size-6 place-items-center rounded-full bg-volt text-black">
                   <Plus className="size-4" strokeWidth={3} aria-hidden />
                 </span>
-                <span className="pt-0.5">
-                  Sukurti treniruotę {minutesToTime(draftMinute)}
-                </span>
+                <span className="pt-0.5">Sukurti treniruotę {minutesToTime(draftMinute)}</span>
               </button>
             </div>
           )}
@@ -245,7 +245,7 @@ function EmptyDay() {
       <div className="mx-auto w-fit max-w-[calc(100%-2rem)] rounded-[22px] border border-white/10 bg-raised/95 px-5 py-4 text-center shadow-2xl shadow-black/50 backdrop-blur">
         <p className="headline text-[22px]">Kol kas tuščia</p>
         <p className="mt-1 text-[13px] text-slate-400">
-          Bakstelk laiką juostoje ir būk pirmas, kuris pakvies kitus.
+          Bakstelk laiką juostoje ir pakviesk kitus prisijungti.
         </p>
       </div>
     </div>

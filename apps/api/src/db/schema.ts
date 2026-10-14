@@ -58,9 +58,22 @@ export const profiles = pgTable(
       .default(sql`'{}'`),
     defaultPaces: jsonb('default_paces').$type<DefaultPaces>().notNull().default({}),
     stravaId: text('strava_id').unique(),
+    /** Set when the athlete finishes (or skips) onboarding; null shows the onboarding flow. */
+    onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
     ...timestamps,
   },
-  (t) => [check('profiles_name_length', sql`char_length(${t.name}) between 1 and 80`)],
+  (t) => [
+    check('profiles_name_length', sql`char_length(${t.name}) between 1 and 80`),
+    check('profiles_bio_length', sql`${t.bio} is null or char_length(${t.bio}) <= 280`),
+    check(
+      'profiles_strava_id_format',
+      sql`${t.stravaId} is null or ${t.stravaId} ~ '^[0-9]{1,20}$'`,
+    ),
+    check(
+      'profiles_avatar_url_https',
+      sql`${t.avatarUrl} is null or (${t.avatarUrl} like 'https://%' and char_length(${t.avatarUrl}) <= 500)`,
+    ),
+  ],
 )
 
 /** A planned workout ("Beacon") posted as an open invitation. */
@@ -97,6 +110,12 @@ export const workoutSlots = pgTable(
     index('workout_slots_location_geog_idx').using('gist', sql`(${t.location}::geography)`),
     check('workout_slots_title_length', sql`char_length(${t.title}) between 1 and 120`),
     check('workout_slots_distance_positive', sql`${t.distanceKm} > 0`),
+    check('workout_slots_distance_max', sql`${t.distanceKm} <= 400`),
+    check('workout_slots_target_pace_length', sql`char_length(${t.targetPace}) between 1 and 40`),
+    check(
+      'workout_slots_meeting_point_length',
+      sql`char_length(${t.meetingPointName}) between 2 and 120`,
+    ),
     check(
       'workout_slots_description_length',
       sql`${t.description} is null or char_length(${t.description}) <= 1000`,
@@ -147,6 +166,8 @@ export const slotMessages = pgTable(
   },
   (t) => [
     index('slot_messages_slot_created_idx').on(t.slotId, t.createdAt),
+    // Rate limiting counts a sender's recent messages.
+    index('slot_messages_sender_created_idx').on(t.senderId, t.createdAt),
     check('slot_messages_content_length', sql`char_length(${t.content}) between 1 and 2000`),
   ],
 )

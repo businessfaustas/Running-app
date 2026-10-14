@@ -36,6 +36,20 @@
       "when": 1791879337770,
       "tag": "20261013081537_app_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792007554591,
+      "tag": "20261014195234_production_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792007559431,
+      "tag": "20261014195239_rate_limits_account_deletion",
+      "breakpoints": true
     }
   ]
 }

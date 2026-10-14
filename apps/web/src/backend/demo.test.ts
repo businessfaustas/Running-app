@@ -35,7 +35,7 @@ describe('demo backend', () => {
   it('signs up, persists the account and signs back in', async () => {
     const storage = memoryStorage()
     const backend = setup(storage)
-    await backend.signUp({ name: 'Ana Runner', email: 'Ana@Example.com', password: 'longenough' })
+    await backend.signUp({ name: 'Ana Runner', email: 'Ana@Example.com', password: 'longenough1' })
     const session = await backend.getSession()
     expect(session?.email).toBe('ana@example.com')
     expect((await backend.getProfile(session!.userId))?.name).toBe('Ana Runner')
@@ -45,7 +45,7 @@ describe('demo backend', () => {
     await expect(
       reloaded.signIn({ email: 'ana@example.com', password: 'wrong-password' }),
     ).rejects.toThrow(MESSAGES.wrongCredentials)
-    await reloaded.signIn({ email: 'ana@example.com', password: 'longenough' })
+    await reloaded.signIn({ email: 'ana@example.com', password: 'longenough1' })
     expect((await reloaded.getSession())?.userId).toBe(session!.userId)
   })
 
@@ -54,15 +54,15 @@ describe('demo backend', () => {
     await expect(
       backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'short' }),
     ).rejects.toBeInstanceOf(BackendError)
-    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
     await expect(
-      backend.signUp({ name: 'Ana 2', email: 'A@B.co', password: 'longenough' }),
+      backend.signUp({ name: 'Ana 2', email: 'A@B.co', password: 'longenough1' }),
     ).rejects.toThrow(MESSAGES.emailTaken)
   })
 
   it('joins and leaves, keeping counts and FULL status in sync', async () => {
     const backend = setup()
-    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
     const me = (await backend.getSession())!.userId
 
     await backend.joinSlot(coffeeRun.id)
@@ -97,7 +97,7 @@ describe('demo backend', () => {
 
   it('creates workouts with the host already going', async () => {
     const backend = setup()
-    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
     const created = await backend.createSlot({
       title: 'Friday shakeout',
       sportType: 'RUN',
@@ -140,7 +140,7 @@ describe('demo backend', () => {
 
   it('only shows the chat to participants', async () => {
     const backend = setup()
-    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough' })
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
     expect(await backend.listMessages(coffeeRun.id)).toEqual([])
     await expect(backend.sendMessage(coffeeRun.id, 'hi')).rejects.toThrow(MESSAGES.joinToChat)
 
@@ -166,5 +166,90 @@ describe('demo backend', () => {
     const updated = await backend.updateProfile({ bio: 'Sub-3:30 or bust' })
     expect(updated).toMatchObject({ name: MOCK_USERS[0]!.name, bio: 'Sub-3:30 or bust' })
     await expect(backend.updateProfile({ name: ' ' })).rejects.toThrow(MESSAGES.nameRequired)
+  })
+
+  it('starts new accounts on onboarding and remembers when it is done', async () => {
+    const backend = setup()
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
+    const { userId } = (await backend.getSession())!
+    expect((await backend.getProfile(userId))?.onboarded).toBe(false)
+    await backend.updateProfile({ sports: ['running'], onboarded: true })
+    expect((await backend.getProfile(userId))?.onboarded).toBe(true)
+    expect((await backend.getProfile(MOCK_USERS[0]!.id))?.onboarded).toBe(true)
+  })
+
+  it('needs letters and a digit in passwords', async () => {
+    const backend = setup()
+    await expect(
+      backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'onlyletters' }),
+    ).rejects.toThrow(/skaičius/)
+  })
+
+  it('resets a forgotten password through the recovery step', async () => {
+    const storage = memoryStorage()
+    const backend = setup(storage)
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
+    await backend.signOut()
+
+    // Unknown addresses look the same as known ones but can't recover anything.
+    await backend.requestPasswordReset('nobody@b.co')
+    await expect(backend.updatePassword('newpass123')).rejects.toThrow(MESSAGES.linkExpired)
+
+    await backend.requestPasswordReset('A@B.co')
+    await expect(backend.updatePassword('longenough1')).rejects.toThrow(MESSAGES.samePassword)
+    await backend.updatePassword('newpass123')
+    expect((await backend.getSession())?.email).toBe('a@b.co')
+
+    await backend.signOut()
+    await expect(backend.signIn({ email: 'a@b.co', password: 'longenough1' })).rejects.toThrow(
+      MESSAGES.wrongCredentials,
+    )
+    await backend.signIn({ email: 'a@b.co', password: 'newpass123' })
+  })
+
+  it('deletes an account with its workouts, attendance and messages', async () => {
+    const storage = memoryStorage()
+    const backend = setup(storage)
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
+    const { userId } = (await backend.getSession())!
+    await backend.joinSlot(coffeeRun.id)
+    await backend.sendMessage(coffeeRun.id, 'Labas!')
+    const own = await backend.createSlot({
+      title: 'Rytinis ratas',
+      sportType: 'RUN',
+      date: TODAY,
+      startTime: '18:00',
+      endTime: '19:00',
+      distanceKm: 8,
+      targetPace: '5:30 /km',
+      vibeTag: 'SOCIAL_CHAT',
+      description: null,
+      meetingPoint: { name: 'Vingio parkas', lat: 54.68, lng: 25.23 },
+      maxParticipants: null,
+    })
+
+    await backend.deleteAccount()
+    expect(await backend.getSession()).toBeNull()
+    expect(await backend.getSlot(own.id)).toBeNull()
+    expect(await backend.getProfile(userId)).toBeNull()
+    const coffee = await backend.getSlot(coffeeRun.id)
+    expect(coffee?.participants.some((p) => p.id === userId)).toBe(false)
+    await expect(backend.signIn({ email: 'a@b.co', password: 'longenough1' })).rejects.toThrow(
+      MESSAGES.wrongCredentials,
+    )
+
+    await backend.signInAsSample!()
+    expect(await backend.listMessages(coffeeRun.id)).not.toContainEqual(
+      expect.objectContaining({ content: 'Labas!' }),
+    )
+  })
+
+  it('limits how fast one person can post', async () => {
+    const backend = setup()
+    await backend.signInAsSample!()
+    for (let i = 0; i < 20; i++) await backend.sendMessage(coffeeRun.id, `Žinutė ${i}`)
+    await expect(backend.sendMessage(coffeeRun.id, 'Dar viena')).rejects.toThrow(
+      MESSAGES.rateLimited,
+    )
   })
 })

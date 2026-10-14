@@ -16,6 +16,7 @@ import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { useCreateSlot, useMe, useSlots } from '../../data/hooks'
+import { track } from '../../lib/analytics'
 import { celebrate } from '../../lib/celebrate'
 import { formatKm, formatMinutes, relativeDay } from '../../lib/format'
 import { PHOTOS } from '../../lib/photos'
@@ -214,6 +215,7 @@ export function CreateWorkoutPage() {
     }
     create.mutate(toInput(draft), {
       onSuccess: (slot) => {
+        track('workout_created', { sport: slot.sportType, vibe: slot.vibeTag })
         showSlot(slot.id, slot.date)
         navigate('/', { replace: true })
         celebrate({ kind: 'posted', slotId: slot.id, title: slot.title })
@@ -271,7 +273,10 @@ export function CreateWorkoutPage() {
           {step === 5 && <DetailsStep draft={draft} update={update} today={today} />}
         </div>
         {showErrors && error && (
-          <p role="alert" className="mt-4 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]">
+          <p
+            role="alert"
+            className="mt-4 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]"
+          >
             {error}
           </p>
         )}
@@ -613,10 +618,7 @@ function WhereStep({
 
   return (
     <>
-      <Question
-        title="Kur susitinkate?"
-        hint="Bakstelk žemėlapį arba pasirink populiarią vietą."
-      />
+      <Question title="Kur susitinkate?" hint="Bakstelk žemėlapį arba pasirink populiarią vietą." />
       <div className="relative h-60 overflow-hidden rounded-[24px] border border-white/10">
         <LazyLocationMap
           point={lngLat}

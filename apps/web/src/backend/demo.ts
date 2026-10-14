@@ -13,8 +13,9 @@ import {
   type UserSlot,
 } from '@pacemates/shared'
 import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
+import { emailError, nameError, passwordError } from '../lib/validation'
 import { MESSAGES } from './messages'
-import { BackendError, type Backend, type Session } from './types'
+import { BackendError, type AuthEvent, type Backend, type Session } from './types'
 
 /*
  * A complete backend that lives in the browser. The sample athletes and workouts are
@@ -61,6 +62,8 @@ interface DemoState {
   rosters: Record<string, StoredParticipant[]>
   messages: StoredMessage[]
   sessionUserId: string | null
+  /** Set by "forgot password": stands in for the emailed recovery link. */
+  recoveryUserId: string | null
 }
 
 const emptyState = (): DemoState => ({
@@ -71,7 +74,14 @@ const emptyState = (): DemoState => ({
   rosters: {},
   messages: [],
   sessionUserId: null,
+  recoveryUserId: null,
 })
+
+/** Mirrors the database's limits on how fast one person can write. */
+const RATE_LIMITS = {
+  message: { max: 20, windowMs: 60_000 },
+  workout: { max: 3, windowMs: 60_000 },
+} as const
 
 async function hashPassword(email: string, password: string): Promise<string> {
   const bytes = new TextEncoder().encode(`${email}\u0000${password}`)
@@ -96,14 +106,23 @@ export function createDemoBackend({
   const loadedAt = now()
   let state = load()
 
-  const authListeners = new Set<(session: Session | null) => void>()
+  const authListeners = new Set<(session: Session | null, event: AuthEvent) => void>()
+  const recentWrites: Record<keyof typeof RATE_LIMITS, number[]> = { message: [], workout: [] }
+
+  function hitRateLimit(action: keyof typeof RATE_LIMITS) {
+    const { max, windowMs } = RATE_LIMITS[action]
+    const at = now().getTime()
+    const recent = recentWrites[action].filter((t) => at - t < windowMs)
+    if (recent.length >= max) throw new BackendError(MESSAGES.rateLimited)
+    recentWrites[action] = [...recent, at]
+  }
   const messageListeners = new Map<string, Set<() => void>>()
   const changeListeners = new Set<() => void>()
 
   watchStorage?.(() => {
     const before = state.sessionUserId
     state = load()
-    if (state.sessionUserId !== before) emitAuth()
+    if (state.sessionUserId !== before) emitAuth(state.sessionUserId ? 'SIGNED_IN' : 'SIGNED_OUT')
     for (const listener of changeListeners) listener()
     for (const listeners of messageListeners.values()) for (const l of listeners) l()
   })
@@ -134,9 +153,9 @@ export function createDemoBackend({
     return { userId: state.sessionUserId, email: account?.email ?? null }
   }
 
-  function emitAuth() {
+  function emitAuth(event: AuthEvent) {
     const current = session()
-    for (const listener of authListeners) listener(current)
+    for (const listener of authListeners) listener(current, event)
   }
 
   function requireUserId(): string {
@@ -266,15 +285,14 @@ export function createDemoBackend({
       }
       state.sessionUserId = account.userId
       save()
-      emitAuth()
+      emitAuth('SIGNED_IN')
     },
 
     async signUp({ name, email, password }) {
       await pause()
       const normalized = email.trim().toLowerCase()
-      if (!/^\S+@\S+\.\S+$/.test(normalized)) throw new BackendError(MESSAGES.invalidEmail)
-      if (password.length < 8) throw new BackendError(MESSAGES.shortPassword)
-      if (name.trim().length < 2) throw new BackendError(MESSAGES.nameRequired)
+      const problem = emailError(normalized) ?? passwordError(password) ?? nameError(name)
+      if (problem) throw new BackendError(problem)
       if (state.accounts.some((a) => a.email === normalized)) {
         throw new BackendError(MESSAGES.emailTaken)
       }
@@ -292,24 +310,101 @@ export function createDemoBackend({
         sports: [],
         defaultPaces: {},
         stravaId: null,
+        onboarded: false,
       }
       state.sessionUserId = userId
       save()
-      emitAuth()
+      emitAuth('SIGNED_IN')
+      // Preview accounts are confirmed straight away; there's no email to click.
       return { needsEmailConfirmation: false }
+    },
+
+    async resendConfirmation(email) {
+      await pause()
+      const problem = emailError(email)
+      if (problem) throw new BackendError(problem)
+    },
+
+    async requestPasswordReset(email) {
+      await pause()
+      const normalized = email.trim().toLowerCase()
+      const problem = emailError(normalized)
+      if (problem) throw new BackendError(problem)
+      // No email in preview mode: remember who asked, as if they'd opened the link.
+      const account = state.accounts.find((a) => a.email === normalized)
+      state.recoveryUserId = account?.userId ?? null
+      save()
+    },
+
+    async updatePassword(password) {
+      await pause()
+      const problem = passwordError(password)
+      if (problem) throw new BackendError(problem)
+      const userId = state.sessionUserId ?? state.recoveryUserId
+      if (!userId) throw new BackendError(MESSAGES.linkExpired)
+      const account = state.accounts.find((a) => a.userId === userId)
+      if (!account) throw new BackendError(MESSAGES.sampleHasNoPassword)
+      const hash = await hashPassword(account.email, password)
+      if (hash === account.passwordHash) throw new BackendError(MESSAGES.samePassword)
+      account.passwordHash = hash
+      state.recoveryUserId = null
+      state.sessionUserId = userId
+      save()
+      emitAuth('USER_UPDATED')
+    },
+
+    async deleteAccount() {
+      await pause()
+      const userId = requireUserId()
+      if (!state.accounts.some((a) => a.userId === userId)) {
+        // A sample athlete: there's nothing of theirs to delete but this device's changes.
+        state = emptyState()
+      } else {
+        const hosted = new Set(
+          Object.values(state.slots)
+            .filter((slot) => slot.hostId === userId)
+            .map((slot) => slot.id),
+        )
+        state.accounts = state.accounts.filter((a) => a.userId !== userId)
+        delete state.profiles[userId]
+        for (const id of hosted) {
+          delete state.slots[id]
+          delete state.rosters[id]
+          delete state.statusOverrides[id]
+        }
+        for (const [id, roster] of Object.entries(state.rosters)) {
+          state.rosters[id] = roster.filter((p) => p.userId !== userId)
+        }
+        state.messages = state.messages.filter(
+          (m) => m.senderId !== userId && !hosted.has(m.slotId),
+        )
+        state.sessionUserId = null
+        state.recoveryUserId = null
+      }
+      save()
+      emitAuth('SIGNED_OUT')
+      for (const listener of changeListeners) listener()
     },
 
     async signInAsSample() {
       await pause()
       state.sessionUserId = MOCK_USERS[0]!.id
       save()
-      emitAuth()
+      emitAuth('SIGNED_IN')
+    },
+
+    async resetDemo() {
+      await pause()
+      state = emptyState()
+      save()
+      emitAuth('SIGNED_OUT')
+      for (const listener of changeListeners) listener()
     },
 
     async signOut() {
       state.sessionUserId = null
       save()
-      emitAuth()
+      emitAuth('SIGNED_OUT')
     },
 
     async getProfile(userId) {
@@ -385,6 +480,7 @@ export function createDemoBackend({
       const userId = requireUserId()
       const parsed = newSlotInputSchema.safeParse(input)
       if (!parsed.success) throw new BackendError(parsed.error.issues[0]!.message)
+      hitRateLimit('workout')
       const id = crypto.randomUUID()
       const slot: StoredSlot = { ...parsed.data, id, hostId: userId, status: 'OPEN' }
       state.slots[id] = slot
@@ -447,6 +543,7 @@ export function createDemoBackend({
       const text = content.trim()
       if (text.length === 0) throw new BackendError(MESSAGES.emptyMessage)
       if (text.length > 2000) throw new BackendError(MESSAGES.longMessage)
+      hitRateLimit('message')
       const stored: StoredMessage = {
         id: crypto.randomUUID(),
         slotId,

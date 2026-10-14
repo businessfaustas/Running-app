@@ -71,7 +71,7 @@ export function DiscoverPage() {
             {!session && (
               <Link
                 to="/signin"
-                className="rounded-full bg-white px-4 py-2 text-[13px] font-bold text-black transition active:scale-95"
+                className="rounded-full bg-white px-4 py-2 text-[13px] font-bold whitespace-nowrap text-black transition active:scale-95 max-[359px]:px-3"
               >
                 Prisijungti
               </Link>
@@ -80,15 +80,13 @@ export function DiscoverPage() {
           </div>
         </div>
 
-        <div className="relative px-4 pt-4">
+        <div className="relative px-4 pt-4 [@media(max-height:500px)]:hidden">
           <p className="flex items-center gap-1 text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
             <MapPin className="size-3.5" aria-hidden />
             {CITY.name} · {dayMonth(selectedDate)}
           </p>
           <div className="mt-1 flex items-end justify-between gap-3">
-            <h1 className="headline text-[46px] text-white">
-              {whenHeadline(selectedDate, today)}
-            </h1>
+            <h1 className="headline text-[46px] text-white">{whenHeadline(selectedDate, today)}</h1>
             <p className="pb-1 text-right leading-none">
               <span className="font-display text-[34px] font-bold text-volt italic tabular">
                 {visibleSlots.length}
@@ -107,7 +105,7 @@ export function DiscoverPage() {
           </Link>
         </div>
 
-        <div className="relative pt-4 pb-5">
+        <div className="relative pt-4 pb-5 [@media(max-height:500px)]:pt-3 [@media(max-height:500px)]:pb-3">
           <DayStrip
             days={days}
             today={today}
@@ -205,7 +203,7 @@ export function DiscoverPage() {
 function Greeting() {
   const session = useSession()
   const me = useMe()
-  if (!session) return <Logo className="text-white" size={22} />
+  if (!session) return <Logo className="text-white" size={22} compact />
   return (
     <Link to="/profile" aria-label="Tavo profilis" className="flex min-w-0 items-center gap-2.5">
       {me.data ? (

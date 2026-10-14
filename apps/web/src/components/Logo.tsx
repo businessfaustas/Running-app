@@ -10,11 +10,24 @@ export function LogoMark({ size = 28, className }: { size?: number; className?: 
   )
 }
 
-export function Logo({ className, size = 22 }: { className?: string; size?: number }) {
+export function Logo({
+  className,
+  size = 22,
+  compact = false,
+}: {
+  className?: string
+  size?: number
+  /** Only the mark on very narrow screens, where the header needs the room. */
+  compact?: boolean
+}) {
   return (
-    <span className={clsx('inline-flex items-center gap-1.5', className)}>
+    <span className={clsx('inline-flex items-center gap-1.5', className)} aria-label="PaceMates">
       <LogoMark size={size + 6} />
-      <span className="headline" style={{ fontSize: size }}>
+      <span
+        aria-hidden
+        className={clsx('headline', compact && 'max-[359px]:hidden')}
+        style={{ fontSize: size }}
+      >
         Pace<span className="text-volt">Mates</span>
       </span>
     </span>

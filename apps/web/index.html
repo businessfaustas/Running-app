@@ -15,12 +15,50 @@
     <link rel="apple-touch-icon" href="/icon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta property="og:title" content="PaceMates" />
-    <meta property="og:description" content="Bėk. Mink. Kartu. Grupinės bėgimo ir dviračių treniruotės Vilniuje." />
+    <meta
+      property="og:description"
+      content="Bėk. Mink. Kartu. Grupinės bėgimo ir dviračių treniruotės Vilniuje."
+    />
     <meta property="og:image" content="/photos/run-crew.webp" />
     <title>PaceMates – bėk ir mink kartu</title>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="background: #05070d">
+    <div id="root">
+      <!-- Splash until the app has loaded; React replaces it. -->
+      <div
+        style="position: fixed; inset: 0; display: grid; place-items: center; background: #05070d"
+        aria-label="Kraunama"
+      >
+        <svg
+          width="56"
+          height="56"
+          viewBox="0 0 32 32"
+          aria-hidden="true"
+          style="animation: pm-pulse 1.2s ease-in-out infinite"
+        >
+          <path d="M8 27 L15.5 5" stroke="#d4ff3f" stroke-width="5" stroke-linecap="round" />
+          <path d="M16.5 27 L24 5" stroke="#ffffff" stroke-width="5" stroke-linecap="round" />
+        </svg>
+      </div>
+      <style>
+        @keyframes pm-pulse {
+          50% {
+            opacity: 0.4;
+            transform: scale(0.94);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          svg {
+            animation: none !important;
+          }
+        }
+      </style>
+    </div>
+    <noscript>
+      <p style="color: #fff; font-family: sans-serif; text-align: center; padding: 2rem">
+        PaceMates veikia tik įjungus JavaScript.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

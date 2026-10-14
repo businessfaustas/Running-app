@@ -5,6 +5,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
+import { ErrorState } from '../../components/ErrorState'
 import { PageHeader } from '../../components/PageHeader'
 import { useSession } from '../../data/auth'
 import { useUserSlots } from '../../data/hooks'
@@ -25,7 +26,11 @@ export function PlansPage() {
       {session ? (
         <Plans userId={session.userId} />
       ) : (
-        <SignedOutPrompt Icon={CalendarCheck2} title="Visa savaitė vienoje vietoje" photo={PHOTOS.runCoast}>
+        <SignedOutPrompt
+          Icon={CalendarCheck2}
+          title="Visa savaitė vienoje vietoje"
+          photo={PHOTOS.runCoast}
+        >
           Prisijunk ir matysi treniruotes, kurias organizuoji ar į kurias eini.
         </SignedOutPrompt>
       )}
@@ -50,7 +55,9 @@ function Plans({ userId }: { userId: string }) {
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(var(--nav-space)+16px)]">
-      {slots.isPending ? (
+      {slots.isError ? (
+        <ErrorState error={slots.error} onRetry={() => slots.refetch()} />
+      ) : slots.isPending ? (
         <div className="space-y-3 pt-3">
           <div className="h-56 animate-pulse rounded-[28px] bg-surface" />
           {[0, 1, 2].map((i) => (
@@ -61,10 +68,7 @@ function Plans({ userId }: { userId: string }) {
         <>
           {nextUp && tab === 'upcoming' && <NextUp item={nextUp} />}
 
-          <div
-            role="tablist"
-            className="mt-4 grid grid-cols-2 rounded-full bg-surface p-1"
-          >
+          <div role="tablist" className="mt-4 grid grid-cols-2 rounded-full bg-surface p-1">
             {(
               [
                 ['upcoming', 'Artėjančios', upcoming.length],

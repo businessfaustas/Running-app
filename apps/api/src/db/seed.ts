@@ -18,7 +18,11 @@ const today = toISODate(new Date())
 
 await db.transaction(async (tx) => {
   for (const user of MOCK_USERS) {
-    const email = `${user.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`
+    const email = `${user.name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z]+/g, '.')}@example.com`
     await tx.execute(sql`
       insert into auth.users (
         instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data,
@@ -32,7 +36,8 @@ await db.transaction(async (tx) => {
   }
 
   // handle_new_user() created bare profiles; fill in the details.
-  for (const { id, ...profile } of MOCK_USERS) {
+  for (const { id, onboarded: _, ...details } of MOCK_USERS) {
+    const profile = { ...details, onboardedAt: new Date() }
     await tx
       .insert(profiles)
       .values({ id, ...profile })

@@ -19,6 +19,7 @@ import { Button, ButtonLink } from '../../components/Button'
 import { roundButtonClass } from '../../components/buttonClass'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EmptyState } from '../../components/EmptyState'
+import { ErrorState } from '../../components/ErrorState'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { TopBar } from '../../components/TopBar'
 import { factFor } from '../../content/inspiration'
@@ -31,6 +32,7 @@ import {
   useMessages,
   useSlot,
 } from '../../data/hooks'
+import { track } from '../../lib/analytics'
 import { celebrate } from '../../lib/celebrate'
 import {
   countOf,
@@ -51,6 +53,14 @@ export function WorkoutPage() {
   const slotQuery = useSlot(id)
 
   if (slotQuery.isPending) return <WorkoutSkeleton />
+  if (slotQuery.isError) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopBar />
+        <ErrorState error={slotQuery.error} onRetry={() => slotQuery.refetch()} />
+      </div>
+    )
+  }
   if (!slotQuery.data) {
     return (
       <div className="flex h-full flex-col">
@@ -126,11 +136,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
           )}
 
           <dl className="grid grid-cols-3 gap-2">
-            <Stat
-              label="Pradžia"
-              value={slot.startTime}
-              sub={time ?? 'Laisva pabaiga'}
-            />
+            <Stat label="Pradžia" value={slot.startTime} sub={time ?? 'Laisva pabaiga'} />
             <Stat label="Atstumas" value={formatKm(slot.distanceKm)} unit="km" />
             <Stat
               label={sport.measure === 'pace' ? 'Tempas' : 'Greitis'}
@@ -473,7 +479,10 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           loading={join.isPending}
           onClick={() =>
             join.mutate(slot.id, {
-              onSuccess: () => celebrate({ kind: 'joined', slotId: slot.id, title: slot.title }),
+              onSuccess: () => {
+                track('workout_joined', { sport: slot.sportType })
+                celebrate({ kind: 'joined', slotId: slot.id, title: slot.title })
+              },
               onError: toastError,
             })
           }
@@ -501,14 +510,14 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           leave.mutate(slot.id, {
             onSuccess: () => {
               setConfirm(null)
+              track('workout_left')
               toast('Atsisakei dalyvavimo')
             },
             onError: toastError,
           })
         }
       >
-        {firstName(slot.host.name)} matys vienu dalyviu mažiau. Kol yra vietų, gali vėl
-        prisijungti.
+        {firstName(slot.host.name)} matys vienu dalyviu mažiau. Kol yra vietų, gali vėl prisijungti.
       </ConfirmDialog>
 
       <ConfirmDialog

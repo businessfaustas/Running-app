@@ -1,8 +1,21 @@
 import { addDays, toISODate } from '@pacemates/shared'
-import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
+import {
+  MOCK_MESSAGES,
+  MOCK_RACE_ATTENDEES,
+  MOCK_RACE_POSTS,
+  MOCK_SLOTS,
+  MOCK_USERS,
+} from '@pacemates/shared/mock'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { db, queryClient } from './client'
-import { profiles, slotMessages, slotParticipants, workoutSlots } from './schema'
+import {
+  profiles,
+  raceAttendees,
+  racePosts,
+  slotMessages,
+  slotParticipants,
+  workoutSlots,
+} from './schema'
 
 /*
  * Loads the shared mock athletes and workouts, dated relative to today. Safe to re-run:
@@ -95,9 +108,46 @@ await db.transaction(async (tx) => {
       createdAt: new Date(Date.now() - m.minutesAgo * 60_000),
     })),
   )
+
+  // Race community: who's going where, and a few forum threads. Replaced on each run.
+  await tx.delete(raceAttendees).where(
+    inArray(
+      raceAttendees.userId,
+      MOCK_USERS.map((u) => u.id),
+    ),
+  )
+  await tx.delete(racePosts).where(
+    inArray(
+      racePosts.id,
+      MOCK_RACE_POSTS.map((p) => p.id),
+    ),
+  )
+  await tx.insert(raceAttendees).values(
+    MOCK_RACE_ATTENDEES.map((a) => ({
+      raceSlug: a.raceSlug,
+      userId: a.userId,
+      distanceKm: a.distanceKm,
+      createdAt: new Date(Date.now() - a.daysAgo * 86_400_000),
+    })),
+  )
+  // Threads before their replies, which the parent check requires.
+  const ordered = [...MOCK_RACE_POSTS].sort(
+    (a, b) => Number(a.parentId !== null) - Number(b.parentId !== null),
+  )
+  await tx.insert(racePosts).values(
+    ordered.map((p) => ({
+      id: p.id,
+      raceSlug: p.raceSlug,
+      authorId: p.authorId,
+      parentId: p.parentId,
+      topic: p.topic,
+      content: p.content,
+      createdAt: new Date(Date.now() - p.minutesAgo * 60_000),
+    })),
+  )
 })
 
 console.log(
-  `Seeded ${MOCK_USERS.length} athletes, ${MOCK_SLOTS.length} workouts and ${MOCK_MESSAGES.length} messages around ${today}.`,
+  `Seeded ${MOCK_USERS.length} athletes, ${MOCK_SLOTS.length} workouts, ${MOCK_MESSAGES.length} messages and ${MOCK_RACE_POSTS.length} race posts around ${today}.`,
 )
 await queryClient.end()

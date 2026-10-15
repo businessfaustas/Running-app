@@ -2,6 +2,8 @@ import type {
   ChatMessage,
   ChatThread,
   Profile,
+  RaceAttendee,
+  RacePost,
   SlotDetail,
   SlotSummary,
   UserSlot,
@@ -45,6 +47,40 @@ interface MessageRow {
 
 const MESSAGE_COLUMNS = 'id, slot_id, content, created_at, sender:profiles(id, name, avatar_url)'
 
+interface PersonRow {
+  id: string
+  name: string
+  avatar_url: string | null
+}
+
+interface RacePostRow {
+  id: string
+  race_slug: string
+  parent_id: string | null
+  topic: RacePost['topic']
+  content: string
+  created_at: string
+  author: PersonRow | null
+}
+
+const RACE_POST_COLUMNS =
+  'id, race_slug, parent_id, topic, content, created_at, author:profiles(id, name, avatar_url)'
+
+const person = (row: PersonRow | null) =>
+  row
+    ? { id: row.id, name: row.name, avatarUrl: row.avatar_url }
+    : { id: 'unknown', name: 'Kažkas', avatarUrl: null }
+
+const toRacePost = (row: RacePostRow): RacePost => ({
+  id: row.id,
+  raceSlug: row.race_slug,
+  parentId: row.parent_id,
+  topic: row.topic,
+  content: row.content,
+  createdAt: row.created_at,
+  author: person(row.author),
+})
+
 /** Supabase Auth error codes, reworded for people. */
 const AUTH_ERROR_CODES: Record<string, string> = {
   invalid_credentials: MESSAGES.wrongCredentials,
@@ -72,6 +108,7 @@ const FRIENDLY_ERRORS: [RegExp, string][] = [
   [/workout is full/i, MESSAGES.full],
   [/workout is cancelled/i, MESSAGES.cancelled],
   [/workout is completed/i, MESSAGES.completed],
+  [/reply must belong|replies can only/i, MESSAGES.notAllowed],
   [/rate limit/i, MESSAGES.rateLimited],
   [/too many requests/i, MESSAGES.rateLimited],
   [/invalid login credentials/i, MESSAGES.wrongCredentials],
@@ -391,6 +428,116 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         clearTimeout(timer)
         void supabase.removeChannel(channel)
       }
+    },
+
+    async listRaceAttendance() {
+      const { data, error } = await supabase.rpc('race_attendance_counts')
+      if (error) fail(error)
+      const counts: Record<string, number> = {}
+      for (const row of data as { race_slug: string; attendees: number }[]) {
+        counts[row.race_slug] = Number(row.attendees)
+      }
+      return counts
+    },
+
+    async listRaceAttendees(raceSlug) {
+      const { data, error } = await supabase
+        .from('race_attendees')
+        .select('distance_km, created_at, profile:profiles(id, name, avatar_url)')
+        .eq('race_slug', raceSlug)
+        .order('created_at')
+        .returns<{ distance_km: number | null; created_at: string; profile: PersonRow | null }[]>()
+      if (error) fail(error)
+      return data.map((row): RaceAttendee => ({
+        ...person(row.profile),
+        distanceKm: row.distance_km,
+        joinedAt: row.created_at,
+      }))
+    },
+
+    async listUserRaces(userId) {
+      const { data, error } = await supabase
+        .from('race_attendees')
+        .select('race_slug, distance_km')
+        .eq('user_id', userId)
+        .returns<{ race_slug: string; distance_km: number | null }[]>()
+      if (error) fail(error)
+      return data.map((row) => ({ raceSlug: row.race_slug, distanceKm: row.distance_km }))
+    },
+
+    async setRaceAttendance(raceSlug, attendance) {
+      const userId = await requireUserId()
+      if (attendance === null) {
+        const { error } = await supabase
+          .from('race_attendees')
+          .delete()
+          .eq('race_slug', raceSlug)
+          .eq('user_id', userId)
+        if (error) fail(error)
+        return
+      }
+      const { error } = await supabase
+        .from('race_attendees')
+        .upsert({ race_slug: raceSlug, user_id: userId, distance_km: attendance.distanceKm })
+      if (error) fail(error)
+    },
+
+    async listRacePosts(raceSlug) {
+      const { data, error } = await supabase
+        .from('race_posts')
+        .select(RACE_POST_COLUMNS)
+        .eq('race_slug', raceSlug)
+        .order('created_at')
+        .returns<RacePostRow[]>()
+      if (error) fail(error)
+      return data.map(toRacePost)
+    },
+
+    async createRacePost(raceSlug, post) {
+      const userId = await requireUserId()
+      const content = post.content.trim()
+      if (content.length === 0) throw new BackendError(MESSAGES.emptyMessage)
+      if (content.length > 2000) throw new BackendError(MESSAGES.longMessage)
+      const { data, error } = await supabase
+        .from('race_posts')
+        .insert({
+          race_slug: raceSlug,
+          author_id: userId,
+          parent_id: post.parentId,
+          topic: post.topic,
+          content,
+        })
+        .select(RACE_POST_COLUMNS)
+        .single<RacePostRow>()
+      if (error) fail(error)
+      return toRacePost(data)
+    },
+
+    async deleteRacePost(postId) {
+      await requireUserId()
+      const { data, error } = await supabase
+        .from('race_posts')
+        .delete()
+        .eq('id', postId)
+        .select('id')
+      if (error) fail(error)
+      if (data.length === 0) throw new BackendError(MESSAGES.notAllowed)
+    },
+
+    subscribeToRace(raceSlug, onChange) {
+      const filter = `race_slug=eq.${raceSlug}`
+      const channel = supabase
+        .channel(`race:${raceSlug}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'race_posts', filter }, () =>
+          onChange(),
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'race_attendees', filter },
+          () => onChange(),
+        )
+        .subscribe()
+      return () => void supabase.removeChannel(channel)
     },
   }
 }

@@ -13,6 +13,7 @@ import { countOf, formatKm, isPast, startsIn, WORDS } from '../../lib/format'
 import { PHOTOS, photoFor } from '../../lib/photos'
 import { useNow } from '../../lib/useNow'
 import { SignedOutPrompt } from '../auth/RequireAuth'
+import { MyRaces } from '../races/MyRaces'
 import { SPORT_META } from '../slots/meta'
 import { SlotDayList } from '../slots/SlotDayList'
 
@@ -67,6 +68,7 @@ function Plans({ userId }: { userId: string }) {
       ) : (
         <>
           {nextUp && tab === 'upcoming' && <NextUp item={nextUp} />}
+          {tab === 'upcoming' && <MyRaces userId={userId} />}
 
           <div role="tablist" className="mt-4 grid grid-cols-2 rounded-full bg-surface p-1">
             {(

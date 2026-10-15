@@ -104,7 +104,15 @@ plan adds its own daily backups and point-in-time recovery.)
 - Have a lawyer review both pages; they're written for this app but aren't legal advice.
 - Accept the data processing agreements offered in the Supabase, Vercel and Sentry dashboards.
 
-## 9. Final check
+## 9. Race calendar
+
+`packages/shared/src/races.ts` was compiled from organisers' sites and race calendars in
+October 2026. Before launch, open each race's official site and confirm its date, distances and
+link – especially the ones marked with a date. When organisers announce new dates, update the file and
+redeploy.
+
+## 10. Final check
 
 With two real email addresses: sign up and confirm, finish onboarding, create a workout, join it
-from the second account, chat, reset a password, then delete both test accounts in Settings.
+from the second account, chat, reset a password, say you're going to a race and post in its
+forum, reply from the second account, then delete both test accounts in Settings.

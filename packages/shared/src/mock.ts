@@ -1,4 +1,4 @@
-import type { Profile, SlotStatus, SportType, VibeTag } from './domain'
+import type { Profile, RacePostTopic, SlotStatus, SportType, VibeTag } from './domain'
 
 /**
  * Sample data used by the web app's preview mode and by the API seed script: Vilnius athletes,
@@ -492,5 +492,299 @@ export const MOCK_MESSAGES: MockMessage[] = [
     senderId: user(10),
     content: '1 takas – ratai po 1:20, 3 takas – po 1:30. Pasiimkit vandens, fontanėlis neveikia.',
     minutesAgo: 1300,
+  },
+]
+
+// ─── Race community samples (preview mode and seed) ─────────────────────────────
+
+export interface MockRaceAttendee {
+  raceSlug: string
+  userId: string
+  distanceKm: number | null
+  daysAgo: number
+}
+
+export interface MockRacePost {
+  id: string
+  raceSlug: string
+  parentId: string | null
+  authorId: string
+  topic: RacePostTopic
+  content: string
+  minutesAgo: number
+}
+
+const post = (n: number) => `d0000000-0000-4000-8000-0000000000${String(n).padStart(2, '0')}`
+const HOUR = 60
+const DAY = 24 * HOUR
+
+const going = (raceSlug: string, list: [userNo: number, km: number | null, daysAgo: number][]) =>
+  list.map(([n, distanceKm, daysAgo]) => ({ raceSlug, userId: user(n), distanceKm, daysAgo }))
+
+export const MOCK_RACE_ATTENDEES: MockRaceAttendee[] = [
+  ...going('trail-kursiu-nerija', [
+    [3, 50, 40],
+    [6, 70, 35],
+    [10, 21, 30],
+    [7, 30, 21],
+    [4, 21, 14],
+    [8, 10, 9],
+    [9, 10, 4],
+  ]),
+  ...going('panevezio-maratonas', [
+    [1, 42.195, 20],
+    [3, 21.0975, 6],
+  ]),
+  ...going('eurovaistines-kaledinis-begimas', [
+    [8, 12, 12],
+    [7, 12, 10],
+    [9, 6, 5],
+    [4, 6, 3],
+  ]),
+  ...going('swedbank-vilniaus-maratonas', [
+    [10, 42.195, 25],
+    [4, 21.0975, 18],
+    [8, 10, 12],
+    [9, 10, 2],
+  ]),
+  ...going('vilnius-trail-run', [
+    [3, 70, 15],
+    [6, 42, 11],
+  ]),
+  ...going('kernave-vilnius-ultra-trail', [[6, 42, 8]]),
+  ...going('velomaratonas-vilnius', [
+    [2, 100, 30],
+    [5, 50, 22],
+  ]),
+  ...going('megre-gravel', [[5, 100, 16]]),
+  ...going('traku-triatlonas', [[7, 25.75, 19]]),
+]
+
+export const MOCK_RACE_POSTS: MockRacePost[] = [
+  // Trail Kuršių Nerija – the weekend is close, so the forum is busy.
+  {
+    id: post(1),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(6),
+    topic: 'GEAR',
+    content:
+      'Pirmas mano ultra – 70 km. Ar tikrai reikia getrų, ar užtenka aukštesnių kojinių? Smėlio ruožų tikrai tiek daug?',
+    minutesAgo: 2 * DAY + 3 * HOUR,
+  },
+  {
+    id: post(2),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: post(1),
+    authorId: user(3),
+    topic: 'GEAR',
+    content:
+      'Getrai – būtinai. Pernai bėgau 50 km be jų ir po Parnidžio kopos du kartus stojau išsipurtyti batų. Paplūdimio atkarpose smėlis minkštas – ten greitas žingsnis dažnai efektyvesnis už bėgimą.',
+    minutesAgo: 2 * DAY + 1 * HOUR,
+  },
+  {
+    id: post(3),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: post(1),
+    authorId: user(10),
+    topic: 'GEAR',
+    content: 'Pritariu. Ir batus imk puse numerio didesnius – po 40 km pėdos patinsta.',
+    minutesAgo: 47 * HOUR,
+  },
+  {
+    id: post(4),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(3),
+    topic: 'TIP',
+    content:
+      'Dėl tempo: pirmi kilometrai miško keliais lygūs ir greiti, visi išlekia. Nesigundyk – kopos ir paplūdimys suvalgo daug jėgų vėliau. Aš planuoju ramiai iki pusės, paskui pagal savijautą.',
+    minutesAgo: 26 * HOUR,
+  },
+  {
+    id: post(5),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(7),
+    topic: 'LOGISTICS',
+    content:
+      'Kas važiuoja iš Vilniaus penktadienį vakare? Turiu 2 laisvas vietas mašinoje, išvažiuoju 17:00. Kuras ir keltas – per pusę.',
+    minutesAgo: 20 * HOUR,
+  },
+  {
+    id: post(6),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: post(5),
+    authorId: user(8),
+    topic: 'LOGISTICS',
+    content: 'Aš norėčiau! Bėgu 10 km, numerį atsiimsiu šeštadienio rytą. Kur tave rasti?',
+    minutesAgo: 18 * HOUR,
+  },
+  {
+    id: post(7),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(10),
+    topic: 'TIP',
+    content:
+      'Mityba: kopose valgyti sunku, tad gelį suvalgyk prieš įkalnę, o ne viršuje. Mitybos planą pasiskaičiavau PaceMates skaičiuoklėje – išėjo po 70 g angliavandenių per valandą.',
+    minutesAgo: 9 * HOUR,
+  },
+  {
+    id: post(8),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(4),
+    topic: 'QUESTION',
+    content:
+      'Kaip grįžti po finišo Smiltynėje, jei mašina liko Nidoje? Ar kas žino, ar bus pavėžėjimas atgal?',
+    minutesAgo: 5 * HOUR,
+  },
+  {
+    id: post(9),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: post(8),
+    authorId: user(3),
+    topic: 'QUESTION',
+    content:
+      'Aš mašiną palieku Klaipėdoje ir į startą važiuoju iš ten. Dėl autobusų pasitikrink dalyvio gidą – ten būna parašyta.',
+    minutesAgo: 4 * HOUR,
+  },
+  {
+    id: post(10),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: null,
+    authorId: user(9),
+    topic: 'GEAR',
+    content:
+      'Prognozė šeštadieniui: +9 °C ir vakarų vėjas 8–10 m/s. Ar 10 km bėgsite trumpomis rankovėmis?',
+    minutesAgo: 3 * HOUR,
+  },
+  {
+    id: post(11),
+    raceSlug: 'trail-kursiu-nerija',
+    parentId: post(10),
+    authorId: user(7),
+    topic: 'GEAR',
+    content:
+      'Ilgos rankovės ir plona vėjo striukė, kurią galima susukti į diržą. Prie jūros vėjas pjauna, o miške bus šilta.',
+    minutesAgo: 2 * HOUR,
+  },
+
+  // Panevėžio maratonas
+  {
+    id: post(20),
+    raceSlug: 'panevezio-maratonas',
+    parentId: null,
+    authorId: user(1),
+    topic: 'QUESTION',
+    content:
+      'Bėgsiu pirmą maratoną, trasa – du ratai. Ar galima pasidėti savo gertuvę ar gelius prie gėrimo punkto?',
+    minutesAgo: 2 * DAY,
+  },
+  {
+    id: post(21),
+    raceSlug: 'panevezio-maratonas',
+    parentId: post(20),
+    authorId: user(3),
+    topic: 'QUESTION',
+    content:
+      'Kai trasa ratais, dažnai leidžia – paklausk, kai atsiimsi numerį. Aš savo gelius vis tiek nešuosi diržu, taip ramiau.',
+    minutesAgo: 44 * HOUR,
+  },
+  {
+    id: post(22),
+    raceSlug: 'panevezio-maratonas',
+    parentId: null,
+    authorId: user(3),
+    topic: 'LOGISTICS',
+    content: 'Važiuoju iš Vilniaus šeštadienio rytą 8:00 – galiu paimti dar 3 bėgikus.',
+    minutesAgo: 30 * HOUR,
+  },
+
+  // Kalėdinis bėgimas
+  {
+    id: post(30),
+    raceSlug: 'eurovaistines-kaledinis-begimas',
+    parentId: null,
+    authorId: user(8),
+    topic: 'GENERAL',
+    content:
+      'Siūlau bėgti PaceMates būriu su kalėdinėmis kepurėmis! Susitinkam 30 min. prieš startą prie V. Kudirkos paminklo.',
+    minutesAgo: 3 * DAY,
+  },
+  {
+    id: post(31),
+    raceSlug: 'eurovaistines-kaledinis-begimas',
+    parentId: post(30),
+    authorId: user(9),
+    topic: 'GENERAL',
+    content: 'Aš už! Bėgsiu 6 km lėtai, tad laukite manęs finiše su arbata.',
+    minutesAgo: 2 * DAY + 20 * HOUR,
+  },
+  {
+    id: post(32),
+    raceSlug: 'eurovaistines-kaledinis-begimas',
+    parentId: null,
+    authorId: user(7),
+    topic: 'GEAR',
+    content:
+      'Pernai grindinys prie Rotušės buvo apšalęs – šįkart imsiu trail batus su grubesniu protektoriumi.',
+    minutesAgo: 1 * DAY + 6 * HOUR,
+  },
+
+  // Vilniaus maratonas
+  {
+    id: post(40),
+    raceSlug: 'swedbank-vilniaus-maratonas',
+    parentId: null,
+    authorId: user(10),
+    topic: 'TIP',
+    content:
+      'Jei taikai į 3:30 – laikykis tempo vedlių. Pirmą pusę bėgsime tolygiai po 4:58/km, kalnelių neskubėsime.',
+    minutesAgo: 5 * DAY,
+  },
+  {
+    id: post(41),
+    raceSlug: 'swedbank-vilniaus-maratonas',
+    parentId: null,
+    authorId: user(9),
+    topic: 'QUESTION',
+    content: 'Grįžtu po traumos. Ar 10 km trasoje daug grindinio? Bijau dėl kulkšnies.',
+    minutesAgo: 12 * DAY,
+  },
+  {
+    id: post(42),
+    raceSlug: 'swedbank-vilniaus-maratonas',
+    parentId: post(41),
+    authorId: user(4),
+    topic: 'QUESTION',
+    content:
+      'Grindinio yra senamiestyje prie starto ir finišo, kitur – asfaltas. Pirmus kilometrus bėk ramiau, kol minia išsisklaidys.',
+    minutesAgo: 11 * DAY,
+  },
+
+  // Vilnius Trail Run
+  {
+    id: post(50),
+    raceSlug: 'vilnius-trail-run',
+    parentId: null,
+    authorId: user(3),
+    topic: 'TIP',
+    content:
+      'Kalvos aplink Kalnų parką labai „suvalgo“ blauzdas – laiptų ir įkalnių treniruotes verta pradėti jau žiemą.',
+    minutesAgo: 6 * DAY,
+  },
+
+  // MEGRE Gravel
+  {
+    id: post(60),
+    raceSlug: 'megre-gravel',
+    parentId: null,
+    authorId: user(5),
+    topic: 'GEAR',
+    content:
+      'Kokio pločio padangas dėsite? Aš galvoju apie 40 mm – banguotame žvyre siauresnės slysta.',
+    minutesAgo: 8 * DAY,
   },
 ]

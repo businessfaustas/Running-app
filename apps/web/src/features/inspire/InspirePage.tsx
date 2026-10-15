@@ -1,6 +1,15 @@
 import { addDays, toISODate, type SlotSummary, type UserSummary } from '@pacemates/shared'
 import clsx from 'clsx'
-import { Calculator, ChevronRight, Lightbulb, Quote, RefreshCw, Target, Trophy } from 'lucide-react'
+import {
+  Calculator,
+  ChevronRight,
+  Lightbulb,
+  Quote,
+  RefreshCw,
+  Target,
+  Trophy,
+  Zap,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
@@ -26,10 +35,31 @@ export function InspirePage() {
         <FunFacts />
         <Badges />
         <PaceCalculator />
+        <FuelingLink />
         <Tips />
         <TopHosts />
       </div>
     </div>
+  )
+}
+
+function FuelingLink() {
+  return (
+    <Link
+      to="/fueling"
+      className="-mt-4 flex items-center gap-3 rounded-[22px] bg-gradient-to-br from-blue to-blue-deep p-4 transition active:scale-[0.99]"
+    >
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-volt text-black">
+        <Zap className="size-5" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-bold text-white">Mitybos skaičiuoklė</span>
+        <span className="block text-[13px] leading-snug text-white/75">
+          Angliavandeniai, skysčiai ir druska varžyboms
+        </span>
+      </span>
+      <ChevronRight className="size-5 shrink-0 text-white/70" aria-hidden />
+    </Link>
   )
 }
 
@@ -97,7 +127,7 @@ function WeeklyChallenge() {
   const week = weekProgress(slots.data ?? [], today)
   const done = Math.min(week.workouts, WEEKLY_GOAL)
   const left = WEEKLY_GOAL - done
-  const daysLeft = Math.max(0, 6 - (new Date().getDay() + 6) % 7)
+  const daysLeft = Math.max(0, 6 - ((new Date().getDay() + 6) % 7))
 
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-blue p-5">
@@ -148,7 +178,12 @@ function WeeklyChallenge() {
           <p className="relative mt-2 text-[14px] text-white/80">
             Prisijunk ir sek, kiek treniruočių su kitais įveiki per savaitę.
           </p>
-          <ButtonLink to="/signin?next=/inspire" variant="light" size="sm" className="relative mt-4">
+          <ButtonLink
+            to="/signin?next=/inspire"
+            variant="light"
+            size="sm"
+            className="relative mt-4"
+          >
             Prisijungti
           </ButtonLink>
         </>
@@ -171,10 +206,7 @@ function FunFacts() {
             )}
           >
             <span
-              className={clsx(
-                'headline text-[54px]',
-                i % 3 === 0 ? 'text-black' : 'text-volt',
-              )}
+              className={clsx('headline text-[54px]', i % 3 === 0 ? 'text-black' : 'text-volt')}
             >
               {fact.figure}
             </span>
@@ -408,9 +440,7 @@ function TopHosts() {
               </span>
               <Avatar user={host} size={44} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-bold text-white">
-                  {host.name}
-                </span>
+                <span className="block truncate text-[15px] font-bold text-white">{host.name}</span>
                 <span className="block text-[12.5px] text-slate-400">
                   {countOf(count, WORDS.workout)} · {countOf(people, WORDS.person)}
                 </span>
@@ -433,7 +463,5 @@ function rankHosts(slots: SlotSummary[]) {
     entry.people += slot.participantCount
     byHost.set(slot.host.id, entry)
   }
-  return [...byHost.values()]
-    .sort((a, b) => b.count - a.count || b.people - a.people)
-    .slice(0, 3)
+  return [...byHost.values()].sort((a, b) => b.count - a.count || b.people - a.people).slice(0, 3)
 }

@@ -1,11 +1,15 @@
 import type {
   ChatMessage,
   ChatThread,
+  NewRacePost,
   NewSlotInput,
   Profile,
   ProfileUpdate,
+  RaceAttendee,
+  RacePost,
   SlotDetail,
   SlotSummary,
+  UserRace,
   UserSlot,
 } from '@pacemates/shared'
 
@@ -80,4 +84,20 @@ export interface Backend {
   listThreads(): Promise<ChatThread[]>
   /** Calls `onChange` when data changed somewhere else (another tab, another user). */
   subscribeToChanges(onChange: () => void): () => void
+
+  /** How many people are going to each race, by race slug. */
+  listRaceAttendance(): Promise<Record<string, number>>
+  listRaceAttendees(raceSlug: string): Promise<RaceAttendee[]>
+  listUserRaces(userId: string): Promise<UserRace[]>
+  /** Mark the signed-in user as going (with an optional course), or null to stop going. */
+  setRaceAttendance(
+    raceSlug: string,
+    attendance: { distanceKm: number | null } | null,
+  ): Promise<void>
+  /** A race's forum, oldest first; replies carry their parent's id. */
+  listRacePosts(raceSlug: string): Promise<RacePost[]>
+  createRacePost(raceSlug: string, post: NewRacePost): Promise<RacePost>
+  deleteRacePost(postId: string): Promise<void>
+  /** Calls `onChange` when a race's posts or attendance change. */
+  subscribeToRace(raceSlug: string, onChange: () => void): () => void
 }

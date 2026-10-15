@@ -50,6 +50,9 @@ export const WORDS = {
   spot: { one: 'vieta', few: 'vietos', other: 'vietų' },
   message: { one: 'žinutė', few: 'žinutės', other: 'žinučių' },
   person: { one: 'dalyvis', few: 'dalyviai', other: 'dalyvių' },
+  race: { one: 'varžybos', few: 'varžybos', other: 'varžybų' },
+  post: { one: 'įrašas', few: 'įrašai', other: 'įrašų' },
+  reply: { one: 'atsakymas', few: 'atsakymai', other: 'atsakymų' },
 } satisfies Record<string, PluralForms>
 
 /** "Pr", "An"… */

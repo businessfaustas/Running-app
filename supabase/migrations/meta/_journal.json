@@ -50,6 +50,20 @@
       "when": 1792007559431,
       "tag": "20261014195239_rate_limits_account_deletion",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792095177743,
+      "tag": "20261015201257_race_community",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792095179076,
+      "tag": "20261015201259_race_community_rules",
+      "breakpoints": true
     }
   ]
 }

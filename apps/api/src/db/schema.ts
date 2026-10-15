@@ -1,5 +1,6 @@
 import {
   PARTICIPANT_STATUSES,
+  RACE_POST_TOPICS,
   SLOT_STATUSES,
   SPORT_DISCIPLINES,
   SPORT_TYPES,
@@ -10,6 +11,7 @@ import { sql } from 'drizzle-orm'
 import {
   check,
   date,
+  type AnyPgColumn,
   doublePrecision,
   index,
   integer,
@@ -36,6 +38,7 @@ export const sportDiscipline = pgEnum('sport_discipline', SPORT_DISCIPLINES)
 export const vibeTag = pgEnum('vibe_tag', VIBE_TAGS)
 export const slotStatus = pgEnum('slot_status', SLOT_STATUSES)
 export const participantStatus = pgEnum('participant_status', PARTICIPANT_STATUSES)
+export const racePostTopic = pgEnum('race_post_topic', RACE_POST_TOPICS)
 
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -169,5 +172,58 @@ export const slotMessages = pgTable(
     // Rate limiting counts a sender's recent messages.
     index('slot_messages_sender_created_idx').on(t.senderId, t.createdAt),
     check('slot_messages_content_length', sql`char_length(${t.content}) between 1 and 2000`),
+  ],
+)
+
+/*
+ * Races come from the curated calendar in packages/shared/src/races.ts; the database only
+ * stores what people add to them, keyed by the race's slug.
+ */
+const raceSlugCheck = (column: AnyPgColumn) => sql`${column} ~ '^[a-z0-9-]{3,80}$'`
+
+/** Who's going to which race (and which course). */
+export const raceAttendees = pgTable(
+  'race_attendees',
+  {
+    raceSlug: text('race_slug').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    distanceKm: doublePrecision('distance_km'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.raceSlug, t.userId] }),
+    index('race_attendees_user_idx').on(t.userId),
+    check('race_attendees_slug_format', raceSlugCheck(t.raceSlug)),
+    check(
+      'race_attendees_distance_range',
+      sql`${t.distanceKm} is null or (${t.distanceKm} > 0 and ${t.distanceKm} <= 400)`,
+    ),
+  ],
+)
+
+/** The race forum: top-level posts and one level of replies. */
+export const racePosts = pgTable(
+  'race_posts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    raceSlug: text('race_slug').notNull(),
+    authorId: uuid('author_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    parentId: uuid('parent_id').references((): AnyPgColumn => racePosts.id, {
+      onDelete: 'cascade',
+    }),
+    topic: racePostTopic('topic').notNull().default('GENERAL'),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('race_posts_race_created_idx').on(t.raceSlug, t.createdAt),
+    index('race_posts_author_created_idx').on(t.authorId, t.createdAt),
+    index('race_posts_parent_idx').on(t.parentId),
+    check('race_posts_slug_format', raceSlugCheck(t.raceSlug)),
+    check('race_posts_content_length', sql`char_length(${t.content}) between 1 and 2000`),
   ],
 )

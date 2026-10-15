@@ -1,6 +1,14 @@
 import { addDays, toISODate } from '@pacemates/shared'
 import clsx from 'clsx'
-import { CalendarClock, Map as MapIcon, MapPin, Plus, Quote, RotateCw } from 'lucide-react'
+import {
+  CalendarClock,
+  Map as MapIcon,
+  MapPin,
+  MessageCircle,
+  Plus,
+  Quote,
+  RotateCw,
+} from 'lucide-react'
 import { lazy, Suspense, useMemo } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
@@ -68,7 +76,15 @@ export function DiscoverPage() {
         <div className="relative flex items-center justify-between gap-3 px-4 pt-3">
           <Greeting />
           <div className="flex items-center gap-2">
-            {!session && (
+            {session ? (
+              <Link
+                to="/inbox"
+                aria-label="Pokalbiai"
+                className="glass grid size-11 place-items-center rounded-full text-white transition active:scale-95"
+              >
+                <MessageCircle className="size-5" aria-hidden />
+              </Link>
+            ) : (
               <Link
                 to="/signin"
                 className="rounded-full bg-white px-4 py-2 text-[13px] font-bold whitespace-nowrap text-black transition active:scale-95 max-[359px]:px-3"

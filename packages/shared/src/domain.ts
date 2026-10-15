@@ -123,3 +123,82 @@ export interface NewSlotInput {
 export type ProfileUpdate = Partial<
   Pick<Profile, 'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl' | 'onboarded'>
 >
+
+// ─── Races (the Lithuanian race calendar and its community) ────────────────────
+
+export const RACE_TYPES = ['ROAD', 'TRAIL', 'ULTRA', 'CYCLING', 'TRIATHLON'] as const
+export type RaceType = (typeof RACE_TYPES)[number]
+
+export const RACE_SURFACES = [
+  'asphalt',
+  'gravel',
+  'forest',
+  'sand',
+  'dunes',
+  'hills',
+  'roots',
+  'mud',
+  'cobbles',
+  'trail',
+  'coast',
+  'night',
+  'swim',
+  'bike',
+] as const
+export type RaceSurface = (typeof RACE_SURFACES)[number]
+
+/** A race from the curated calendar (packages/shared/src/races.ts). */
+export interface Race {
+  /** Stable id, also used in URLs and by posts/attendance in the database. */
+  slug: string
+  name: string
+  /** Confirmed date of the next edition, or null while it isn't announced. */
+  date: string | null
+  /** The month it's usually held (1–12), used for sorting and as a hint until confirmed. */
+  typicalMonth: number
+  city: string
+  region: string
+  start: { lat: number; lng: number }
+  type: RaceType
+  /** Course options in km, longest first. */
+  distances: number[]
+  surface: RaceSurface[]
+  elevationGainM: number | null
+  website: string | null
+  description: string
+  tips: string[]
+}
+
+export const RACE_POST_TOPICS = ['TIP', 'QUESTION', 'GEAR', 'LOGISTICS', 'GENERAL'] as const
+export type RacePostTopic = (typeof RACE_POST_TOPICS)[number]
+
+export interface RacePost {
+  id: string
+  raceSlug: string
+  /** Replies point at their top-level post; threads are one level deep. */
+  parentId: string | null
+  topic: RacePostTopic
+  content: string
+  /** ISO timestamp. */
+  createdAt: string
+  author: UserSummary
+}
+
+export interface NewRacePost {
+  topic: RacePostTopic
+  content: string
+  parentId: string | null
+}
+
+export interface RaceAttendee extends UserSummary {
+  /** Which course they're running, if they said. */
+  distanceKm: number | null
+  /** ISO timestamp. */
+  joinedAt: string
+}
+
+/** A race someone has said they're going to. */
+export interface UserRace {
+  raceSlug: string
+  distanceKm: number | null
+}

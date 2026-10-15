@@ -7,12 +7,21 @@ import {
   type NewSlotInput,
   type ParticipantStatus,
   type Profile,
+  type RaceAttendee,
+  type RacePost,
+  type RacePostTopic,
   type SlotDetail,
   type SlotStatus,
   type SlotSummary,
   type UserSlot,
 } from '@pacemates/shared'
-import { MOCK_MESSAGES, MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
+import {
+  MOCK_MESSAGES,
+  MOCK_RACE_ATTENDEES,
+  MOCK_RACE_POSTS,
+  MOCK_SLOTS,
+  MOCK_USERS,
+} from '@pacemates/shared/mock'
 import { emailError, nameError, passwordError } from '../lib/validation'
 import { MESSAGES } from './messages'
 import { BackendError, type AuthEvent, type Backend, type Session } from './types'
@@ -50,6 +59,22 @@ interface StoredMessage {
   createdAt: string
 }
 
+interface StoredRaceAttendee {
+  userId: string
+  distanceKm: number | null
+  joinedAt: string
+}
+
+interface StoredRacePost {
+  id: string
+  raceSlug: string
+  parentId: string | null
+  authorId: string
+  topic: RacePostTopic
+  content: string
+  createdAt: string
+}
+
 interface DemoState {
   accounts: { userId: string; email: string; passwordHash: string }[]
   /** New users, plus edits to the sample athletes. */
@@ -64,6 +89,11 @@ interface DemoState {
   sessionUserId: string | null
   /** Set by "forgot password": stands in for the emailed recovery link. */
   recoveryUserId: string | null
+  /** Replaces a race's sample attendee list once anyone changes it. */
+  raceAttendees: Record<string, StoredRaceAttendee[]>
+  racePosts: StoredRacePost[]
+  /** Sample posts their (sample) authors deleted. */
+  deletedRacePostIds: string[]
 }
 
 const emptyState = (): DemoState => ({
@@ -75,12 +105,16 @@ const emptyState = (): DemoState => ({
   messages: [],
   sessionUserId: null,
   recoveryUserId: null,
+  raceAttendees: {},
+  racePosts: [],
+  deletedRacePostIds: [],
 })
 
 /** Mirrors the database's limits on how fast one person can write. */
 const RATE_LIMITS = {
   message: { max: 20, windowMs: 60_000 },
   workout: { max: 3, windowMs: 60_000 },
+  racePost: { max: 6, windowMs: 60_000 },
 } as const
 
 async function hashPassword(email: string, password: string): Promise<string> {
@@ -107,7 +141,12 @@ export function createDemoBackend({
   let state = load()
 
   const authListeners = new Set<(session: Session | null, event: AuthEvent) => void>()
-  const recentWrites: Record<keyof typeof RATE_LIMITS, number[]> = { message: [], workout: [] }
+  const recentWrites: Record<keyof typeof RATE_LIMITS, number[]> = {
+    message: [],
+    workout: [],
+    racePost: [],
+  }
+  const raceListeners = new Map<string, Set<() => void>>()
 
   function hitRateLimit(action: keyof typeof RATE_LIMITS) {
     const { max, windowMs } = RATE_LIMITS[action]
@@ -125,6 +164,7 @@ export function createDemoBackend({
     if (state.sessionUserId !== before) emitAuth(state.sessionUserId ? 'SIGNED_IN' : 'SIGNED_OUT')
     for (const listener of changeListeners) listener()
     for (const listeners of messageListeners.values()) for (const l of listeners) l()
+    for (const listeners of raceListeners.values()) for (const l of listeners) l()
   })
 
   function load(): DemoState {
@@ -264,6 +304,54 @@ export function createDemoBackend({
     for (const listener of messageListeners.get(slotId) ?? []) listener()
   }
 
+  function attendeesOf(raceSlug: string): StoredRaceAttendee[] {
+    const stored = state.raceAttendees[raceSlug]
+    if (stored) return stored
+    return MOCK_RACE_ATTENDEES.filter((a) => a.raceSlug === raceSlug).map((a) => ({
+      userId: a.userId,
+      distanceKm: a.distanceKm,
+      joinedAt: new Date(loadedAt.getTime() - a.daysAgo * 86_400_000).toISOString(),
+    }))
+  }
+
+  function allRaceSlugsWithAttendance(): string[] {
+    const slugs = new Set([
+      ...MOCK_RACE_ATTENDEES.map((a) => a.raceSlug),
+      ...Object.keys(state.raceAttendees),
+    ])
+    return [...slugs]
+  }
+
+  function racePostsOf(raceSlug: string): StoredRacePost[] {
+    const deleted = new Set(state.deletedRacePostIds)
+    const sample = MOCK_RACE_POSTS.filter((p) => p.raceSlug === raceSlug && !deleted.has(p.id)).map(
+      (p): StoredRacePost => ({
+        id: p.id,
+        raceSlug: p.raceSlug,
+        parentId: p.parentId,
+        authorId: p.authorId,
+        topic: p.topic,
+        content: p.content,
+        createdAt: new Date(loadedAt.getTime() - p.minutesAgo * 60_000).toISOString(),
+      }),
+    )
+    // A deleted post takes its replies with it, as in the database.
+    const all = [...sample, ...state.racePosts.filter((p) => p.raceSlug === raceSlug)]
+    const ids = new Set(all.map((p) => p.id))
+    return all
+      .filter((p) => p.parentId === null || ids.has(p.parentId))
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  }
+
+  const toRacePost = ({ authorId, ...post }: StoredRacePost): RacePost => ({
+    ...post,
+    author: summaryOf(authorId),
+  })
+
+  function notifyRace(raceSlug: string) {
+    for (const listener of raceListeners.get(raceSlug) ?? []) listener()
+  }
+
   return {
     mode: 'demo',
 
@@ -378,6 +466,10 @@ export function createDemoBackend({
         state.messages = state.messages.filter(
           (m) => m.senderId !== userId && !hosted.has(m.slotId),
         )
+        for (const slug of allRaceSlugsWithAttendance()) {
+          state.raceAttendees[slug] = attendeesOf(slug).filter((a) => a.userId !== userId)
+        }
+        state.racePosts = state.racePosts.filter((p) => p.authorId !== userId)
         state.sessionUserId = null
         state.recoveryUserId = null
       }
@@ -581,6 +673,100 @@ export function createDemoBackend({
     subscribeToChanges(onChange) {
       changeListeners.add(onChange)
       return () => changeListeners.delete(onChange)
+    },
+
+    async listRaceAttendance() {
+      await pause()
+      const counts: Record<string, number> = {}
+      for (const slug of allRaceSlugsWithAttendance()) {
+        const count = attendeesOf(slug).length
+        if (count > 0) counts[slug] = count
+      }
+      return counts
+    },
+
+    async listRaceAttendees(raceSlug) {
+      await pause()
+      return attendeesOf(raceSlug).map((a): RaceAttendee => ({
+        ...summaryOf(a.userId),
+        distanceKm: a.distanceKm,
+        joinedAt: a.joinedAt,
+      }))
+    },
+
+    async listUserRaces(userId) {
+      await pause()
+      return allRaceSlugsWithAttendance().flatMap((raceSlug) => {
+        const mine = attendeesOf(raceSlug).find((a) => a.userId === userId)
+        return mine ? [{ raceSlug, distanceKm: mine.distanceKm }] : []
+      })
+    },
+
+    async setRaceAttendance(raceSlug, attendance) {
+      await pause()
+      const userId = requireUserId()
+      const others = attendeesOf(raceSlug).filter((a) => a.userId !== userId)
+      state.raceAttendees[raceSlug] = attendance
+        ? [...others, { userId, distanceKm: attendance.distanceKm, joinedAt: now().toISOString() }]
+        : others
+      save()
+      notifyRace(raceSlug)
+    },
+
+    async listRacePosts(raceSlug) {
+      await pause()
+      return racePostsOf(raceSlug).map(toRacePost)
+    },
+
+    async createRacePost(raceSlug, post) {
+      await pause()
+      const userId = requireUserId()
+      const content = post.content.trim()
+      if (content.length === 0) throw new BackendError(MESSAGES.emptyMessage)
+      if (content.length > 2000) throw new BackendError(MESSAGES.longMessage)
+      if (post.parentId) {
+        const parent = racePostsOf(raceSlug).find((p) => p.id === post.parentId)
+        if (!parent || parent.parentId !== null) throw new BackendError(MESSAGES.notAllowed)
+      }
+      hitRateLimit('racePost')
+      const stored: StoredRacePost = {
+        id: crypto.randomUUID(),
+        raceSlug,
+        parentId: post.parentId,
+        authorId: userId,
+        topic: post.topic,
+        content,
+        createdAt: now().toISOString(),
+      }
+      state.racePosts.push(stored)
+      save()
+      notifyRace(raceSlug)
+      return toRacePost(stored)
+    },
+
+    async deleteRacePost(postId) {
+      await pause()
+      const userId = requireUserId()
+      const own = state.racePosts.find((p) => p.id === postId)
+      const sample = MOCK_RACE_POSTS.find((p) => p.id === postId)
+      if (own?.authorId === userId) {
+        state.racePosts = state.racePosts.filter((p) => p.id !== postId && p.parentId !== postId)
+        save()
+        notifyRace(own.raceSlug)
+      } else if (sample?.authorId === userId) {
+        state.deletedRacePostIds.push(postId)
+        save()
+        notifyRace(sample.raceSlug)
+      } else {
+        throw new BackendError(MESSAGES.notAllowed)
+      }
+    },
+
+    subscribeToRace(raceSlug, onChange) {
+      const listeners = raceListeners.get(raceSlug) ?? new Set()
+      listeners.add(onChange)
+      raceListeners.set(raceSlug, listeners)
+      return () => listeners.delete(onChange)
     },
   }
 }

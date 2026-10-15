@@ -1,4 +1,4 @@
-import type { NewSlotInput, ProfileUpdate } from '@pacemates/shared'
+import type { NewRacePost, NewSlotInput, ProfileUpdate } from '@pacemates/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { backend } from '../backend'
@@ -11,6 +11,10 @@ export const keys = {
   profile: (id: string) => ['profile', id] as const,
   messages: (slotId: string) => ['messages', slotId] as const,
   threads: (userId: string) => ['threads', userId] as const,
+  raceCounts: ['raceCounts'] as const,
+  raceAttendees: (slug: string) => ['raceAttendees', slug] as const,
+  racePosts: (slug: string) => ['racePosts', slug] as const,
+  userRaces: (userId: string) => ['userRaces', userId] as const,
 }
 
 export function useSlots(from: string, to: string) {
@@ -131,5 +135,77 @@ export function useUpdateProfile() {
       // Names and photos appear on cards and in chats too.
       void queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'profile' })
     },
+  })
+}
+
+// ─── Races ───────────────────────────────────────────────────────────────────
+
+export function useRaceCounts() {
+  return useQuery({ queryKey: keys.raceCounts, queryFn: () => backend.listRaceAttendance() })
+}
+
+export function useRaceAttendees(slug: string) {
+  return useQuery({
+    queryKey: keys.raceAttendees(slug),
+    queryFn: () => backend.listRaceAttendees(slug),
+  })
+}
+
+export function useUserRaces(userId: string | undefined) {
+  return useQuery({
+    queryKey: keys.userRaces(userId ?? ''),
+    queryFn: () => backend.listUserRaces(userId!),
+    enabled: Boolean(userId),
+  })
+}
+
+/** A race's forum, kept live while the page is open. */
+export function useRacePosts(slug: string) {
+  const queryClient = useQueryClient()
+  useEffect(
+    () =>
+      backend.subscribeToRace(slug, () => {
+        void queryClient.invalidateQueries({ queryKey: keys.racePosts(slug) })
+        void queryClient.invalidateQueries({ queryKey: keys.raceAttendees(slug) })
+        void queryClient.invalidateQueries({ queryKey: keys.raceCounts })
+      }),
+    [queryClient, slug],
+  )
+  return useQuery({ queryKey: keys.racePosts(slug), queryFn: () => backend.listRacePosts(slug) })
+}
+
+function useInvalidateRace(slug: string) {
+  const queryClient = useQueryClient()
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: keys.racePosts(slug) }),
+      queryClient.invalidateQueries({ queryKey: keys.raceAttendees(slug) }),
+      queryClient.invalidateQueries({ queryKey: keys.raceCounts }),
+      queryClient.invalidateQueries({ queryKey: ['userRaces'] }),
+    ])
+}
+
+export function useSetRaceAttendance(slug: string) {
+  const invalidate = useInvalidateRace(slug)
+  return useMutation({
+    mutationFn: (attendance: { distanceKm: number | null } | null) =>
+      backend.setRaceAttendance(slug, attendance),
+    onSettled: invalidate,
+  })
+}
+
+export function useCreateRacePost(slug: string) {
+  const invalidate = useInvalidateRace(slug)
+  return useMutation({
+    mutationFn: (post: NewRacePost) => backend.createRacePost(slug, post),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeleteRacePost(slug: string) {
+  const invalidate = useInvalidateRace(slug)
+  return useMutation({
+    mutationFn: (postId: string) => backend.deleteRacePost(postId),
+    onSettled: invalidate,
   })
 }

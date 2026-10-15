@@ -17,6 +17,7 @@ import { NotFoundPage, RouteErrorPage } from './features/errors/ErrorPages'
 import { InboxPage } from './features/inbox/InboxPage'
 import { InspirePage } from './features/inspire/InspirePage'
 import { PlansPage } from './features/plans/PlansPage'
+import { RacesPage } from './features/races/RacesPage'
 import { AthletePage, MyProfilePage } from './features/profile/ProfilePages'
 import { WelcomePage } from './features/welcome/WelcomePage'
 import { ChatPage } from './features/workout/ChatPage'
@@ -46,6 +47,12 @@ const ResetPasswordPage = lazy(() =>
 )
 const AuthCallbackPage = lazy(() =>
   import('./features/auth/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })),
+)
+const RacePage = lazy(() =>
+  import('./features/races/RacePage').then((m) => ({ default: m.RacePage })),
+)
+const FuelingPage = lazy(() =>
+  import('./features/fueling/FuelingPage').then((m) => ({ default: m.FuelingPage })),
 )
 const PrivacyPage = lazy(() =>
   import('./features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
@@ -111,6 +118,7 @@ const router = createBrowserRouter([
         element: <TabLayout />,
         children: [
           { index: true, element: <Home /> },
+          { path: 'races', element: <RacesPage /> },
           { path: 'plans', element: <PlansPage /> },
           { path: 'inspire', element: <InspirePage /> },
           { path: 'inbox', element: <InboxPage /> },
@@ -123,6 +131,8 @@ const router = createBrowserRouter([
       { path: 'workouts/:id', element: <WorkoutPage /> },
       { path: 'workouts/:id/chat', element: signedIn(<ChatPage />) },
       { path: 'athletes/:id', element: <AthletePage /> },
+      { path: 'races/:slug', element: page(<RacePage />) },
+      { path: 'fueling', element: page(<FuelingPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },
       { path: 'settings', element: signedIn(<SettingsPage />) },
       { path: 'signin', element: <SignInPage /> },

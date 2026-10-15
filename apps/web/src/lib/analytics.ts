@@ -14,6 +14,9 @@ export type AnalyticsEvent =
   | 'workout_joined'
   | 'workout_left'
   | 'message_sent'
+  | 'race_joined'
+  | 'race_left'
+  | 'race_post_created'
   | 'password_reset_requested'
   | 'account_deleted'
 

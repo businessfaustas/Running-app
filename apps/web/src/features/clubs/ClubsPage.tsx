@@ -196,7 +196,7 @@ function ClubList({ clubs }: { clubs: Club[] }) {
               <span className="mt-0.5 block text-[12px] font-bold tracking-wider text-slate-500 uppercase">
                 {club.types.map((t) => CLUB_TYPE_META[t].label).join(' · ')} · {club.city}
               </span>
-              <span className="mt-1.5 line-clamp-2 block text-[13px] leading-snug text-slate-400">
+              <span className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-slate-400">
                 {club.description}
               </span>
               {(club.level || club.membership) && (

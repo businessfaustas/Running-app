@@ -1,3 +1,4 @@
+import { distanceKm } from '@pacemates/shared'
 import type {
   ChatMessage,
   ChatThread,
@@ -40,6 +41,14 @@ interface ProfileRow {
 
 const PROFILE_COLUMNS =
   'id, name, avatar_url, bio, sports, default_paces, strava_id, city, onboarded_at'
+/*
+ * Until the database has the newer migrations (profiles.city, list_slots_near), fall back to
+ * what an older schema has, so deploying the app before migrating doesn't break it.
+ */
+const LEGACY_PROFILE_COLUMNS =
+  'id, name, avatar_url, bio, sports, default_paces, strava_id, onboarded_at'
+const isMissingColumn = (error: PostgrestError) => error.code === '42703'
+const isMissingFunction = (error: PostgrestError) => error.code === 'PGRST202'
 
 interface MessageRow {
   id: string
@@ -148,7 +157,7 @@ const toProfile = (row: ProfileRow): Profile => ({
   sports: row.sports,
   defaultPaces: row.default_paces,
   stravaId: row.strava_id,
-  city: row.city,
+  city: row.city ?? null,
   onboarded: row.onboarded_at !== null,
 })
 
@@ -210,14 +219,15 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     if (patch.city !== undefined) row.city = patch.city
     if (patch.onboarded) row.onboarded_at = new Date().toISOString()
     if (row.name !== undefined && row.name.length < 2) throw new BackendError(MESSAGES.nameRequired)
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(row)
-      .eq('id', userId)
-      .select(PROFILE_COLUMNS)
-      .single<ProfileRow>()
+    const save = (values: Partial<ProfileRow>, columns: string) =>
+      supabase.from('profiles').update(values).eq('id', userId).select(columns).single<ProfileRow>()
+    let { data, error } = await save(row, PROFILE_COLUMNS)
+    if (error && isMissingColumn(error)) {
+      const { city: _, ...rest } = row
+      ;({ data, error } = await save(rest, LEGACY_PROFILE_COLUMNS))
+    }
     if (error) fail(error)
-    return toProfile(data)
+    return toProfile(data!)
   }
 
   return {
@@ -296,11 +306,10 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
 
     async getProfile(userId) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(PROFILE_COLUMNS)
-        .eq('id', userId)
-        .maybeSingle<ProfileRow>()
+      const load = (columns: string) =>
+        supabase.from('profiles').select(columns).eq('id', userId).maybeSingle<ProfileRow>()
+      let { data, error } = await load(PROFILE_COLUMNS)
+      if (error && isMissingColumn(error)) ({ data, error } = await load(LEGACY_PROFILE_COLUMNS))
       if (error) fail(error)
       return data ? toProfile(data) : null
     },
@@ -338,6 +347,10 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
             p_radius_m: area.radiusKm * 1000,
           })
         : await supabase.rpc('list_slots', { p_from: from, p_to: to })
+      if (error && area && isMissingFunction(error)) {
+        const all = await this.listSlots({ from, to })
+        return all.filter((slot) => distanceKm(area, slot.meetingPoint) <= area.radiusKm)
+      }
       if (error) fail(error)
       return data as SlotSummary[]
     },

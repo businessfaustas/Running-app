@@ -1,9 +1,13 @@
 import {
   addDays,
+  distanceKm,
   newSlotInputSchema,
+  timeToMinutes,
   toISODate,
+  type Area,
   type ChatMessage,
   type ChatThread,
+  type LeaderboardEntry,
   type NewSlotInput,
   type ParticipantStatus,
   type Profile,
@@ -247,6 +251,9 @@ export function createDemoBackend({
 
   const accepted = (roster: StoredParticipant[]) => roster.filter((p) => p.status === 'ACCEPTED')
 
+  const inArea = (slot: StoredSlot, area: Area | null | undefined) =>
+    !area || distanceKm(area, slot.meetingPoint) <= area.radiusKm
+
   /** Mirrors the database triggers: OPEN/FULL follows the head-count. */
   function statusOf(slot: StoredSlot, roster: StoredParticipant[]): SlotStatus {
     const base = state.statusOverrides[slot.id] ?? slot.status
@@ -398,6 +405,7 @@ export function createDemoBackend({
         sports: [],
         defaultPaces: {},
         stravaId: null,
+        city: null,
         onboarded: false,
       }
       state.sessionUserId = userId
@@ -519,12 +527,58 @@ export function createDemoBackend({
       return updated
     },
 
-    async listSlots({ from, to }) {
+    async setAvatar(image) {
+      await pause()
+      const userId = requireUserId()
+      // On this device the photo lives inside the saved state, as a data URL.
+      const avatarUrl = image ? await blobToDataUrl(image) : null
+      const updated = { ...profileOf(userId), avatarUrl }
+      state.profiles[userId] = updated
+      save()
+      return updated
+    },
+
+    async listSlots({ from, to }, area) {
       await pause()
       return allSlots()
-        .filter((slot) => slot.date >= from && slot.date <= to)
+        .filter((slot) => slot.date >= from && slot.date <= to && inArea(slot, area))
         .map(toSummary)
         .sort(byDateTime)
+    },
+
+    async getLeaderboard({ from, to }, area) {
+      await pause()
+      const at = now()
+      const todayKey = toISODate(at)
+      const nowMinutes = at.getHours() * 60 + at.getMinutes()
+      const totals = new Map<string, LeaderboardEntry>()
+      for (const slot of allSlots()) {
+        if (slot.date < from || slot.date > to || !inArea(slot, area)) continue
+        const roster = rosterOf(slot)
+        if (statusOf(slot, roster) === 'CANCELLED') continue
+        const start = timeToMinutes(slot.startTime)
+        const end = slot.endTime ? timeToMinutes(slot.endTime) : start + 60
+        const finished = slot.date < todayKey || (slot.date === todayKey && end <= nowMinutes)
+        if (!finished) continue
+        const running = slot.sportType === 'RUN' || slot.sportType === 'TRACK'
+        for (const { userId } of accepted(roster)) {
+          const entry = totals.get(userId) ?? {
+            user: summaryOf(userId),
+            runKm: 0,
+            rideKm: 0,
+            workouts: 0,
+            hosted: 0,
+          }
+          if (running) entry.runKm += slot.distanceKm
+          else entry.rideKm += slot.distanceKm
+          entry.workouts += 1
+          if (userId === slot.hostId) entry.hosted += 1
+          totals.set(userId, entry)
+        }
+      }
+      return [...totals.values()]
+        .map((e) => ({ ...e, runKm: round1(e.runKm), rideKm: round1(e.rideKm) }))
+        .sort((a, b) => b.workouts - a.workouts || b.runKm + b.rideKm - (a.runKm + a.rideKm))
     },
 
     async getSlot(slotId) {
@@ -793,4 +847,15 @@ export function watchBrowserStorage(onChange: () => void): () => void {
   }
   window.addEventListener('storage', handler)
   return () => window.removeEventListener('storage', handler)
+}
+
+const round1 = (n: number) => Math.round(n * 10) / 10
+
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer())
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  }
+  return `data:${blob.type || 'image/jpeg'};base64,${btoa(binary)}`
 }

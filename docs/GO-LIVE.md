@@ -25,8 +25,9 @@ pnpm install
 DATABASE_URL="<session pooler string>" pnpm db:migrate
 ```
 
-This creates the tables, row-level security, the database rate limits and the delete-account
-function. (`pnpm db:seed` adds sample athletes and workouts – useful for a demo, skip it for a real
+This creates the tables, row-level security, the database rate limits, the delete-account
+function and the `avatars` Storage bucket for profile photos (check it under Storage → Buckets;
+it should be public, 2 MB limit, images only). (`pnpm db:seed` adds sample athletes and workouts – useful for a demo, skip it for a real
 launch.)
 
 ## 3. Configure sign-in and emails (Supabase → Authentication)
@@ -104,15 +105,17 @@ plan adds its own daily backups and point-in-time recovery.)
 - Have a lawyer review both pages; they're written for this app but aren't legal advice.
 - Accept the data processing agreements offered in the Supabase, Vercel and Sentry dashboards.
 
-## 9. Race calendar
+## 9. Race calendar and clubs
 
 `packages/shared/src/races.ts` was compiled from organisers' sites and race calendars in
 October 2026. Before launch, open each race's official site and confirm its date, distances and
 link – especially the ones marked with a date. When organisers announce new dates, update the file and
-redeploy.
+redeploy. Do the same for the clubs in `packages/shared/src/clubs.ts`: open each club's page and
+check the schedule and links; it's worth telling the clubs they're listed.
 
 ## 10. Final check
 
 With two real email addresses: sign up and confirm, finish onboarding, create a workout, join it
 from the second account, chat, reset a password, say you're going to a race and post in its
-forum, reply from the second account, then delete both test accounts in Settings.
+forum, reply from the second account, upload a profile photo, switch town, then delete both test
+accounts in Settings.

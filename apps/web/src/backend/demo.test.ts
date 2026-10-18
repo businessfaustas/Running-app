@@ -252,4 +252,42 @@ describe('demo backend', () => {
       MESSAGES.rateLimited,
     )
   })
+
+  it('shows only the workouts around the chosen town', async () => {
+    const backend = setup()
+    const range = { from: TODAY, to: '2026-10-26' }
+    const vilnius = await backend.listSlots(range, { lat: 54.6872, lng: 25.2797, radiusKm: 22 })
+    const kaunas = await backend.listSlots(range, { lat: 54.8985, lng: 23.9036, radiusKm: 18 })
+    const all = await backend.listSlots(range)
+    expect(kaunas.length).toBeGreaterThan(0)
+    expect(kaunas.every((s) => s.meetingPoint.lng < 24.2)).toBe(true)
+    expect(vilnius.some((s) => kaunas.some((k) => k.id === s.id))).toBe(false)
+    expect(vilnius.length + kaunas.length).toBeLessThan(all.length) // Klaipėda is in neither
+  })
+
+  it('ranks people by finished workouts, leaving out ones still to come', async () => {
+    const backend = setup()
+    const board = await backend.getLeaderboard({ from: '2026-10-06', to: '2026-10-12' }, null)
+    const gabija = board.find((e) => e.user.id === MOCK_USERS[0]!.id)!
+    // The past week: 10 + 9 + 21 km with others, and hosting a 12 km evening run.
+    expect(gabija).toMatchObject({ runKm: 52, workouts: 4, hosted: 1 })
+    // At 09:00 the 06:00 and 06:30 workouts have finished; 18:00 ones haven't.
+    const today = await backend.getLeaderboard({ from: TODAY, to: TODAY }, null)
+    expect(today.reduce((sum, e) => sum + e.workouts, 0)).toBeGreaterThan(0)
+    const kaunas = await backend.getLeaderboard(
+      { from: '2026-10-06', to: TODAY },
+      { lat: 54.8985, lng: 23.9036, radiusKm: 18 },
+    )
+    expect(kaunas.map((e) => e.workouts)).toEqual([1, 1, 1])
+  })
+
+  it('sets and removes a profile photo', async () => {
+    const backend = setup()
+    await backend.signUp({ name: 'Ana Runner', email: 'ana@example.com', password: 'longenough1' })
+    const photo = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' })
+    const withPhoto = await backend.setAvatar(photo)
+    expect(withPhoto.avatarUrl).toMatch(/^data:image\/webp;base64,/)
+    expect((await backend.getProfile(withPhoto.id))?.avatarUrl).toBe(withPhoto.avatarUrl)
+    expect((await backend.setAvatar(null)).avatarUrl).toBeNull()
+  })
 })

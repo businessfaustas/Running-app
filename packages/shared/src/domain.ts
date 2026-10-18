@@ -41,6 +41,8 @@ export interface Profile extends UserSummary {
   sports: SportDiscipline[]
   defaultPaces: DefaultPaces
   stravaId: string | null
+  /** Home town id (see cities.ts); null until chosen. */
+  city: string | null
   /** False until the athlete finishes (or skips) the onboarding steps after signing up. */
   onboarded: boolean
 }
@@ -121,8 +123,57 @@ export interface NewSlotInput {
 }
 
 export type ProfileUpdate = Partial<
-  Pick<Profile, 'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl' | 'onboarded'>
+  Pick<
+    Profile,
+    'name' | 'bio' | 'sports' | 'defaultPaces' | 'stravaId' | 'avatarUrl' | 'city' | 'onboarded'
+  >
 >
+
+/** A circle on the map: a town's centre and how far around it counts. */
+export interface Area {
+  lat: number
+  lng: number
+  radiusKm: number
+}
+
+/** One athlete's totals over a period, from finished PaceMates workouts they took part in. */
+export interface LeaderboardEntry {
+  user: UserSummary
+  /** Kilometres from RUN and TRACK workouts. */
+  runKm: number
+  /** Kilometres from CYCLING and GRAVEL workouts. */
+  rideKm: number
+  workouts: number
+  hosted: number
+}
+
+// ─── Clubs (the directory of local running, triathlon and cycling clubs) ──────
+
+export const CLUB_TYPES = ['RUNNING', 'TRIATHLON', 'CYCLING'] as const
+export type ClubType = (typeof CLUB_TYPES)[number]
+
+/** A club from the curated directory (packages/shared/src/clubs.ts). */
+export interface Club {
+  slug: string
+  name: string
+  types: ClubType[]
+  /** Town name as in cities.ts, e.g. "Klaipėda". */
+  city: string
+  description: string
+  /** Regular open sessions, e.g. "Antradieniais 19:00 – intervalai stadione". */
+  schedule: string[]
+  meetingPlace: string | null
+  level: string | null
+  membership: string | null
+  website: string | null
+  facebook: string | null
+  instagram: string | null
+  strava: string | null
+  /** The club's public organisational address, if it publishes one. */
+  email: string | null
+  founded: number | null
+  location: { lat: number; lng: number }
+}
 
 // ─── Races (the Lithuanian race calendar and its community) ────────────────────
 

@@ -54,6 +54,15 @@ const RacePage = lazy(() =>
 const FuelingPage = lazy(() =>
   import('./features/fueling/FuelingPage').then((m) => ({ default: m.FuelingPage })),
 )
+const LeaderboardPage = lazy(() =>
+  import('./features/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
+)
+const ClubsPage = lazy(() =>
+  import('./features/clubs/ClubsPage').then((m) => ({ default: m.ClubsPage })),
+)
+const ClubPage = lazy(() =>
+  import('./features/clubs/ClubPage').then((m) => ({ default: m.ClubPage })),
+)
 const PrivacyPage = lazy(() =>
   import('./features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -133,6 +142,9 @@ const router = createBrowserRouter([
       { path: 'athletes/:id', element: <AthletePage /> },
       { path: 'races/:slug', element: page(<RacePage />) },
       { path: 'fueling', element: page(<FuelingPage />) },
+      { path: 'leaderboard', element: page(<LeaderboardPage />) },
+      { path: 'clubs', element: page(<ClubsPage />) },
+      { path: 'clubs/:slug', element: page(<ClubPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },
       { path: 'settings', element: signedIn(<SettingsPage />) },
       { path: 'signin', element: <SignInPage /> },

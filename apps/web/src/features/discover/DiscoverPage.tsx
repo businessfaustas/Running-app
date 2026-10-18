@@ -2,6 +2,7 @@ import { addDays, toISODate } from '@pacemates/shared'
 import clsx from 'clsx'
 import {
   CalendarClock,
+  ChevronDown,
   Map as MapIcon,
   MapPin,
   MessageCircle,
@@ -9,15 +10,16 @@ import {
   Quote,
   RotateCw,
 } from 'lucide-react'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
+import { CitySheet } from '../../components/CityPicker'
 import { Logo } from '../../components/Logo'
 import { quoteOfTheDay } from '../../content/inspiration'
 import { useSession } from '../../data/auth'
 import { useMe, useSlots, useUserSlots } from '../../data/hooks'
-import { CITY } from '../../lib/city'
+import { useCity } from '../../data/city'
 import { dayMonth, firstName, greeting, plural, whenHeadline, WORDS } from '../../lib/format'
 import { matchesSportFilter, SPORT_FILTERS } from '../slots/meta'
 import { DayStrip } from './DayStrip'
@@ -39,7 +41,9 @@ export function DiscoverPage() {
   const { setSelectedDate, setSportFilter, setView, focusSlot } = useDiscoverStore()
 
   const session = useSession()
-  const slotsQuery = useSlots(days[0]!, days.at(-1)!)
+  const city = useCity()
+  const [cityOpen, setCityOpen] = useState(false)
+  const slotsQuery = useSlots(days[0]!, days.at(-1)!, city)
   const mySlots = useUserSlots(session?.userId)
 
   const roles = useMemo(
@@ -97,9 +101,18 @@ export function DiscoverPage() {
         </div>
 
         <div className="relative px-4 pt-4 [@media(max-height:500px)]:hidden">
-          <p className="flex items-center gap-1 text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
-            <MapPin className="size-3.5" aria-hidden />
-            {CITY.name} · {dayMonth(selectedDate)}
+          <p className="flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
+            <button
+              type="button"
+              onClick={() => setCityOpen(true)}
+              aria-label={`Miestas: ${city.name}. Pakeisti`}
+              className="-my-1 -ml-1 flex items-center gap-1 rounded-full bg-white/15 py-1 pr-2 pl-1.5 text-white transition hover:bg-white/25 active:scale-95"
+            >
+              <MapPin className="size-3.5" aria-hidden />
+              {city.name}
+              <ChevronDown className="size-3.5" aria-hidden />
+            </button>
+            · {dayMonth(selectedDate)}
           </p>
           <div className="mt-1 flex items-end justify-between gap-3">
             <h1 className="headline text-[46px] text-white">{whenHeadline(selectedDate, today)}</h1>
@@ -190,6 +203,7 @@ export function DiscoverPage() {
             isLoading={slotsQuery.isPending}
             focusedSlotId={focusedSlotId}
             roles={roles}
+            cityLocative={city.locative}
           />
         ) : (
           <Suspense fallback={<div className="h-full animate-pulse bg-surface" />}>
@@ -198,6 +212,7 @@ export function DiscoverPage() {
               focusedSlotId={focusedSlotId}
               onFocusSlot={focusSlot}
               roles={roles}
+              center={city}
             />
           </Suspense>
         )}
@@ -212,6 +227,7 @@ export function DiscoverPage() {
           <Plus className="size-7" strokeWidth={2.6} aria-hidden />
         </Link>
       )}
+      <CitySheet open={cityOpen} onClose={() => setCityOpen(false)} />
     </div>
   )
 }

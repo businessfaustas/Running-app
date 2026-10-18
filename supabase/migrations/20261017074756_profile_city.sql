@@ -1,0 +1,2 @@
+ALTER TABLE "profiles" ADD COLUMN "city" text;--> statement-breakpoint
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_city_id" CHECK ("profiles"."city" is null or "profiles"."city" ~ '^[a-z]{3,24}$');

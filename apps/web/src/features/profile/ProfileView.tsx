@@ -1,5 +1,13 @@
-import { toISODate, type Profile } from '@pacemates/shared'
-import { ArrowUpRight, Bike, CalendarPlus, ChevronRight, Footprints } from 'lucide-react'
+import { cityById, toISODate, type Profile } from '@pacemates/shared'
+import {
+  ArrowUpRight,
+  Bike,
+  CalendarPlus,
+  Camera,
+  ChevronRight,
+  Footprints,
+  MapPin,
+} from 'lucide-react'
 import { useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
@@ -54,11 +62,30 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
         />
         {header}
         <div className="relative flex items-end gap-4">
-          <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
+          {isMe ? (
+            <Link
+              to="/profile/edit"
+              aria-label="Keisti profilio nuotrauką"
+              className="relative shrink-0 rounded-full transition active:scale-95"
+            >
+              <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
+              <span className="absolute right-0 bottom-0 grid size-8 place-items-center rounded-full bg-volt text-black ring-4 ring-blue">
+                <Camera className="size-4" aria-hidden />
+              </span>
+            </Link>
+          ) : (
+            <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
+          )}
           <div className="min-w-0 pb-1">
             <h1 className="headline text-[38px] text-white">{profile.name}</h1>
-            {profile.sports.length > 0 && (
+            {(profile.sports.length > 0 || profile.city) && (
               <p className="mt-2 flex flex-wrap gap-1.5">
+                {profile.city && (
+                  <span className="glass inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-bold text-white">
+                    <MapPin className="size-3.5" aria-hidden />
+                    {cityById(profile.city).name}
+                  </span>
+                )}
                 {profile.sports.map((sport) => (
                   <span
                     key={sport}
@@ -103,10 +130,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="headline text-[24px]">Ženkliukai</h2>
             {isMe ? (
-              <Link
-                to="/inspire"
-                className="flex items-center text-[13px] font-bold text-volt"
-              >
+              <Link to="/inspire" className="flex items-center text-[13px] font-bold text-volt">
                 {earned.length} iš {badges.length}
                 <ChevronRight className="size-4" aria-hidden />
               </Link>

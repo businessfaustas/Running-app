@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { Bike, Footprints } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
 import { ErrorState } from '../../components/ErrorState'
@@ -11,6 +10,7 @@ import { FullScreenLoader } from '../../components/FullScreenLoader'
 import { TopBar } from '../../components/TopBar'
 import { useMe, useUpdateProfile } from '../../data/hooks'
 import { nameError } from '../../lib/validation'
+import { AvatarEditor } from './AvatarEditor'
 import { toast, toastError } from '../../lib/toast'
 
 const PACE_RE = /^\d{1,2}:[0-5]\d$/
@@ -125,14 +125,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           </div>
         )}
 
-        <div className="flex items-center gap-3">
-          <Avatar user={{ ...profile, name: name || profile.name }} size={64} />
-          <p className="text-[13px] text-slate-500">
-            {profile.avatarUrl
-              ? 'Profilio nuotrauka'
-              : 'Kol neturi nuotraukos, rodomi tavo inicialai.'}
-          </p>
-        </div>
+        <AvatarEditor profile={profile} name={name} />
 
         <TextField
           label="Vardas ir pavardė"

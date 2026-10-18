@@ -1,8 +1,11 @@
 import { addDays, toISODate, type SlotSummary, type UserSummary } from '@pacemates/shared'
+import { CLUBS } from '@pacemates/shared/clubs'
 import clsx from 'clsx'
 import {
   Calculator,
   ChevronRight,
+  Medal,
+  UsersRound,
   Lightbulb,
   Quote,
   RefreshCw,
@@ -17,9 +20,11 @@ import { ButtonLink } from '../../components/Button'
 import { TextField } from '../../components/Field'
 import { FUN_FACTS, quoteOfTheDay, TIPS } from '../../content/inspiration'
 import { useSession } from '../../data/auth'
-import { useSlots, useUserSlots } from '../../data/hooks'
-import { countOf, formatKm, plural, WORDS } from '../../lib/format'
+import { useCity } from '../../data/city'
+import { useLeaderboard, useSlots, useUserSlots } from '../../data/hooks'
+import { countOf, firstName, formatKm, plural, WORDS } from '../../lib/format'
 import { PHOTOS } from '../../lib/photos'
+import { periodRange, rank } from '../leaderboard/ranking'
 import { BadgeTile } from './BadgeTile'
 import { computeBadges, paceFromTime, weekProgress } from './progress'
 
@@ -31,6 +36,7 @@ export function InspirePage() {
     <div className="h-full overflow-y-auto pb-[calc(var(--nav-space)+20px)]">
       <QuoteHero />
       <div className="space-y-8 px-4 pt-6">
+        <Community />
         <WeeklyChallenge />
         <FunFacts />
         <Badges />
@@ -40,6 +46,63 @@ export function InspirePage() {
         <TopHosts />
       </div>
     </div>
+  )
+}
+
+/** This week's top runner in town, and a way into the clubs directory. */
+function Community() {
+  const city = useCity()
+  const today = toISODate(new Date())
+  const week = periodRange('week', today)
+  const board = useLeaderboard(week.from, week.to, city)
+  const leader = rank(board.data ?? [], 'run')[0]
+  const clubs = CLUBS.filter((club) => club.city === city.name).length
+
+  return (
+    <section className="grid grid-cols-2 gap-2.5">
+      <Link
+        to="/leaderboard"
+        className="flex min-h-[150px] flex-col rounded-[22px] bg-gradient-to-br from-blue to-blue-deep p-3.5 transition active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-white/75 uppercase">
+          <Medal className="size-3.5 text-volt" aria-hidden />
+          Savaitės lyderis
+        </span>
+        {leader ? (
+          <>
+            <span className="mt-3 flex items-center gap-2">
+              <Avatar user={leader.entry.user} size={36} className="ring-2 ring-volt" />
+              <span className="min-w-0 truncate text-[15px] font-bold text-white">
+                {firstName(leader.entry.user.name)}
+              </span>
+            </span>
+            <span className="mt-auto font-display text-[30px] leading-none font-bold text-volt italic tabular">
+              {formatKm(leader.value)}
+              <span className="ml-1 text-[14px] text-white/80 not-italic">km</span>
+            </span>
+          </>
+        ) : (
+          <span className="mt-3 text-[13px] leading-snug text-white/80">
+            {city.locative} šią savaitę dar tuščia – užimk pirmą vietą.
+          </span>
+        )}
+      </Link>
+      <Link
+        to="/clubs"
+        className="flex min-h-[150px] flex-col rounded-[22px] border border-white/[0.06] bg-surface p-3.5 transition active:scale-[0.98]"
+      >
+        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+          <UsersRound className="size-3.5 text-volt" aria-hidden />
+          Klubai
+        </span>
+        <span className="mt-3 text-[15px] leading-snug font-bold text-white">
+          Bėgimo, dviračių ir triatlono klubai
+        </span>
+        <span className="mt-auto text-[13px] text-slate-400">
+          {clubs > 0 ? `${city.locative}: ${clubs}` : 'Visoje Lietuvoje'}
+        </span>
+      </Link>
+    </section>
   )
 }
 
@@ -90,6 +153,28 @@ function QuoteHero() {
           Kasdienė dozė
         </p>
         <h1 className="headline mt-1 text-[44px] text-white">Įkvėpimas</h1>
+        <nav
+          aria-label="Daugiau"
+          className="scrollbar-none -mx-4 mt-3 flex gap-2 overflow-x-auto px-4"
+        >
+          {(
+            [
+              ['/leaderboard', 'Lyderiai', Medal],
+              ['/clubs', 'Klubai', UsersRound],
+              ['/fueling', 'Mityba', Zap],
+              ['/races', 'Varžybos', Trophy],
+            ] as const
+          ).map(([to, label, Icon]) => (
+            <Link
+              key={to}
+              to={to}
+              className="glass flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold text-white transition active:scale-95"
+            >
+              <Icon className="size-4 text-volt" aria-hidden />
+              {label}
+            </Link>
+          ))}
+        </nav>
       </header>
       <div className="relative mt-auto px-5 pb-6">
         <p className="flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-volt uppercase">
@@ -413,7 +498,8 @@ function Tips() {
 
 function TopHosts() {
   const today = toISODate(new Date())
-  const slots = useSlots(today, addDays(today, 13))
+  const city = useCity()
+  const slots = useSlots(today, addDays(today, 13), city)
   const hosts = useMemo(() => rankHosts(slots.data ?? []), [slots.data])
   if (hosts.length === 0) return null
 

@@ -1,11 +1,14 @@
-import type { NewRacePost, NewSlotInput, ProfileUpdate } from '@pacemates/shared'
+import type { Area, NewRacePost, NewSlotInput, ProfileUpdate } from '@pacemates/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { backend } from '../backend'
 import { useSession } from './auth'
 
 export const keys = {
-  slots: (from: string, to: string) => ['slots', from, to] as const,
+  slots: (from: string, to: string, area: Area | null) =>
+    ['slots', from, to, area ? `${area.lat},${area.lng},${area.radiusKm}` : 'all'] as const,
+  leaderboard: (from: string, to: string, area: Area | null) =>
+    ['leaderboard', from, to, area ? `${area.lat},${area.lng},${area.radiusKm}` : 'all'] as const,
   slot: (id: string) => ['slot', id] as const,
   userSlots: (userId: string) => ['userSlots', userId] as const,
   profile: (id: string) => ['profile', id] as const,
@@ -17,10 +20,18 @@ export const keys = {
   userRaces: (userId: string) => ['userRaces', userId] as const,
 }
 
-export function useSlots(from: string, to: string) {
+/** Workouts in the date range; with an area, only those around it (e.g. the chosen town). */
+export function useSlots(from: string, to: string, area: Area | null = null) {
   return useQuery({
-    queryKey: keys.slots(from, to),
-    queryFn: () => backend.listSlots({ from, to }),
+    queryKey: keys.slots(from, to, area),
+    queryFn: () => backend.listSlots({ from, to }, area),
+  })
+}
+
+export function useLeaderboard(from: string, to: string, area: Area | null) {
+  return useQuery({
+    queryKey: keys.leaderboard(from, to, area),
+    queryFn: () => backend.getLeaderboard({ from, to }, area),
   })
 }
 
@@ -122,6 +133,17 @@ export function useSendMessage(slotId: string) {
         old?.some((m) => m.id === message.id) ? old : [...(old ?? []), message],
       )
       void queryClient.invalidateQueries({ queryKey: ['threads'] })
+    },
+  })
+}
+
+export function useSetAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (image: Blob | null) => backend.setAvatar(image),
+    onSuccess: (profile) => {
+      queryClient.setQueryData(keys.profile(profile.id), profile)
+      void queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'profile' })
     },
   })
 }

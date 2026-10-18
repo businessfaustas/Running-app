@@ -1,7 +1,9 @@
 import type {
+  Area,
   ChatMessage,
   ChatThread,
   NewRacePost,
+  LeaderboardEntry,
   NewSlotInput,
   Profile,
   ProfileUpdate,
@@ -66,8 +68,13 @@ export interface Backend {
 
   getProfile(userId: string): Promise<Profile | null>
   updateProfile(patch: ProfileUpdate): Promise<Profile>
+  /** Stores a square photo (already cropped and resized) as the profile picture; null removes it. */
+  setAvatar(image: Blob | null): Promise<Profile>
 
-  listSlots(range: DateRange): Promise<SlotSummary[]>
+  /** Workouts in the date range, optionally only those within an area. */
+  listSlots(range: DateRange, area?: Area | null): Promise<SlotSummary[]>
+  /** Who ran, rode and turned up most in the date range (whole country when area is null). */
+  getLeaderboard(range: DateRange, area: Area | null): Promise<LeaderboardEntry[]>
   getSlot(slotId: string): Promise<SlotDetail | null>
   /** Workouts the user hosts or has joined, oldest first. */
   listUserSlots(userId: string): Promise<UserSlot[]>

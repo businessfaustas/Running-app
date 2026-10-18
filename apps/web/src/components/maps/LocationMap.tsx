@@ -16,6 +16,8 @@ interface LocationMapProps {
   onPick?: (point: LngLat) => void
   accent?: string
   zoom?: number
+  /** Where to look while there's no point yet, e.g. the person's town. */
+  fallbackCenter?: LngLat
 }
 
 /** A single meeting point. Read-only unless `onPick` is given. */
@@ -27,9 +29,15 @@ export default function LocationMap(props: LocationMapProps) {
   )
 }
 
-function PointMap({ point, onPick, accent = 'var(--color-volt)', zoom = 14 }: LocationMapProps) {
+function PointMap({
+  point,
+  onPick,
+  accent = 'var(--color-volt)',
+  zoom = 14,
+  fallbackCenter = DEFAULT_CENTER,
+}: LocationMapProps) {
   const mapRef = useRef<MapRef>(null)
-  const center = point ?? DEFAULT_CENTER
+  const center = point ?? fallbackCenter
 
   // Follow the point when it's changed from outside (preset spots, "use my location").
   useEffect(() => {

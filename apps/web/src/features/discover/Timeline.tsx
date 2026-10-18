@@ -1,14 +1,18 @@
 import { minutesToTime, timeToMinutes, type SlotSummary, type UserSlot } from '@pacemates/shared'
-import { Plus } from 'lucide-react'
+import clsx from 'clsx'
+import { ChevronsRight, Layers, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router'
+import { countOf, WORDS } from '../../lib/format'
 import { useNow } from '../../lib/useNow'
 import { SlotCard } from '../slots/SlotCard'
-import { layoutDay } from './layout'
+import { groupDay } from './layout'
 
 export const HOUR_HEIGHT = 100
 /** Tall enough for the card's rows; shorter workouts are drawn at this height. */
 export const MIN_CARD_HEIGHT = 112
+/** Workouts at the same time: a header row above cards of the usual height. */
+const GROUP_HEIGHT = MIN_CARD_HEIGHT + 46
 /** Used to size cards whose host didn't give an end time. */
 const DEFAULT_DURATION_MIN = 60
 const AXIS_WIDTH = 52
@@ -28,10 +32,20 @@ interface TimelineProps {
   focusedSlotId: string | null
   /** The signed-in athlete's role per workout id. */
   roles: Map<string, UserSlot['role']>
+  /** "Kaune" – for the empty-day hint. */
+  cityLocative: string
 }
 
 /** Vertical 00:00–24:00 day grid with workouts placed at their start times. */
-export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles }: TimelineProps) {
+export function Timeline({
+  date,
+  slots,
+  isToday,
+  isLoading,
+  focusedSlotId,
+  roles,
+  cityLocative,
+}: TimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const now = useNow()
@@ -39,7 +53,7 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
   const [draft, setDraft] = useState<{ date: string; minute: number } | null>(null)
   const draftMinute = draft?.date === date ? draft.minute : null
 
-  const placed = useMemo(() => {
+  const blocks = useMemo(() => {
     const items = new Map(
       slots.map((slot) => {
         const startMin = timeToMinutes(slot.startTime)
@@ -47,10 +61,11 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
         return [slot.id, { id: slot.id, slot, startMin, endMin: Math.min(endMin, 24 * 60) }]
       }),
     )
-    return layoutDay([...items.values()], {
+    return groupDay([...items.values()], {
       hourHeight: HOUR_HEIGHT,
-      minHeight: MIN_CARD_HEIGHT,
-    }).map((box) => ({ ...box, ...items.get(box.id)! }))
+      cardHeight: MIN_CARD_HEIGHT,
+      groupHeight: GROUP_HEIGHT,
+    }).map((block) => ({ ...block, items: block.ids.map((id) => items.get(id)!) }))
   }, [slots])
 
   // Scroll once per day shown (to "now" or the first workout), and again when a highlighted
@@ -96,7 +111,7 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
       className="scrollbar-none relative h-full overflow-y-auto overscroll-contain"
       aria-busy={isLoading}
     >
-      {!isLoading && slots.length === 0 && <EmptyDay />}
+      {!isLoading && slots.length === 0 && <EmptyDay cityLocative={cityLocative} />}
 
       <div
         className="relative"
@@ -119,25 +134,37 @@ export function Timeline({ date, slots, isToday, isLoading, focusedSlotId, roles
             {isLoading ? (
               <Skeletons />
             ) : (
-              placed.map(({ slot, endMin, top, height, column, columns }) => (
-                <li
-                  key={slot.id}
-                  className="pointer-events-auto absolute p-[3px] motion-safe:animate-rise"
-                  style={{
-                    top,
-                    height,
-                    left: `${(column / columns) * 100}%`,
-                    width: `${100 / columns}%`,
-                  }}
-                >
-                  <SlotCard
-                    slot={slot}
-                    focused={slot.id === focusedSlotId}
-                    dimmed={isToday && endMin <= nowMinutes}
-                    role={roles.get(slot.id)}
-                  />
-                </li>
-              ))
+              blocks.map((block) =>
+                block.items.length === 1 ? (
+                  <li
+                    key={block.ids[0]}
+                    className="pointer-events-auto absolute inset-x-0 p-[3px] motion-safe:animate-rise"
+                    style={{ top: block.top, height: block.height }}
+                  >
+                    <SlotCard
+                      slot={block.items[0]!.slot}
+                      focused={block.ids[0] === focusedSlotId}
+                      dimmed={isToday && block.endMin <= nowMinutes}
+                      role={roles.get(block.ids[0]!)}
+                    />
+                  </li>
+                ) : (
+                  <li
+                    key={block.ids.join()}
+                    className="pointer-events-auto absolute inset-x-0 p-[3px] motion-safe:animate-rise"
+                    style={{ top: block.top, height: block.height }}
+                  >
+                    <Options
+                      items={block.items}
+                      startMin={block.startMin}
+                      endMin={block.endMin}
+                      focusedSlotId={focusedSlotId}
+                      nowMinutes={isToday ? nowMinutes : null}
+                      roles={roles}
+                    />
+                  </li>
+                ),
+              )
             )}
           </ol>
 
@@ -212,40 +239,105 @@ function NowIndicator({ minutes }: { minutes: number }) {
   )
 }
 
+/**
+ * Several workouts at about the same time, shown together so people can compare and pick:
+ * two side by side, more in a row you swipe through.
+ */
+function Options({
+  items,
+  startMin,
+  endMin,
+  focusedSlotId,
+  nowMinutes,
+  roles,
+}: {
+  items: { slot: SlotSummary; endMin: number }[]
+  startMin: number
+  endMin: number
+  focusedSlotId: string | null
+  /** Set on today's timeline, to fade workouts that have finished. */
+  nowMinutes: number | null
+  roles: Map<string, UserSlot['role']>
+}) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  const swipe = items.length > 2
+
+  // Bring a highlighted workout (a map pin, a new post) into view within the row.
+  useEffect(() => {
+    const row = rowRef.current
+    const card = row?.querySelector<HTMLElement>(`[data-slot="${focusedSlotId}"]`)
+    if (row && card && swipe) row.scrollTo({ left: card.offsetLeft - 6, behavior: 'smooth' })
+  }, [focusedSlotId, swipe])
+
+  return (
+    <section
+      aria-label={`${countOf(items.length, WORDS.option)} ${minutesToTime(startMin)}–${minutesToTime(endMin)}`}
+      className="flex size-full flex-col rounded-[22px] border border-volt/25 bg-volt/[0.05] p-1.5"
+    >
+      <header className="flex items-center gap-2 px-1.5 pt-0.5 pb-1.5 text-[12px] font-bold">
+        <span className="flex items-center gap-1.5 text-volt">
+          <Layers className="size-3.5" aria-hidden />
+          {countOf(items.length, WORDS.option)} – rinkis
+        </span>
+        <span className="font-display text-[13px] text-slate-400 tabular">
+          {minutesToTime(startMin)}–{minutesToTime(endMin)}
+        </span>
+        {swipe && (
+          <span className="ml-auto flex items-center gap-0.5 text-slate-400">
+            Brauk
+            <ChevronsRight className="size-3.5" aria-hidden />
+          </span>
+        )}
+      </header>
+      <div
+        ref={rowRef}
+        className={clsx(
+          'min-h-0 flex-1 gap-1.5',
+          swipe
+            ? 'scrollbar-none flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain'
+            : 'grid grid-cols-2',
+        )}
+      >
+        {items.map(({ slot, endMin: end }) => (
+          <div
+            key={slot.id}
+            data-slot={slot.id}
+            className={clsx('min-w-0', swipe && 'w-[46%] shrink-0 snap-start')}
+          >
+            <SlotCard
+              slot={slot}
+              focused={slot.id === focusedSlotId}
+              dimmed={nowMinutes !== null && end <= nowMinutes}
+              role={roles.get(slot.id)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function Skeletons() {
-  const blocks = [
-    { start: 6 * 60, column: 0, columns: 2 },
-    { start: 6 * 60 + 30, column: 1, columns: 2 },
-    { start: 10 * 60, column: 0, columns: 1 },
-    { start: 12 * 60 + 30, column: 0, columns: 1 },
-    { start: 17 * 60 + 30, column: 0, columns: 2 },
-    { start: 18 * 60, column: 1, columns: 2 },
-    { start: 20 * 60 + 30, column: 0, columns: 1 },
-  ]
-  return blocks.map(({ start, column, columns }) => (
+  const starts = [6 * 60, 10 * 60, 12 * 60 + 30, 17 * 60 + 30, 20 * 60 + 30]
+  return starts.map((start) => (
     <li
       key={start}
       aria-hidden
-      className="absolute p-[3px]"
-      style={{
-        top: minutesToPx(start),
-        height: MIN_CARD_HEIGHT,
-        left: `${(column / columns) * 100}%`,
-        width: `${100 / columns}%`,
-      }}
+      className="absolute inset-x-0 p-[3px]"
+      style={{ top: minutesToPx(start), height: MIN_CARD_HEIGHT }}
     >
       <div className="size-full animate-pulse rounded-[20px] bg-surface" />
     </li>
   ))
 }
 
-function EmptyDay() {
+function EmptyDay({ cityLocative }: { cityLocative: string }) {
   return (
     <div className="pointer-events-none sticky top-5 z-30 h-0">
       <div className="mx-auto w-fit max-w-[calc(100%-2rem)] rounded-[22px] border border-white/10 bg-raised/95 px-5 py-4 text-center shadow-2xl shadow-black/50 backdrop-blur">
         <p className="headline text-[22px]">Kol kas tuščia</p>
         <p className="mt-1 text-[13px] text-slate-400">
-          Bakstelk laiką juostoje ir pakviesk kitus prisijungti.
+          {cityLocative} šią dieną treniruočių dar nėra. Bakstelk laiką juostoje ir pakviesk kitus.
         </p>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { MapPin } from 'lucide-react'
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import MapGL, { Marker, NavigationControl, type MapRef } from 'react-map-gl/maplibre'
 import { MapErrorBoundary } from '../../components/maps/MapErrorBoundary'
-import { DEFAULT_CENTER, MAP_STYLE_URL } from '../../lib/map'
+import { MAP_STYLE_URL } from '../../lib/map'
 import { SlotCard } from '../slots/SlotCard'
 import { SPORT_META } from '../slots/meta'
 
@@ -29,6 +29,8 @@ interface DiscoverMapProps {
   focusedSlotId: string | null
   onFocusSlot: (slotId: string | null) => void
   roles: Map<string, UserSlot['role']>
+  /** The chosen town: where the map looks when there's nothing to frame. */
+  center: { lat: number; lng: number }
 }
 
 export default function DiscoverMap(props: DiscoverMapProps) {
@@ -39,7 +41,7 @@ export default function DiscoverMap(props: DiscoverMapProps) {
   )
 }
 
-function SlotMap({ slots, focusedSlotId, onFocusSlot, roles }: DiscoverMapProps) {
+function SlotMap({ slots, focusedSlotId, onFocusSlot, roles, center }: DiscoverMapProps) {
   const mapRef = useRef<MapRef>(null)
   const focused = slots.find((slot) => slot.id === focusedSlotId)
   const bounds = useMemo(() => boundsOf(slots), [slots])
@@ -52,7 +54,8 @@ function SlotMap({ slots, focusedSlotId, onFocusSlot, roles }: DiscoverMapProps)
       return
     }
     if (bounds) mapRef.current?.fitBounds(bounds, { ...FIT_OPTIONS, duration: 600 })
-  }, [bounds])
+    else mapRef.current?.flyTo({ center: [center.lng, center.lat], zoom: 12, duration: 600 })
+  }, [bounds, center.lat, center.lng])
 
   return (
     <div className="relative h-full">
@@ -61,7 +64,7 @@ function SlotMap({ slots, focusedSlotId, onFocusSlot, roles }: DiscoverMapProps)
         initialViewState={
           bounds
             ? { bounds, fitBoundsOptions: FIT_OPTIONS }
-            : { longitude: DEFAULT_CENTER.lng, latitude: DEFAULT_CENTER.lat, zoom: 12 }
+            : { longitude: center.lng, latitude: center.lat, zoom: 12 }
         }
         mapStyle={MAP_STYLE_URL}
         attributionControl={{ compact: true }}

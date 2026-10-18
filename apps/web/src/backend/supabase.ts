@@ -1,7 +1,9 @@
 import type {
   ChatMessage,
   ChatThread,
+  LeaderboardEntry,
   Profile,
+  ProfileUpdate,
   RaceAttendee,
   RacePost,
   SlotDetail,
@@ -32,10 +34,12 @@ interface ProfileRow {
   sports: Profile['sports']
   default_paces: Profile['defaultPaces']
   strava_id: string | null
+  city: string | null
   onboarded_at: string | null
 }
 
-const PROFILE_COLUMNS = 'id, name, avatar_url, bio, sports, default_paces, strava_id, onboarded_at'
+const PROFILE_COLUMNS =
+  'id, name, avatar_url, bio, sports, default_paces, strava_id, city, onboarded_at'
 
 interface MessageRow {
   id: string
@@ -144,8 +148,13 @@ const toProfile = (row: ProfileRow): Profile => ({
   sports: row.sports,
   defaultPaces: row.default_paces,
   stravaId: row.strava_id,
+  city: row.city,
   onboarded: row.onboarded_at !== null,
 })
+
+const AVATARS = 'avatars'
+/** One photo per person, replaced in place; the URL carries a version to skip stale caches. */
+const avatarPath = (userId: string) => `${userId}/avatar`
 
 const toMessage = (row: MessageRow): ChatMessage => ({
   id: row.id,
@@ -187,6 +196,28 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     const { data } = await supabase.auth.getSession()
     if (!data.session) throw new BackendError(MESSAGES.signInFirst)
     return data.session.user.id
+  }
+
+  async function updateProfile(patch: ProfileUpdate): Promise<Profile> {
+    const userId = await requireUserId()
+    const row: Partial<ProfileRow> = {}
+    if (patch.name !== undefined) row.name = patch.name.trim()
+    if (patch.bio !== undefined) row.bio = patch.bio
+    if (patch.sports !== undefined) row.sports = patch.sports
+    if (patch.defaultPaces !== undefined) row.default_paces = patch.defaultPaces
+    if (patch.stravaId !== undefined) row.strava_id = patch.stravaId
+    if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl
+    if (patch.city !== undefined) row.city = patch.city
+    if (patch.onboarded) row.onboarded_at = new Date().toISOString()
+    if (row.name !== undefined && row.name.length < 2) throw new BackendError(MESSAGES.nameRequired)
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(row)
+      .eq('id', userId)
+      .select(PROFILE_COLUMNS)
+      .single<ProfileRow>()
+    if (error) fail(error)
+    return toProfile(data)
   }
 
   return {
@@ -249,7 +280,9 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
 
     async deleteAccount() {
-      await requireUserId()
+      const userId = await requireUserId()
+      // Storage files aren't rows that cascade, so remove the photo first (best effort).
+      await supabase.storage.from(AVATARS).remove([avatarPath(userId)])
       const { error } = await supabase.rpc('delete_account')
       if (error) fail(error)
       // The login no longer exists; drop the local session without calling the server.
@@ -272,32 +305,53 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return data ? toProfile(data) : null
     },
 
-    async updateProfile(patch) {
+    updateProfile,
+
+    async setAvatar(image) {
       const userId = await requireUserId()
-      const row: Partial<ProfileRow> = {}
-      if (patch.name !== undefined) row.name = patch.name.trim()
-      if (patch.bio !== undefined) row.bio = patch.bio
-      if (patch.sports !== undefined) row.sports = patch.sports
-      if (patch.defaultPaces !== undefined) row.default_paces = patch.defaultPaces
-      if (patch.stravaId !== undefined) row.strava_id = patch.stravaId
-      if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl
-      if (patch.onboarded) row.onboarded_at = new Date().toISOString()
-      if (row.name !== undefined && row.name.length < 2)
-        throw new BackendError(MESSAGES.nameRequired)
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(row)
-        .eq('id', userId)
-        .select(PROFILE_COLUMNS)
-        .single<ProfileRow>()
-      if (error) fail(error)
-      return toProfile(data)
+      const bucket = supabase.storage.from(AVATARS)
+      if (image === null) {
+        // Best effort: once the profile stops pointing at it, the old file is unreachable anyway.
+        await bucket.remove([avatarPath(userId)])
+        return updateProfile({ avatarUrl: null })
+      }
+      const { error } = await bucket.upload(avatarPath(userId), image, {
+        upsert: true,
+        contentType: image.type || 'image/jpeg',
+        cacheControl: '3600',
+      })
+      if (error) {
+        reportError(new Error(`Avatar upload: ${error.message}`))
+        throw new BackendError(MESSAGES.photoUpload)
+      }
+      const { publicUrl } = bucket.getPublicUrl(avatarPath(userId)).data
+      return updateProfile({ avatarUrl: `${publicUrl}?v=${Date.now()}` })
     },
 
-    async listSlots({ from, to }) {
-      const { data, error } = await supabase.rpc('list_slots', { p_from: from, p_to: to })
+    async listSlots({ from, to }, area) {
+      const { data, error } = area
+        ? await supabase.rpc('list_slots_near', {
+            p_from: from,
+            p_to: to,
+            p_lat: area.lat,
+            p_lng: area.lng,
+            p_radius_m: area.radiusKm * 1000,
+          })
+        : await supabase.rpc('list_slots', { p_from: from, p_to: to })
       if (error) fail(error)
       return data as SlotSummary[]
+    },
+
+    async getLeaderboard({ from, to }, area) {
+      const { data, error } = await supabase.rpc('leaderboard', {
+        p_from: from,
+        p_to: to,
+        p_lat: area?.lat ?? null,
+        p_lng: area?.lng ?? null,
+        p_radius_m: area ? area.radiusKm * 1000 : null,
+      })
+      if (error) fail(error)
+      return data as LeaderboardEntry[]
     },
 
     async getSlot(slotId) {

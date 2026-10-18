@@ -1,0 +1,876 @@
+{
+  "id": "6eb7fbf6-9e3e-4e74-be72-af832c9a61f8",
+  "prevId": "d094b32b-169f-4aab-b4da-9d4260157724",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bio": {
+          "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sports": {
+          "name": "sports",
+          "type": "sport_discipline[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "default_paces": {
+          "name": "default_paces",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "strava_id": {
+          "name": "strava_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "onboarded_at": {
+          "name": "onboarded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_id_users_id_fk": {
+          "name": "profiles_id_users_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "profiles_strava_id_unique": {
+          "name": "profiles_strava_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "strava_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "profiles_name_length": {
+          "name": "profiles_name_length",
+          "value": "char_length(\"profiles\".\"name\") between 1 and 80"
+        },
+        "profiles_bio_length": {
+          "name": "profiles_bio_length",
+          "value": "\"profiles\".\"bio\" is null or char_length(\"profiles\".\"bio\") <= 280"
+        },
+        "profiles_strava_id_format": {
+          "name": "profiles_strava_id_format",
+          "value": "\"profiles\".\"strava_id\" is null or \"profiles\".\"strava_id\" ~ '^[0-9]{1,20}$'"
+        },
+        "profiles_city_id": {
+          "name": "profiles_city_id",
+          "value": "\"profiles\".\"city\" is null or \"profiles\".\"city\" ~ '^[a-z]{3,24}$'"
+        },
+        "profiles_avatar_url_https": {
+          "name": "profiles_avatar_url_https",
+          "value": "\"profiles\".\"avatar_url\" is null or (\"profiles\".\"avatar_url\" like 'https://%' and char_length(\"profiles\".\"avatar_url\") <= 500)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.race_attendees": {
+      "name": "race_attendees",
+      "schema": "",
+      "columns": {
+        "race_slug": {
+          "name": "race_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "distance_km": {
+          "name": "distance_km",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "race_attendees_user_idx": {
+          "name": "race_attendees_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "race_attendees_user_id_profiles_id_fk": {
+          "name": "race_attendees_user_id_profiles_id_fk",
+          "tableFrom": "race_attendees",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "race_attendees_race_slug_user_id_pk": {
+          "name": "race_attendees_race_slug_user_id_pk",
+          "columns": [
+            "race_slug",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "race_attendees_slug_format": {
+          "name": "race_attendees_slug_format",
+          "value": "\"race_attendees\".\"race_slug\" ~ '^[a-z0-9-]{3,80}$'"
+        },
+        "race_attendees_distance_range": {
+          "name": "race_attendees_distance_range",
+          "value": "\"race_attendees\".\"distance_km\" is null or (\"race_attendees\".\"distance_km\" > 0 and \"race_attendees\".\"distance_km\" <= 400)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.race_posts": {
+      "name": "race_posts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "race_slug": {
+          "name": "race_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "topic": {
+          "name": "topic",
+          "type": "race_post_topic",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'GENERAL'"
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "race_posts_race_created_idx": {
+          "name": "race_posts_race_created_idx",
+          "columns": [
+            {
+              "expression": "race_slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "race_posts_author_created_idx": {
+          "name": "race_posts_author_created_idx",
+          "columns": [
+            {
+              "expression": "author_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "race_posts_parent_idx": {
+          "name": "race_posts_parent_idx",
+          "columns": [
+            {
+              "expression": "parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "race_posts_author_id_profiles_id_fk": {
+          "name": "race_posts_author_id_profiles_id_fk",
+          "tableFrom": "race_posts",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "race_posts_parent_id_race_posts_id_fk": {
+          "name": "race_posts_parent_id_race_posts_id_fk",
+          "tableFrom": "race_posts",
+          "tableTo": "race_posts",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "race_posts_slug_format": {
+          "name": "race_posts_slug_format",
+          "value": "\"race_posts\".\"race_slug\" ~ '^[a-z0-9-]{3,80}$'"
+        },
+        "race_posts_content_length": {
+          "name": "race_posts_content_length",
+          "value": "char_length(\"race_posts\".\"content\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.slot_messages": {
+      "name": "slot_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "slot_messages_slot_created_idx": {
+          "name": "slot_messages_slot_created_idx",
+          "columns": [
+            {
+              "expression": "slot_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "slot_messages_sender_created_idx": {
+          "name": "slot_messages_sender_created_idx",
+          "columns": [
+            {
+              "expression": "sender_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "slot_messages_slot_id_workout_slots_id_fk": {
+          "name": "slot_messages_slot_id_workout_slots_id_fk",
+          "tableFrom": "slot_messages",
+          "tableTo": "workout_slots",
+          "columnsFrom": [
+            "slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "slot_messages_sender_id_profiles_id_fk": {
+          "name": "slot_messages_sender_id_profiles_id_fk",
+          "tableFrom": "slot_messages",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "sender_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "slot_messages_content_length": {
+          "name": "slot_messages_content_length",
+          "value": "char_length(\"slot_messages\".\"content\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.slot_participants": {
+      "name": "slot_participants",
+      "schema": "",
+      "columns": {
+        "slot_id": {
+          "name": "slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "participant_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ACCEPTED'"
+        },
+        "joined_at": {
+          "name": "joined_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "slot_participants_user_idx": {
+          "name": "slot_participants_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "slot_participants_slot_id_workout_slots_id_fk": {
+          "name": "slot_participants_slot_id_workout_slots_id_fk",
+          "tableFrom": "slot_participants",
+          "tableTo": "workout_slots",
+          "columnsFrom": [
+            "slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "slot_participants_user_id_profiles_id_fk": {
+          "name": "slot_participants_user_id_profiles_id_fk",
+          "tableFrom": "slot_participants",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "slot_participants_slot_id_user_id_pk": {
+          "name": "slot_participants_slot_id_user_id_pk",
+          "columns": [
+            "slot_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.workout_slots": {
+      "name": "workout_slots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "host_id": {
+          "name": "host_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sport_type": {
+          "name": "sport_type",
+          "type": "sport_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "distance_km": {
+          "name": "distance_km",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_pace": {
+          "name": "target_pace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vibe_tag": {
+          "name": "vibe_tag",
+          "type": "vibe_tag",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meeting_point_name": {
+          "name": "meeting_point_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "geometry(Point, 4326)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_participants": {
+          "name": "max_participants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "slot_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OPEN'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "workout_slots_date_start_idx": {
+          "name": "workout_slots_date_start_idx",
+          "columns": [
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "start_time",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "workout_slots_host_idx": {
+          "name": "workout_slots_host_idx",
+          "columns": [
+            {
+              "expression": "host_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "workout_slots_location_geog_idx": {
+          "name": "workout_slots_location_geog_idx",
+          "columns": [
+            {
+              "expression": "(\"location\"::geography)",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gist",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "workout_slots_host_id_profiles_id_fk": {
+          "name": "workout_slots_host_id_profiles_id_fk",
+          "tableFrom": "workout_slots",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "host_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "workout_slots_title_length": {
+          "name": "workout_slots_title_length",
+          "value": "char_length(\"workout_slots\".\"title\") between 1 and 120"
+        },
+        "workout_slots_distance_positive": {
+          "name": "workout_slots_distance_positive",
+          "value": "\"workout_slots\".\"distance_km\" > 0"
+        },
+        "workout_slots_distance_max": {
+          "name": "workout_slots_distance_max",
+          "value": "\"workout_slots\".\"distance_km\" <= 400"
+        },
+        "workout_slots_target_pace_length": {
+          "name": "workout_slots_target_pace_length",
+          "value": "char_length(\"workout_slots\".\"target_pace\") between 1 and 40"
+        },
+        "workout_slots_meeting_point_length": {
+          "name": "workout_slots_meeting_point_length",
+          "value": "char_length(\"workout_slots\".\"meeting_point_name\") between 2 and 120"
+        },
+        "workout_slots_description_length": {
+          "name": "workout_slots_description_length",
+          "value": "\"workout_slots\".\"description\" is null or char_length(\"workout_slots\".\"description\") <= 1000"
+        },
+        "workout_slots_end_after_start": {
+          "name": "workout_slots_end_after_start",
+          "value": "\"workout_slots\".\"end_time\" is null or \"workout_slots\".\"end_time\" > \"workout_slots\".\"start_time\""
+        },
+        "workout_slots_max_participants_min": {
+          "name": "workout_slots_max_participants_min",
+          "value": "\"workout_slots\".\"max_participants\" is null or \"workout_slots\".\"max_participants\" >= 2"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.participant_status": {
+      "name": "participant_status",
+      "schema": "public",
+      "values": [
+        "ACCEPTED",
+        "PENDING"
+      ]
+    },
+    "public.race_post_topic": {
+      "name": "race_post_topic",
+      "schema": "public",
+      "values": [
+        "TIP",
+        "QUESTION",
+        "GEAR",
+        "LOGISTICS",
+        "GENERAL"
+      ]
+    },
+    "public.slot_status": {
+      "name": "slot_status",
+      "schema": "public",
+      "values": [
+        "OPEN",
+        "FULL",
+        "COMPLETED",
+        "CANCELLED"
+      ]
+    },
+    "public.sport_discipline": {
+      "name": "sport_discipline",
+      "schema": "public",
+      "values": [
+        "running",
+        "cycling"
+      ]
+    },
+    "public.sport_type": {
+      "name": "sport_type",
+      "schema": "public",
+      "values": [
+        "RUN",
+        "CYCLING",
+        "GRAVEL",
+        "TRACK"
+      ]
+    },
+    "public.vibe_tag": {
+      "name": "vibe_tag",
+      "schema": "public",
+      "values": [
+        "ZONE_2_COFFEE",
+        "PACE_PUSH",
+        "SOCIAL_CHAT",
+        "LONG_RUN",
+        "INTERVALS"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

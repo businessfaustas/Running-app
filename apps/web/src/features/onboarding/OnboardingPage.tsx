@@ -7,14 +7,16 @@ import {
   type SportDiscipline,
 } from '@pacemates/shared'
 import clsx from 'clsx'
-import { Check, MessagesSquare, Sparkles, Timer, UsersRound } from 'lucide-react'
+import { Check, MapPin, MessagesSquare, Sparkles, Timer, UsersRound } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { MESSAGES } from '../../backend/messages'
 import { Button, ButtonLink } from '../../components/Button'
+import { CitySheet } from '../../components/CityPicker'
 import { TextArea } from '../../components/Field'
 import { FullScreenLoader } from '../../components/FullScreenLoader'
 import { Logo } from '../../components/Logo'
+import { useCity } from '../../data/city'
 import { useMe, useSlots, useUpdateProfile } from '../../data/hooks'
 import { track } from '../../lib/analytics'
 import { firstName } from '../../lib/format'
@@ -47,6 +49,8 @@ function Onboarding({ profile }: { profile: Profile }) {
   const [bio, setBio] = useState(profile.bio ?? '')
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<Profile | null>(null)
+  const city = useCity()
+  const [cityOpen, setCityOpen] = useState(false)
 
   const toggleSport = (sport: SportDiscipline) => {
     setError(null)
@@ -70,7 +74,7 @@ function Onboarding({ profile }: { profile: Profile }) {
     if (sports.includes('running') && runPace) defaultPaces.running_easy = `${runPace}/km`
     if (sports.includes('cycling') && rideSpeed) defaultPaces.cycling_avg = `${rideSpeed} km/h`
     update.mutate(
-      { sports, defaultPaces, bio: bio.trim() || null, onboarded: true },
+      { sports, defaultPaces, bio: bio.trim() || null, city: city.id, onboarded: true },
       {
         onSuccess: (saved) => {
           track('onboarding_completed', { sports: sports.join(',') || 'none' })
@@ -117,7 +121,10 @@ function Onboarding({ profile }: { profile: Profile }) {
         </button>
       </header>
 
-      <main key={step} className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 motion-safe:animate-rise">
+      <main
+        key={step}
+        className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 motion-safe:animate-rise"
+      >
         {step === 0 && <Intro name={firstName(profile.name)} />}
         {step === 1 && (
           <>
@@ -136,6 +143,19 @@ function Onboarding({ profile }: { profile: Profile }) {
                 onClick={() => toggleSport('cycling')}
               />
             </div>
+            <p className="mt-6 mb-2 text-[13px] font-medium text-slate-300">
+              Kur dažniausiai sportuoji?
+            </p>
+            <button
+              type="button"
+              onClick={() => setCityOpen(true)}
+              className="flex h-14 w-full items-center gap-3 rounded-[18px] bg-raised px-4 text-left transition hover:bg-[#1f2440]"
+            >
+              <MapPin className="size-5 text-volt" aria-hidden />
+              <span className="flex-1 text-[16px] font-bold text-white">{city.name}</span>
+              <span className="text-[13px] font-bold text-volt">Keisti</span>
+            </button>
+            <CitySheet open={cityOpen} onClose={() => setCityOpen(false)} />
           </>
         )}
         {step === 2 && (
@@ -175,7 +195,10 @@ function Onboarding({ profile }: { profile: Profile }) {
           </>
         )}
         {error && (
-          <p role="alert" className="mt-4 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]">
+          <p
+            role="alert"
+            className="mt-4 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]"
+          >
             {error}
           </p>
         )}
@@ -326,9 +349,12 @@ function ChipGroup({
 /** Finish line: a few workouts that suit the paces they just gave. */
 function Done({ profile }: { profile: Profile }) {
   const today = toISODate(new Date())
-  const slots = useSlots(today, addDays(today, 13))
+  const city = useCity()
+  const slots = useSlots(today, addDays(today, 13), city)
   const matches = useMemo(() => {
-    const open = (slots.data ?? []).filter((s) => s.status === 'OPEN' && s.date <= addDays(today, 6))
+    const open = (slots.data ?? []).filter(
+      (s) => s.status === 'OPEN' && s.date <= addDays(today, 6),
+    )
     const scored = open.map((slot) => ({
       slot,
       fit: paceFit(slot.targetPace, slot.sportType, slot.vibeTag, profile.defaultPaces),
@@ -351,7 +377,9 @@ function Done({ profile }: { profile: Profile }) {
         </p>
         <div className="mt-5 space-y-2">
           {slots.isPending
-            ? [0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-[22px] bg-surface" />)
+            ? [0, 1, 2].map((i) => (
+                <div key={i} className="h-20 animate-pulse rounded-[22px] bg-surface" />
+              ))
             : matches.map((slot) => <SlotRow key={slot.id} slot={slot} />)}
           {!slots.isPending && matches.length === 0 && (
             <p className="rounded-[22px] bg-surface p-4 text-[14px] text-slate-400">

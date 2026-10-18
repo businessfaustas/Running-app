@@ -28,6 +28,7 @@ export const MESSAGES = {
   reauthNeeded: 'Dėl saugumo prisijunk iš naujo ir pakeisk slaptažodį dar kartą',
   signupsDisabled: 'Registracija šiuo metu išjungta',
   invalidInput: 'Patikrink įvestus duomenis – kažkas per ilga arba netinkamo formato',
+  photoUpload: 'Nepavyko įkelti nuotraukos. Pabandyk kitą arba mažesnę.',
   sampleHasNoPassword: 'Pavyzdinė paskyra neturi slaptažodžio – susikurk savo paskyrą',
   unknown: 'Kažkas nepavyko. Bandyk dar kartą.',
 } as const

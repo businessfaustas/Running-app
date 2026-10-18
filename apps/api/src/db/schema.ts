@@ -61,6 +61,8 @@ export const profiles = pgTable(
       .default(sql`'{}'`),
     defaultPaces: jsonb('default_paces').$type<DefaultPaces>().notNull().default({}),
     stravaId: text('strava_id').unique(),
+    /** Home town id from packages/shared/src/cities.ts; the app shows workouts around it. */
+    city: text('city'),
     /** Set when the athlete finishes (or skips) onboarding; null shows the onboarding flow. */
     onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
     ...timestamps,
@@ -72,6 +74,7 @@ export const profiles = pgTable(
       'profiles_strava_id_format',
       sql`${t.stravaId} is null or ${t.stravaId} ~ '^[0-9]{1,20}$'`,
     ),
+    check('profiles_city_id', sql`${t.city} is null or ${t.city} ~ '^[a-z]{3,24}$'`),
     check(
       'profiles_avatar_url_https',
       sql`${t.avatarUrl} is null or (${t.avatarUrl} like 'https://%' and char_length(${t.avatarUrl}) <= 500)`,

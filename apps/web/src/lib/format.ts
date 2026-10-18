@@ -53,6 +53,7 @@ export const WORDS = {
   race: { one: 'varžybos', few: 'varžybos', other: 'varžybų' },
   post: { one: 'įrašas', few: 'įrašai', other: 'įrašų' },
   reply: { one: 'atsakymas', few: 'atsakymai', other: 'atsakymų' },
+  option: { one: 'variantas', few: 'variantai', other: 'variantų' },
 } satisfies Record<string, PluralForms>
 
 /** "Pr", "An"… */

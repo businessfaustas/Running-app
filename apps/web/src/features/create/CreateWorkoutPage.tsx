@@ -15,6 +15,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
+import { useCity } from '../../data/city'
 import { useCreateSlot, useMe, useSlots } from '../../data/hooks'
 import { track } from '../../lib/analytics'
 import { celebrate } from '../../lib/celebrate'
@@ -583,7 +584,10 @@ function WhereStep({
   update: (p: Partial<Draft>) => void
   today: string
 }) {
-  const slots = useSlots(today, addDays(today, 13))
+  const city = useCity()
+  const area = useMemo(() => ({ lat: city.lat, lng: city.lng, radiusKm: city.radiusKm }), [city])
+  // Places people already meet at in this town.
+  const slots = useSlots(addDays(today, -30), addDays(today, 13), area)
   const [locating, setLocating] = useState(false)
   const point = draft.meetingPoint
   const lngLat = useMemo(() => (point ? { lng: point.lng, lat: point.lat } : null), [point])
@@ -618,13 +622,17 @@ function WhereStep({
 
   return (
     <>
-      <Question title="Kur susitinkate?" hint="Bakstelk žemėlapį arba pasirink populiarią vietą." />
+      <Question
+        title="Kur susitinkate?"
+        hint={`Bakstelk žemėlapį arba pasirink populiarią vietą ${city.locative}.`}
+      />
       <div className="relative h-60 overflow-hidden rounded-[24px] border border-white/10">
         <LazyLocationMap
           point={lngLat}
           onPick={pick}
           accent={draft.sportType ? SPORT_META[draft.sportType].accent : undefined}
           zoom={13}
+          fallbackCenter={city}
         />
         <button
           type="button"

@@ -46,7 +46,7 @@ export function MyProfilePage() {
           profile={me.data}
           isMe
           header={
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+12px)]">
               <Logo className="text-white" size={20} />
               <div className="flex gap-2">
                 <button

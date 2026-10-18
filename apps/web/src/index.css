@@ -1,23 +1,18 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/plus-jakarta-sans';
-/* All subsets, so Lithuanian letters (ą č ę ė į š ų ū ž) stay in the display face. */
-@import '@fontsource/barlow-condensed/600.css';
-@import '@fontsource/barlow-condensed/700.css';
-@import '@fontsource/barlow-condensed/700-italic.css';
-@import '@fontsource/barlow-condensed/800-italic.css';
 
 @theme {
   --font-sans:
     'Plus Jakarta Sans Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui,
     sans-serif;
-  /* Condensed, slanted headlines and numerals: race bibs and finish clocks. */
-  --font-display: 'Barlow Condensed', 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  /* Big numbers and headlines: the same face, heavier and tighter. */
+  --font-display: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
 
-  /* Night-blue surfaces. */
-  --color-ink: #05070d;
-  --color-surface: #0e1120;
-  --color-raised: #171b2e;
-  --color-line: #232843;
+  /* Neutral near-black surfaces, so the volt accent and photos carry the colour. */
+  --color-ink: #0a0a0b;
+  --color-surface: #161618;
+  --color-raised: #212124;
+  --color-line: #2c2c30;
 
   /* Brand: electric blue + volt. Sports map onto the accents in features/slots/meta.ts. */
   --color-blue: #2e5bff;
@@ -26,6 +21,8 @@
   --color-blaze: #ff6a2b;
   --color-ice: #5ccbff;
   --color-dune: #ffbe3d;
+  /* Soft lilac for highlight cards (leaders, featured items). */
+  --color-lilac: #c9b8ff;
 
   --animate-rise: rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   @keyframes rise {
@@ -100,14 +97,12 @@
   -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
-/* Slanted, condensed, upper-case headline. */
+/* Heavy, tight sentence-case headline. */
 @utility headline {
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 800;
-  text-transform: uppercase;
-  line-height: 0.92;
-  letter-spacing: -0.005em;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
 }
 
 @utility scrollbar-none {

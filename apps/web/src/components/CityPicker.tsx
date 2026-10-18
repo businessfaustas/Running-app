@@ -69,7 +69,7 @@ export function CitySheet({ open, onClose, onPicked }: CitySheetProps) {
     >
       <div className="flex max-h-[85dvh] flex-col rounded-t-[28px] border border-line bg-surface text-white sm:rounded-[28px]">
         <div className="flex items-center justify-between gap-3 px-5 pt-5">
-          <h2 id="city-sheet-title" className="headline text-[28px]">
+          <h2 id="city-sheet-title" className="headline text-[24px]">
             Tavo miestas
           </h2>
           <button

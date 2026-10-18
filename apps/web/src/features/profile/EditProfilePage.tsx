@@ -116,7 +116,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pt-5 pb-8">
         {welcome && (
           <div className="rounded-[22px] bg-blue px-4 py-4 text-sm text-white/90">
-            <p className="headline text-[26px] text-white">
+            <p className="headline text-[22px] text-white">
               Sveiki atvykę į Pace<span className="text-volt">Mates</span>
             </p>
             <p className="mt-1">

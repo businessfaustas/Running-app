@@ -77,7 +77,7 @@ export function RacesPage() {
     <div className="flex h-full flex-col">
       <PageHeader eyebrow="Lietuvos kalendorius" title="Varžybos" />
 
-      <div className="shrink-0 space-y-3 px-4 pt-1 pb-3">
+      <div className="shrink-0 space-y-3 px-5 pt-1 pb-3">
         <label className="relative block">
           <span className="sr-only">Ieškoti varžybų</span>
           <Search
@@ -107,7 +107,7 @@ export function RacesPage() {
         <div
           role="group"
           aria-label="Varžybų tipas"
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]"
+          className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]"
         >
           {filters.map(({ id, label }) => (
             <button
@@ -116,7 +116,7 @@ export function RacesPage() {
               aria-pressed={filter === id}
               onClick={() => setFilter(id)}
               className={clsx(
-                'h-9 shrink-0 rounded-full px-4 text-[13px] font-bold whitespace-nowrap transition-colors',
+                'h-9 shrink-0 rounded-full px-5 text-[13px] font-bold whitespace-nowrap transition-colors',
                 filter === id
                   ? 'bg-volt text-black'
                   : 'bg-surface text-slate-300 ring-1 ring-white/10 hover:text-white',
@@ -128,7 +128,7 @@ export function RacesPage() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(var(--nav-space)+16px)]">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(var(--nav-space)+16px)]">
         {featured && <Featured entry={featured} going={counts.data?.[featured.race.slug] ?? 0} />}
         {browsing && <FuelingPromo />}
 
@@ -147,7 +147,7 @@ export function RacesPage() {
           groups.map(([key, items]) => (
             <section key={key} className="mt-6 first:mt-3">
               <h2 className="mb-2.5 flex items-baseline justify-between">
-                <span className="headline text-[24px]">{monthHeading(`${key}-01`)}</span>
+                <span className="headline text-[21px]">{monthHeading(`${key}-01`)}</span>
                 <span className="text-[12px] font-bold text-slate-500">
                   {countOf(items.length, WORDS.race)}
                 </span>
@@ -184,13 +184,13 @@ function DateBadge({ when }: { when: RaceWhen }) {
     <span
       className={clsx(
         'flex size-14 shrink-0 flex-col items-center justify-center rounded-[16px] leading-none',
-        when.confirmed ? 'bg-blue text-white' : 'bg-raised text-slate-300',
+        when.confirmed ? 'bg-volt text-black' : 'bg-raised text-slate-300',
       )}
     >
       <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">
         {SHORT_MONTHS[month - 1]}
       </span>
-      <span className="mt-1 font-display text-[22px] font-bold italic tabular">
+      <span className="mt-1 font-display text-[22px] font-bold tabular">
         {when.confirmed ? Number(when.sortDate.slice(8)) : '?'}
       </span>
     </span>

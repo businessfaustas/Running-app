@@ -221,7 +221,7 @@ function Onboarding({ profile }: { profile: Profile }) {
 function Title({ children, hint }: { children: ReactNode; hint?: string }) {
   return (
     <div className="mt-4 mb-6">
-      <h1 className="headline text-[42px]">{children}</h1>
+      <h1 className="headline text-[32px]">{children}</h1>
       {hint && <p className="mt-2 text-[14px] text-slate-400">{hint}</p>}
     </div>
   )
@@ -323,7 +323,7 @@ function ChipGroup({
             aria-pressed={value === option}
             onClick={() => onChange(value === option ? null : option)}
             className={clsx(
-              'h-11 min-w-16 rounded-full px-4 font-display text-[18px] font-bold italic tabular transition-colors',
+              'h-11 min-w-16 rounded-full px-4 font-display text-[18px] font-bold tabular transition-colors',
               value === option ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#1f2440]',
             )}
           >

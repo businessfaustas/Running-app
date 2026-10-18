@@ -50,16 +50,16 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
       aria-label={describe(slot, role)}
       style={{ '--accent': sport.accent } as CSSProperties}
       className={clsx(
-        '@container relative flex size-full overflow-hidden rounded-[20px] border text-left',
-        'bg-gradient-to-br from-[#171c36] to-surface',
+        '@container relative flex size-full overflow-hidden rounded-[22px] border text-left',
+        'bg-gradient-to-br from-raised to-surface',
         'transition-transform duration-150 active:scale-[0.985]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-volt',
-        focused ? 'border-volt ring-2 ring-volt/50' : 'border-white/[0.07]',
+        focused ? 'border-volt ring-2 ring-volt/50' : 'border-white/[0.08]',
       )}
     >
       <span
         className={clsx(
-          'flex min-w-0 flex-1 flex-col p-2.5 @max-[119px]:p-2',
+          'flex min-w-0 flex-1 flex-col p-3 @max-[119px]:p-2',
           (dimmed || cancelled) && 'opacity-45',
         )}
       >
@@ -88,7 +88,7 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
 
         <span
           className={clsx(
-            'mt-1 line-clamp-2 shrink-0 text-[14px] leading-tight font-bold text-white @min-[170px]:line-clamp-1',
+            'mt-1.5 line-clamp-2 shrink-0 text-[15px] leading-tight font-extrabold tracking-tight text-white @min-[170px]:line-clamp-1',
             cancelled && 'line-through decoration-slate-500',
           )}
         >

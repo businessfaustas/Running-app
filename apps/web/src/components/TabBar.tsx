@@ -17,7 +17,7 @@ export function TabBar() {
       aria-label="Pagrindinis meniu"
       className="pointer-events-none absolute inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)]"
     >
-      <div className="pointer-events-auto mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#0b0e1c]/90 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
+      <div className="pointer-events-auto mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#141416]/90 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
         {TABS.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}

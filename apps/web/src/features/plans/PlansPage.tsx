@@ -55,7 +55,7 @@ function Plans({ userId }: { userId: string }) {
   const list = tab === 'upcoming' ? upcoming.filter((item) => item !== nextUp) : past
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(var(--nav-space)+16px)]">
+    <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(var(--nav-space)+16px)]">
       {slots.isError ? (
         <ErrorState error={slots.error} onRetry={() => slots.refetch()} />
       ) : slots.isPending ? (
@@ -85,11 +85,11 @@ function Plans({ userId }: { userId: string }) {
                 onClick={() => setTab(id)}
                 className={clsx(
                   'flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-bold transition-colors',
-                  tab === id ? 'bg-blue text-white' : 'text-slate-400 hover:text-white',
+                  tab === id ? 'bg-volt text-black' : 'text-slate-400 hover:text-white',
                 )}
               >
                 {label}
-                <span className={clsx('tabular', tab === id ? 'text-volt' : 'text-slate-600')}>
+                <span className={clsx('tabular', tab === id ? 'text-black/60' : 'text-slate-600')}>
                   {count}
                 </span>
               </button>

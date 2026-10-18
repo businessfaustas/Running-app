@@ -55,7 +55,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
 
   return (
     <div className="pb-[calc(var(--nav-space)+16px)]">
-      <div className="relative overflow-hidden rounded-b-[32px] bg-blue px-4 pt-[calc(env(safe-area-inset-top)+72px)] pb-6">
+      <div className="relative overflow-hidden rounded-b-[32px] bg-blue px-5 pt-[calc(env(safe-area-inset-top)+72px)] pb-6">
         <span
           aria-hidden
           className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-white/10 blur-2xl"
@@ -77,7 +77,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
             <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
           )}
           <div className="min-w-0 pb-1">
-            <h1 className="headline text-[38px] text-white">{profile.name}</h1>
+            <h1 className="headline text-[30px] text-white">{profile.name}</h1>
             {(profile.sports.length > 0 || profile.city) && (
               <p className="mt-2 flex flex-wrap gap-1.5">
                 {profile.city && (
@@ -119,7 +119,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
         )}
       </div>
 
-      <div className="px-4">
+      <div className="px-5">
         <dl className="mt-4 grid grid-cols-3 gap-2">
           <Stat label="Organizavo" value={hosted} />
           <Stat label="Dalyvavo" value={joined} />
@@ -128,7 +128,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
 
         <section className="mt-7">
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="headline text-[24px]">Ženkliukai</h2>
+            <h2 className="headline text-[21px]">Ženkliukai</h2>
             {isMe ? (
               <Link to="/inspire" className="flex items-center text-[13px] font-bold text-volt">
                 {earned.length} iš {badges.length}
@@ -140,7 +140,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
               </span>
             )}
           </div>
-          <div className="scrollbar-none -mx-4 flex gap-3 overflow-x-auto px-4">
+          <div className="scrollbar-none -mx-5 flex gap-3 overflow-x-auto px-5">
             {shownBadges.map((badge) => (
               <BadgeTile key={badge.id} badge={badge} compact />
             ))}
@@ -154,10 +154,10 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
               {paces.map(([key, label]) => (
                 <div
                   key={key}
-                  className="rounded-[20px] border border-white/[0.06] bg-surface px-4 py-3"
+                  className="rounded-[20px] border border-white/[0.06] bg-surface px-5 py-3"
                 >
                   <dt className="text-[12px] font-semibold text-slate-500">{label}</dt>
-                  <dd className="mt-0.5 font-display text-[24px] leading-tight font-bold text-white italic tabular">
+                  <dd className="mt-0.5 font-display text-[24px] leading-tight font-bold text-white tabular">
                     {profile.defaultPaces[key]}
                   </dd>
                 </div>
@@ -167,7 +167,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
         )}
 
         <section className="mt-7">
-          <h2 className="headline text-[24px]">Artimiausios treniruotės</h2>
+          <h2 className="headline text-[21px]">Artimiausios treniruotės</h2>
           {slots.isPending ? (
             <div className="mt-3 h-20 animate-pulse rounded-[22px] bg-surface" />
           ) : upcoming.length === 0 ? (
@@ -200,8 +200,8 @@ function Stat({
       <dd
         className={
           accent
-            ? 'font-display text-[32px] leading-none font-bold text-volt italic tabular'
-            : 'font-display text-[32px] leading-none font-bold text-white italic tabular'
+            ? 'font-display text-[32px] leading-none font-bold text-volt tabular'
+            : 'font-display text-[32px] leading-none font-bold text-white tabular'
         }
       >
         {value}

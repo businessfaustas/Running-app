@@ -18,13 +18,17 @@ function ErrorScreen({
 }) {
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-black">
-      <img src={PHOTOS.runCoast} alt="" className="absolute inset-0 size-full object-cover opacity-60" />
+      <img
+        src={PHOTOS.runCoast}
+        alt=""
+        className="absolute inset-0 size-full object-cover opacity-60"
+      />
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black" />
       <div className="relative px-5 pt-[calc(env(safe-area-inset-top)+20px)]">
         <Logo className="text-white" size={20} />
       </div>
       <div className="relative mt-auto px-5 pb-[calc(env(safe-area-inset-bottom)+28px)]">
-        <p className="headline text-[120px] leading-[0.8] text-volt">{code}</p>
+        <p className="headline text-[96px] leading-[0.8] text-volt">{code}</p>
         <h1 className="headline mt-4 text-[44px] text-white">{title}</h1>
         <p className="mt-3 max-w-sm text-[15px] text-white/80">{text}</p>
         <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">{children}</div>

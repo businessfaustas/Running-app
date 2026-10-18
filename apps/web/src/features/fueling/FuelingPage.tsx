@@ -139,7 +139,7 @@ export function FuelingPage() {
   return (
     <div className="flex h-full flex-col">
       <TopBar title="Mitybos skaičiuoklė" fallback="/races" />
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-12">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-12">
         <p className="text-[12px] font-bold tracking-[0.14em] text-slate-500 uppercase">
           {raceName ? `Planas: ${raceName}` : 'Angliavandeniai varžyboms'}
         </p>
@@ -295,7 +295,7 @@ export function FuelingPage() {
         ) : (
           <p
             role="status"
-            className="mt-6 rounded-[22px] bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]"
+            className="mt-6 rounded-[22px] bg-blaze/15 px-5 py-3 text-sm font-semibold text-[#ff9466]"
           >
             Pataisyk pažymėtus laukus – rezultatai atsiras čia.
           </p>
@@ -327,9 +327,9 @@ function Results({ plan, gel }: { plan: FuelingPlan; gel: number }) {
           </>
         ) : (
           <>
-            <p className="relative mt-2 font-display text-[64px] leading-none font-bold text-white italic tabular">
+            <p className="relative mt-2 font-display text-[64px] leading-none font-bold text-white tabular">
               {intake.perHour}
-              <span className="ml-1 text-[22px] text-volt not-italic">g/val.</span>
+              <span className="ml-1 text-[22px] text-volt">g/val.</span>
             </p>
             <p className="relative mt-2 text-[14px] text-white/85">
               {intake.level === 'optional'
@@ -492,7 +492,7 @@ function Timeline({ plan }: { plan: FuelingPlan }) {
       <ol className="divide-y divide-white/[0.06]">
         {plan.schedule.map((stop, i) => (
           <li key={stop.minute} className="flex items-center gap-3 py-2 text-[14px]">
-            <span className="w-12 font-display text-[18px] font-bold text-volt italic tabular">
+            <span className="w-12 font-display text-[18px] font-bold text-volt tabular">
               {formatClockMinutes(stop.minute)}
             </span>
             <span className="w-16 text-slate-400 tabular">{formatKm(stop.km)} km</span>
@@ -509,7 +509,7 @@ function Timeline({ plan }: { plan: FuelingPlan }) {
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-5 space-y-3.5 rounded-[24px] border border-white/[0.06] bg-surface p-4">
-      <h2 className="headline text-[22px]">{title}</h2>
+      <h2 className="headline text-[19px]">{title}</h2>
       {children}
     </section>
   )
@@ -534,9 +534,9 @@ function Stat({
         <Icon className="size-3.5 text-volt" aria-hidden />
         {label}
       </p>
-      <p className="mt-1 font-display text-[26px] leading-none font-bold text-white italic tabular">
+      <p className="mt-1 font-display text-[26px] leading-none font-bold text-white tabular">
         {value}
-        {unit && <span className="ml-1 text-[13px] text-slate-400 not-italic">{unit}</span>}
+        {unit && <span className="ml-1 text-[13px] text-slate-400">{unit}</span>}
       </p>
       <p className="mt-1 text-[12px] text-slate-500">{sub}</p>
     </div>
@@ -593,7 +593,7 @@ function Segmented<T extends string>({
             onClick={() => onChange(id)}
             className={clsx(
               'h-9 rounded-full text-[13px] font-bold transition-colors',
-              value === id ? 'bg-blue text-white' : 'text-slate-400 hover:text-white',
+              value === id ? 'bg-volt text-black' : 'text-slate-400 hover:text-white',
             )}
           >
             {text}

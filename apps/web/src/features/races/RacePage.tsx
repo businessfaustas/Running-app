@@ -100,15 +100,15 @@ function RaceView({ race }: { race: Race }) {
 
   return (
     <div className="h-full overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+32px)]">
-      <section className="relative flex min-h-[340px] flex-col justify-end overflow-hidden rounded-b-[32px] bg-black">
+      <section className="relative flex min-h-[380px] flex-col justify-end overflow-hidden bg-black">
         <img
           src={racePhoto(race)}
           alt=""
           className="absolute inset-0 size-full object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/75" />
         <TopBar overlay fallback="/races" />
-        <div className="relative px-4 pt-24 pb-5">
+        <div className="relative px-5 pt-24 pb-12">
           <span
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider text-black uppercase"
             style={{ backgroundColor: meta.accent }}
@@ -141,7 +141,7 @@ function RaceView({ race }: { race: Race }) {
         </div>
       </section>
 
-      <div className="space-y-5 px-4 pt-5">
+      <div className="relative -mt-7 space-y-5 rounded-t-[32px] bg-ink px-5 pt-6">
         <div className="grid grid-cols-2 gap-2.5">
           <Fact Icon={Route} label="Distancijos">
             {race.distances.map(formatKm).join(' / ')} km
@@ -170,7 +170,7 @@ function RaceView({ race }: { race: Race }) {
               href={race.website}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-black transition active:scale-95"
+              className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-[13px] font-bold text-black transition active:scale-95"
             >
               <ExternalLink className="size-3.5" aria-hidden />
               Oficiali svetainė
@@ -180,7 +180,7 @@ function RaceView({ race }: { race: Race }) {
             href={`https://www.google.com/maps/dir/?api=1&destination=${race.start.lat},${race.start.lng}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-[13px] font-bold text-white transition active:scale-95"
+            className="flex items-center gap-1.5 rounded-full bg-raised px-5 py-2 text-[13px] font-bold text-white transition active:scale-95"
           >
             <Navigation className="size-3.5" aria-hidden />
             Kaip nuvykti
@@ -327,7 +327,7 @@ function Attendance({
     <section className="rounded-[24px] border border-white/[0.06] bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="headline text-[24px]">Kas dalyvauja</h2>
+          <h2 className="headline text-[21px]">Kas dalyvauja</h2>
           <p className="text-[13px] text-slate-500">
             {loading ? 'Kraunama…' : `${countOf(list.length, WORDS.person)} iš PaceMates`}
           </p>
@@ -477,7 +477,7 @@ function DistancePicker({
             aria-pressed={selected === km}
             onClick={() => onPick(km)}
             className={clsx(
-              'h-10 rounded-full px-4 text-[14px] font-bold tabular transition-colors disabled:opacity-60',
+              'h-10 rounded-full px-5 text-[14px] font-bold tabular transition-colors disabled:opacity-60',
               selected === km ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#1f2440]',
             )}
           >
@@ -498,7 +498,7 @@ function DistancePicker({
           <button
             type="button"
             onClick={() => onPick(null)}
-            className="h-10 rounded-full px-4 text-[14px] font-bold text-slate-400 hover:text-white"
+            className="h-10 rounded-full px-5 text-[14px] font-bold text-slate-400 hover:text-white"
           >
             Dar nežinau
           </button>
@@ -573,7 +573,7 @@ function Forum({
         <div
           role="group"
           aria-label="Temos"
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]"
+          className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]"
         >
           {(['ALL', ...TOPIC_ORDER] as const)
             .filter((id) => id === 'ALL' || topicCounts.has(id))
@@ -997,7 +997,7 @@ function Preparation({
               aria-pressed={distance === km}
               onClick={() => onDistanceChange(km)}
               className={clsx(
-                'h-9 rounded-full px-4 text-[13px] font-bold tabular transition-colors',
+                'h-9 rounded-full px-5 text-[13px] font-bold tabular transition-colors',
                 distance === km
                   ? 'bg-white text-black'
                   : 'bg-surface text-slate-300 hover:text-white',
@@ -1032,7 +1032,7 @@ function Preparation({
       <div className="rounded-[24px] border border-white/[0.06] bg-surface p-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="headline text-[24px]">Ką pasiimti</h2>
+            <h2 className="headline text-[21px]">Ką pasiimti</h2>
             <p className="text-[13px] text-slate-400">
               {done === ids.length
                 ? 'Viskas sukrauta – sėkmės starte!'
@@ -1115,7 +1115,7 @@ function Preparation({
 
       {race.tips.length > 0 && (
         <div className="rounded-[24px] border border-white/[0.06] bg-surface p-4">
-          <h2 className="headline text-[24px]">Apie šią trasą</h2>
+          <h2 className="headline text-[21px]">Apie šią trasą</h2>
           <ul className="mt-2 space-y-3">
             {race.tips.map((tip) => (
               <li key={tip} className="flex gap-2.5 text-[14px] leading-relaxed text-slate-200">

@@ -65,7 +65,7 @@ export function ForgotPasswordPage() {
     <div className="flex h-full flex-col overflow-y-auto">
       <TopBar fallback="/signin" />
       <form onSubmit={submit} noValidate className="mx-auto w-full max-w-sm px-5 pt-6 pb-10">
-        <h1 className="headline text-[44px]">
+        <h1 className="headline text-[34px]">
           Pamiršai <span className="text-volt">slaptažodį?</span>
         </h1>
         <p className="mt-3 text-[15px] text-slate-400">

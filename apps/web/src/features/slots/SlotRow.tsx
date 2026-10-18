@@ -25,9 +25,7 @@ export function SlotRow({ slot, role, dimmed = false }: SlotRowProps) {
       )}
     >
       <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[18px] bg-(--accent) text-black">
-        <p className="font-display text-[21px] leading-none font-bold italic tabular">
-          {slot.startTime}
-        </p>
+        <p className="font-display text-[21px] leading-none font-bold tabular">{slot.startTime}</p>
         <p className="mt-1 text-[10.5px] font-bold opacity-70">
           {shortDuration(slot.startTime, slot.endTime) ?? ''}
         </p>

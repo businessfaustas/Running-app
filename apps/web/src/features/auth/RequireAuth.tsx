@@ -34,7 +34,7 @@ export function SignedOutPrompt({
   const location = useLocation()
   const sample = useSampleSignIn(location.pathname)
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-[calc(var(--nav-space)+12px)]">
+    <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 pb-[calc(var(--nav-space)+12px)]">
       <div className="relative flex min-h-[460px] flex-col justify-end overflow-hidden rounded-[28px] p-5">
         <img src={photo} alt="" className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/10" />

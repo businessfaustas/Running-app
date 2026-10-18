@@ -65,9 +65,9 @@ export function SettingsPage() {
   return (
     <div className="flex h-full flex-col">
       <TopBar title="Nustatymai" fallback="/profile" />
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-10">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-10">
         <Group title="Paskyra">
-          <div className="px-4 py-3.5">
+          <div className="px-5 py-3.5">
             <p className="text-[12px] font-semibold text-slate-500">Prisijungta kaip</p>
             <p className="truncate text-[15px] font-bold text-white">
               {session?.email ?? 'Pavyzdinė paskyra'}
@@ -102,10 +102,10 @@ export function SettingsPage() {
         </Button>
 
         <section className="mt-8 rounded-[24px] border border-blaze/30 p-4">
-          <h2 className="headline text-[22px] text-[#ff9466]">Ištrinti paskyrą</h2>
+          <h2 className="headline text-[19px] text-[#ff9466]">Ištrinti paskyrą</h2>
           <p className="mt-1.5 text-[13.5px] leading-snug text-slate-400">
-            Visam laikui ištrinsime tavo paskyrą, profilį, organizuojamas treniruotes ir
-            žinutes. To atšaukti negalima.
+            Visam laikui ištrinsime tavo paskyrą, profilį, organizuojamas treniruotes ir žinutes. To
+            atšaukti negalima.
           </p>
           <Button
             variant="danger"
@@ -137,8 +137,8 @@ export function SettingsPage() {
         onConfirm={deleteAccount}
       >
         <p>
-          Bus ištrinta paskyra, profilis, tavo organizuojamos treniruotės (kartu su jų
-          pokalbiais) ir tavo žinutės. Atkurti nebus įmanoma.
+          Bus ištrinta paskyra, profilis, tavo organizuojamos treniruotės (kartu su jų pokalbiais)
+          ir tavo žinutės. Atkurti nebus įmanoma.
         </p>
         <label className="mt-4 block text-[13px] font-semibold text-slate-300">
           Patvirtinimui įrašyk <span className="font-bold text-white">{DELETE_WORD}</span>
@@ -147,7 +147,7 @@ export function SettingsPage() {
             onChange={(e) => setTyped(e.target.value)}
             autoCapitalize="characters"
             autoComplete="off"
-            className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-raised px-4 text-white focus:border-blaze focus:outline-none"
+            className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-raised px-5 text-white focus:border-blaze focus:outline-none"
           />
         </label>
       </ConfirmDialog>
@@ -161,8 +161,8 @@ export function SettingsPage() {
         onClose={() => setDialog(null)}
         onConfirm={resetDemo}
       >
-        Visos šiame įrenginyje sukurtos paskyros, treniruotės ir žinutės dings, o
-        pavyzdiniai duomenys grįš į pradinę būseną.
+        Visos šiame įrenginyje sukurtos paskyros, treniruotės ir žinutės dings, o pavyzdiniai
+        duomenys grįš į pradinę būseną.
       </ConfirmDialog>
     </div>
   )
@@ -200,7 +200,7 @@ function Row({
     </>
   )
   const className =
-    'flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.03]'
+    'flex w-full items-center gap-3 px-5 py-3.5 text-left transition hover:bg-white/[0.03]'
   return to ? (
     <Link to={to} className={className}>
       {content}
@@ -253,10 +253,13 @@ function ChangePassword() {
     )
   }
   return (
-    <form onSubmit={submit} noValidate className="space-y-3.5 px-4 py-4">
+    <form onSubmit={submit} noValidate className="space-y-3.5 px-5 py-4">
       <p className="text-[15px] font-bold text-white">Naujas slaptažodis</p>
       {formError && (
-        <p role="alert" className="rounded-2xl bg-blaze/15 px-3.5 py-2.5 text-sm font-semibold text-[#ff9466]">
+        <p
+          role="alert"
+          className="rounded-2xl bg-blaze/15 px-3.5 py-2.5 text-sm font-semibold text-[#ff9466]"
+        >
           {formError}
         </p>
       )}

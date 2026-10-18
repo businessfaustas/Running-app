@@ -35,7 +35,7 @@ export function InspirePage() {
   return (
     <div className="h-full overflow-y-auto pb-[calc(var(--nav-space)+20px)]">
       <QuoteHero />
-      <div className="space-y-8 px-4 pt-6">
+      <div className="space-y-8 px-5 pt-6">
         <Community />
         <WeeklyChallenge />
         <FunFacts />
@@ -76,9 +76,9 @@ function Community() {
                 {firstName(leader.entry.user.name)}
               </span>
             </span>
-            <span className="mt-auto font-display text-[30px] leading-none font-bold text-volt italic tabular">
+            <span className="mt-auto font-display text-[30px] leading-none font-bold text-volt tabular">
               {formatKm(leader.value)}
-              <span className="ml-1 text-[14px] text-white/80 not-italic">km</span>
+              <span className="ml-1 text-[14px] text-white/80">km</span>
             </span>
           </>
         ) : (
@@ -132,7 +132,7 @@ function SectionTitle({ Icon, children }: { Icon: typeof Quote; children: string
       <span className="grid size-8 place-items-center rounded-full bg-volt text-black">
         <Icon className="size-4" aria-hidden />
       </span>
-      <span className="headline text-[26px]">{children}</span>
+      <span className="headline text-[22px]">{children}</span>
     </h2>
   )
 }
@@ -148,14 +148,14 @@ function QuoteHero() {
         className="absolute inset-0 size-full object-cover opacity-90 motion-safe:animate-ken"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/90" />
-      <header className="relative px-4 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
+      <header className="relative px-5 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
         <p className="text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
           Kasdienė dozė
         </p>
         <h1 className="headline mt-1 text-[44px] text-white">Įkvėpimas</h1>
         <nav
           aria-label="Daugiau"
-          className="scrollbar-none -mx-4 mt-3 flex gap-2 overflow-x-auto px-4"
+          className="scrollbar-none -mx-5 mt-3 flex gap-2 overflow-x-auto px-5"
         >
           {(
             [
@@ -183,7 +183,7 @@ function QuoteHero() {
         </p>
         <blockquote
           key={quote.text}
-          className="mt-3 font-display text-[34px] leading-[1.02] font-bold text-white italic motion-safe:animate-rise"
+          className="mt-3 font-display text-[34px] leading-[1.02] font-bold text-white motion-safe:animate-rise"
         >
           „{quote.text}“
         </blockquote>
@@ -281,7 +281,7 @@ function FunFacts() {
   return (
     <section>
       <SectionTitle Icon={Lightbulb}>Ar žinojai?</SectionTitle>
-      <div className="scrollbar-none -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4">
+      <div className="scrollbar-none -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5">
         {FUN_FACTS.map((fact, i) => (
           <article
             key={fact.figure + i}
@@ -291,7 +291,7 @@ function FunFacts() {
             )}
           >
             <span
-              className={clsx('headline text-[54px]', i % 3 === 0 ? 'text-black' : 'text-volt')}
+              className={clsx('headline text-[40px]', i % 3 === 0 ? 'text-black' : 'text-volt')}
             >
               {fact.figure}
             </span>
@@ -453,7 +453,7 @@ function Result({
   return (
     <div
       className={clsx(
-        'rounded-[20px] px-4 py-3',
+        'rounded-[20px] px-5 py-3',
         highlight ? 'bg-volt text-black' : 'bg-raised text-white',
       )}
     >
@@ -465,9 +465,9 @@ function Result({
       >
         {label}
       </p>
-      <p className="mt-0.5 font-display text-[32px] leading-none font-bold italic tabular">
+      <p className="mt-0.5 font-display text-[32px] leading-none font-bold tabular">
         {value}
-        <span className="ml-1 text-[14px] not-italic opacity-60">{unit}</span>
+        <span className="ml-1 text-[14px] opacity-60">{unit}</span>
       </p>
     </div>
   )
@@ -480,7 +480,7 @@ function Tips() {
       <ol className="space-y-2">
         {TIPS.map((tip, i) => (
           <li key={tip.title} className="flex gap-3.5 rounded-[22px] bg-surface p-4">
-            <span className="font-display text-[34px] leading-none font-bold text-blue italic tabular">
+            <span className="font-display text-[34px] leading-none font-bold text-blue tabular">
               {String(i + 1).padStart(2, '0')}
             </span>
             <span>
@@ -518,7 +518,7 @@ function TopHosts() {
             >
               <span
                 className={clsx(
-                  'grid size-8 shrink-0 place-items-center rounded-full font-display text-[17px] font-bold italic',
+                  'grid size-8 shrink-0 place-items-center rounded-full font-display text-[17px] font-bold',
                   i === 0 ? 'bg-volt text-black' : 'bg-raised text-white',
                 )}
               >

@@ -22,12 +22,12 @@ export function MyRaces({ userId }: { userId: string }) {
   return (
     <section className="mt-5">
       <h2 className="mb-2.5 flex items-baseline justify-between">
-        <span className="headline text-[24px]">Tavo varžybos</span>
+        <span className="headline text-[21px]">Tavo varžybos</span>
         <Link to="/races" className="text-[13px] font-bold text-volt">
           Kalendorius
         </Link>
       </h2>
-      <ul className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+      <ul className="-mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
         {items.map(({ race, distanceKm, when }) => {
           const meta = RACE_TYPE_META[race.type]
           const soon = countdown(when.daysUntil)

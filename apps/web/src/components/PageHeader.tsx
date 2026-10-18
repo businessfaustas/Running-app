@@ -10,7 +10,7 @@ interface PageHeaderProps {
 /** Big slanted title for the tab screens. */
 export function PageHeader({ title, eyebrow, actions }: PageHeaderProps) {
   return (
-    <header className="flex shrink-0 items-end justify-between gap-3 px-4 pt-[calc(env(safe-area-inset-top)+1.25rem)] pb-2">
+    <header className="flex shrink-0 items-end justify-between gap-3 px-5 pt-[calc(env(safe-area-inset-top)+1.25rem)] pb-2">
       <div className="min-w-0">
         {eyebrow && (
           <p className="text-[12px] font-bold tracking-[0.14em] text-slate-500 uppercase">

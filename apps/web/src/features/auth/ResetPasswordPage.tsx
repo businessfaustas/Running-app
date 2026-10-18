@@ -73,7 +73,7 @@ function NewPasswordForm() {
     <div className="flex h-full flex-col overflow-y-auto">
       <TopBar fallback="/" />
       <form onSubmit={submit} noValidate className="mx-auto w-full max-w-sm px-5 pt-6 pb-10">
-        <h1 className="headline text-[44px]">
+        <h1 className="headline text-[34px]">
           Naujas <span className="text-volt">slaptažodis</span>
         </h1>
         <p className="mt-3 text-[15px] text-slate-400">

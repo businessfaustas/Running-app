@@ -7,7 +7,6 @@ import {
   MapPin,
   MessageCircle,
   Plus,
-  Quote,
   RotateCw,
 } from 'lucide-react'
 import { lazy, Suspense, useMemo, useState } from 'react'
@@ -16,7 +15,6 @@ import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { CitySheet } from '../../components/CityPicker'
 import { Logo } from '../../components/Logo'
-import { quoteOfTheDay } from '../../content/inspiration'
 import { useSession } from '../../data/auth'
 import { useMe, useSlots, useUserSlots } from '../../data/hooks'
 import { useCity } from '../../data/city'
@@ -68,30 +66,28 @@ export function DiscoverPage() {
     return counts
   }, [slotsQuery.data, sportFilter])
 
-  const quote = quoteOfTheDay()
-
   return (
     <div className="relative flex h-full flex-col">
-      <header className="relative z-10 shrink-0 overflow-hidden rounded-b-[32px] bg-blue pt-[env(safe-area-inset-top)] shadow-[0_18px_40px_-18px_rgb(46_91_255/0.7)]">
+      <header className="relative z-10 shrink-0 pt-[env(safe-area-inset-top)]">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-white/10 blur-2xl"
+          className="pointer-events-none absolute -top-40 -right-24 size-80 rounded-full bg-blue/25 blur-3xl"
         />
-        <div className="relative flex items-center justify-between gap-3 px-4 pt-3">
+        <div className="relative flex items-center justify-between gap-3 px-5 pt-4">
           <Greeting />
           <div className="flex items-center gap-2">
             {session ? (
               <Link
                 to="/inbox"
                 aria-label="Pokalbiai"
-                className="glass grid size-11 place-items-center rounded-full text-white transition active:scale-95"
+                className="grid size-11 place-items-center rounded-full border border-white/[0.08] bg-surface text-white transition hover:bg-raised active:scale-95"
               >
                 <MessageCircle className="size-5" aria-hidden />
               </Link>
             ) : (
               <Link
                 to="/signin"
-                className="rounded-full bg-white px-4 py-2 text-[13px] font-bold whitespace-nowrap text-black transition active:scale-95 max-[359px]:px-3"
+                className="rounded-full bg-white px-4 py-2.5 text-[13px] font-bold whitespace-nowrap text-black transition active:scale-95 max-[359px]:px-3"
               >
                 Prisijungti
               </Link>
@@ -100,41 +96,29 @@ export function DiscoverPage() {
           </div>
         </div>
 
-        <div className="relative px-4 pt-4 [@media(max-height:500px)]:hidden">
-          <p className="flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
+        <div className="relative px-5 pt-6 [@media(max-height:560px)]:pt-3">
+          <div className="flex items-center gap-2.5 text-[13px] font-semibold text-slate-400">
             <button
               type="button"
               onClick={() => setCityOpen(true)}
               aria-label={`Miestas: ${city.name}. Pakeisti`}
-              className="-my-1 -ml-1 flex items-center gap-1 rounded-full bg-white/15 py-1 pr-2 pl-1.5 text-white transition hover:bg-white/25 active:scale-95"
+              className="flex h-8 items-center gap-1.5 rounded-full border border-white/[0.08] bg-surface pr-2.5 pl-2 font-bold text-white transition hover:bg-raised active:scale-95"
             >
-              <MapPin className="size-3.5" aria-hidden />
+              <MapPin className="size-4 text-volt" aria-hidden />
               {city.name}
-              <ChevronDown className="size-3.5" aria-hidden />
+              <ChevronDown className="size-4 text-slate-400" aria-hidden />
             </button>
-            · {dayMonth(selectedDate)}
-          </p>
-          <div className="mt-1 flex items-end justify-between gap-3">
-            <h1 className="headline text-[46px] text-white">{whenHeadline(selectedDate, today)}</h1>
-            <p className="pb-1 text-right leading-none">
-              <span className="font-display text-[34px] font-bold text-volt italic tabular">
-                {visibleSlots.length}
-              </span>
-              <span className="block text-[11px] font-bold tracking-wider text-white/70 uppercase">
-                {plural(visibleSlots.length, WORDS.workout)}
-              </span>
-            </p>
+            {dayMonth(selectedDate)}
           </div>
-          <Link
-            to="/inspire"
-            className="mt-2 flex min-w-0 items-center gap-1.5 text-[13px] text-white/80 [@media(max-height:680px)]:hidden"
-          >
-            <Quote className="size-3.5 shrink-0 fill-volt text-volt" aria-hidden />
-            <span className="truncate italic">{quote.text}</span>
-          </Link>
+          <h1 className="headline mt-3 text-[34px] [@media(max-height:560px)]:text-[26px]">
+            {whenHeadline(selectedDate, today)}
+            <span className="block text-volt">
+              {visibleSlots.length} {plural(visibleSlots.length, WORDS.workout)}
+            </span>
+          </h1>
         </div>
 
-        <div className="relative pt-4 pb-5 [@media(max-height:500px)]:pt-3 [@media(max-height:500px)]:pb-3">
+        <div className="relative pt-5 pb-1 [@media(max-height:560px)]:pt-3">
           <DayStrip
             days={days}
             today={today}
@@ -148,7 +132,7 @@ export function DiscoverPage() {
       <div
         role="group"
         aria-label="Sportas"
-        className="scrollbar-none flex shrink-0 gap-2 overflow-x-auto px-4 pt-3.5 pb-2"
+        className="scrollbar-none flex shrink-0 gap-2 overflow-x-auto px-5 pt-4 pb-3"
       >
         {SPORT_FILTERS.map((filter) => {
           const active = filter.id === sportFilter
@@ -160,15 +144,17 @@ export function DiscoverPage() {
               aria-pressed={active}
               onClick={() => setSportFilter(filter.id)}
               className={clsx(
-                'flex h-9 shrink-0 items-center gap-2 rounded-full px-4 text-[13px] font-bold transition-colors',
-                active ? 'bg-white text-black' : 'bg-raised text-slate-300 hover:text-white',
+                'flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-bold transition-colors',
+                active
+                  ? 'bg-volt text-black'
+                  : 'border border-white/[0.08] bg-surface text-slate-300 hover:text-white',
               )}
             >
               {filter.label}
               <span
                 className={clsx(
                   'grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] tabular',
-                  active ? 'bg-black text-volt' : 'bg-white/10 text-slate-400',
+                  active ? 'bg-black/85 text-volt' : 'bg-white/10 text-slate-400',
                 )}
               >
                 {count}
@@ -182,7 +168,7 @@ export function DiscoverPage() {
         {slotsQuery.isError ? (
           <div className="grid h-full place-items-center p-6 text-center">
             <div>
-              <p className="headline text-[24px]">Nepavyko įkelti</p>
+              <p className="headline text-[21px]">Nepavyko įkelti</p>
               <p className="mt-1 text-[13px] text-slate-400">{slotsQuery.error.message}</p>
               <Button
                 variant="secondary"
@@ -222,7 +208,7 @@ export function DiscoverPage() {
         <Link
           to={`/workouts/new?date=${selectedDate}`}
           aria-label="Sukurti treniruotę"
-          className="absolute right-4 bottom-[calc(var(--nav-space)+12px)] z-30 grid size-15 place-items-center rounded-full bg-volt text-black shadow-[0_12px_30px_rgb(212_255_63/0.35)] transition active:scale-95 motion-safe:animate-pop"
+          className="absolute right-5 bottom-[calc(var(--nav-space)+14px)] z-30 grid size-15 place-items-center rounded-full bg-volt text-black shadow-[0_12px_30px_rgb(212_255_63/0.35)] transition active:scale-95 motion-safe:animate-pop"
         >
           <Plus className="size-7" strokeWidth={2.6} aria-hidden />
         </Link>
@@ -239,12 +225,12 @@ function Greeting() {
   return (
     <Link to="/profile" aria-label="Tavo profilis" className="flex min-w-0 items-center gap-2.5">
       {me.data ? (
-        <Avatar user={me.data} size={42} className="ring-2 ring-white/40" />
+        <Avatar user={me.data} size={44} className="ring-2 ring-volt/70" />
       ) : (
-        <span className="block size-[42px] rounded-full bg-white/20" />
+        <span className="block size-11 rounded-full bg-raised" />
       )}
       <span className="min-w-0 leading-tight">
-        <span className="block text-[12px] font-medium text-white/75">{greeting()},</span>
+        <span className="block text-[12px] font-medium text-slate-400">{greeting()},</span>
         <span className="block truncate text-[16px] font-bold text-white">
           {me.data ? firstName(me.data.name) : '…'}
         </span>
@@ -265,7 +251,11 @@ function ViewToggle({
     { id: 'map' as const, label: 'Žemėlapis', Icon: MapIcon },
   ]
   return (
-    <div role="group" aria-label="Rodinys" className="glass flex rounded-full p-1">
+    <div
+      role="group"
+      aria-label="Rodinys"
+      className="flex rounded-full border border-white/[0.08] bg-surface p-1"
+    >
       {options.map(({ id, label, Icon }) => (
         <button
           key={id}
@@ -276,7 +266,7 @@ function ViewToggle({
           onClick={() => onChange(id)}
           className={clsx(
             'grid size-9 place-items-center rounded-full transition-colors',
-            view === id ? 'bg-white text-blue' : 'text-white/80 hover:text-white',
+            view === id ? 'bg-volt text-black' : 'text-slate-400 hover:text-white',
           )}
         >
           <Icon className="size-[18px]" aria-hidden />

@@ -8,9 +8,9 @@ import { useNow } from '../../lib/useNow'
 import { SlotCard } from '../slots/SlotCard'
 import { groupDay } from './layout'
 
-export const HOUR_HEIGHT = 100
+export const HOUR_HEIGHT = 110
 /** Tall enough for the card's rows; shorter workouts are drawn at this height. */
-export const MIN_CARD_HEIGHT = 112
+export const MIN_CARD_HEIGHT = 122
 /** Workouts at the same time: a header row above cards of the usual height. */
 const GROUP_HEIGHT = MIN_CARD_HEIGHT + 46
 /** Used to size cards whose host didn't give an end time. */
@@ -128,7 +128,7 @@ export function Timeline({
 
           <ol
             aria-label="Treniruotės"
-            className="pointer-events-none absolute inset-y-0 right-3"
+            className="pointer-events-none absolute inset-y-0 right-4"
             style={{ left: AXIS_WIDTH }}
           >
             {isLoading ? (
@@ -170,7 +170,7 @@ export function Timeline({
 
           {draftMinute !== null && (
             <div
-              className="absolute right-3 z-10 p-[3px] motion-safe:animate-fade"
+              className="absolute right-4 z-10 p-[3px] motion-safe:animate-fade"
               style={{ top: minutesToPx(draftMinute), height: HOUR_HEIGHT, left: AXIS_WIDTH }}
             >
               <button
@@ -335,7 +335,7 @@ function EmptyDay({ cityLocative }: { cityLocative: string }) {
   return (
     <div className="pointer-events-none sticky top-5 z-30 h-0">
       <div className="mx-auto w-fit max-w-[calc(100%-2rem)] rounded-[22px] border border-white/10 bg-raised/95 px-5 py-4 text-center shadow-2xl shadow-black/50 backdrop-blur">
-        <p className="headline text-[22px]">Kol kas tuščia</p>
+        <p className="headline text-[19px]">Kol kas tuščia</p>
         <p className="mt-1 text-[13px] text-slate-400">
           {cityLocative} šią dieną treniruočių dar nėra. Bakstelk laiką juostoje ir pakviesk kitus.
         </p>

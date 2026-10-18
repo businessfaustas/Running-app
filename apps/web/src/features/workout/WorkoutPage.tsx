@@ -101,7 +101,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-black/50" />
           <TopBar overlay fallback="/" actions={<ShareButton slot={slot} />} />
 
-          <div className="absolute inset-x-0 bottom-0 px-4 pb-5">
+          <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-1.5 rounded-full bg-(--accent) px-3 py-1 text-[12px] font-bold text-black">
                 <sport.Icon className="size-3.5" aria-hidden />
@@ -128,9 +128,9 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
           </div>
         </div>
 
-        <div className="px-4 pb-8">
+        <div className="px-5 pb-8">
           {slot.status === 'CANCELLED' && (
-            <p className="mb-3 rounded-2xl bg-blaze/15 px-4 py-3 text-sm font-semibold text-[#ff9466]">
+            <p className="mb-3 rounded-2xl bg-blaze/15 px-5 py-3 text-sm font-semibold text-[#ff9466]">
               Organizatorius atšaukė šią treniruotę.
             </p>
           )}
@@ -276,12 +276,12 @@ function Stat({
       <dt className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">{label}</dt>
       <dd
         className={clsx(
-          'mt-1 font-display leading-none font-bold text-white italic tabular',
+          'mt-1 font-display leading-none font-bold text-white tabular',
           small ? 'text-[19px]' : 'text-[28px]',
         )}
       >
         {value}
-        {unit && <span className="ml-0.5 text-[15px] text-slate-400 not-italic">{unit}</span>}
+        {unit && <span className="ml-0.5 text-[15px] text-slate-400">{unit}</span>}
       </dd>
       {sub && <dd className="mt-1 text-[12px] text-slate-500">{sub}</dd>}
     </div>
@@ -300,7 +300,7 @@ function Section({
   return (
     <section className="mt-7">
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="headline text-[24px] text-white">{title}</h2>
+        <h2 className="headline text-[21px] text-white">{title}</h2>
         {aside && <span className="text-[13px]">{aside}</span>}
       </div>
       {children}
@@ -488,6 +488,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           }
         >
           Dalyvausiu
+          <ArrowRight className="size-5" strokeWidth={2.5} aria-hidden />
         </Button>
       </>
     )
@@ -495,7 +496,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 
   return (
     <>
-      <div className="shrink-0 rounded-t-[28px] border-t border-white/[0.06] bg-surface px-4 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
+      <div className="shrink-0 rounded-t-[28px] border-t border-white/[0.06] bg-surface px-5 pt-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-3">{content}</div>
       </div>
 
@@ -547,7 +548,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 function Summary({ going, max }: { going: number; max: number | null }) {
   return (
     <p className="leading-none">
-      <span className="font-display text-[30px] font-bold text-white italic tabular">
+      <span className="font-display text-[30px] font-bold text-white tabular">
         {going}
         {max ? <span className="text-slate-500">/{max}</span> : null}
       </span>
@@ -584,7 +585,7 @@ function WorkoutSkeleton() {
       <div className="relative h-[400px] animate-pulse bg-surface">
         <TopBar overlay />
       </div>
-      <div className="space-y-3 px-4 pt-4">
+      <div className="space-y-3 px-5 pt-4">
         <div className="grid grid-cols-3 gap-2">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-20 animate-pulse rounded-[20px] bg-surface" />

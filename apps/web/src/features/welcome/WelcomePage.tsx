@@ -74,7 +74,7 @@ export function WelcomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
             <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+132px)] px-6">
-              <h1 className="headline text-[64px] text-white drop-shadow-lg">
+              <h1 className="headline text-[46px] text-white drop-shadow-lg">
                 {slide.title[0]}
                 <br />
                 <span className={i === 0 ? 'text-volt' : undefined}>{slide.title[1]}</span>

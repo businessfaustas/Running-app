@@ -1,6 +1,6 @@
 import { toISODate } from '@pacemates/shared'
 import clsx from 'clsx'
-import { Crown, Medal, Trophy } from 'lucide-react'
+import { Crown, Trophy } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
@@ -49,14 +49,14 @@ export function LeaderboardPage() {
           className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-white/10 blur-2xl"
         />
         <TopBar overlay fallback="/inspire" />
-        <div className="relative px-4 pt-20">
+        <div className="relative px-5 pt-20">
           <p className="text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
             {scope === 'city' ? city.name : 'Visa Lietuva'} · {range.label}
           </p>
           <h1 className="headline mt-1 text-[40px] text-white">{metricInfo.title}</h1>
         </div>
 
-        <div className="relative mt-5 px-4">
+        <div className="relative mt-5 px-5">
           {board.isPending ? (
             <div className="h-44 animate-pulse rounded-[24px] bg-white/10" />
           ) : podium.length > 0 ? (
@@ -67,7 +67,7 @@ export function LeaderboardPage() {
         <div
           role="tablist"
           aria-label="Laikotarpis"
-          className="glass relative mx-4 mt-5 grid grid-cols-3 rounded-full p-1"
+          className="glass relative mx-5 mt-5 grid grid-cols-3 rounded-full p-1"
         >
           {PERIODS.map(({ id, label }) => (
             <button
@@ -87,11 +87,11 @@ export function LeaderboardPage() {
         </div>
       </section>
 
-      <div className="px-4 pt-5">
+      <div className="px-5 pt-5">
         <div
           role="group"
           aria-label="Kategorija"
-          className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
+          className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5"
         >
           {METRICS.map(({ id, label }) => (
             <button
@@ -100,7 +100,7 @@ export function LeaderboardPage() {
               aria-pressed={metric === id}
               onClick={() => setMetric(id)}
               className={clsx(
-                'h-9 shrink-0 rounded-full px-4 text-[13px] font-bold whitespace-nowrap transition-colors',
+                'h-9 shrink-0 rounded-full px-5 text-[13px] font-bold whitespace-nowrap transition-colors',
                 metric === id
                   ? 'bg-volt text-black'
                   : 'bg-surface text-slate-300 ring-1 ring-white/10 hover:text-white',
@@ -153,7 +153,7 @@ export function LeaderboardPage() {
         ) : (
           <>
             {rest.length > 0 && (
-              <ol className="mt-4 space-y-2">
+              <ol className="mt-5 space-y-2.5">
                 {rest.map((r) => (
                   <li key={r.entry.user.id}>
                     <Row ranked={r} metric={metric} mine={r.entry.user.id === session?.userId} />
@@ -227,7 +227,7 @@ function Podium({
               </span>
               <span
                 className={clsx(
-                  'mt-1 w-full rounded-t-[16px] bg-white/12 pt-2 font-display font-bold text-white italic tabular',
+                  'mt-1 w-full rounded-t-[16px] bg-white/12 pt-2 font-display font-bold text-white tabular',
                   r.rank === 1
                     ? 'h-20 text-[28px]'
                     : r.rank === 2
@@ -252,42 +252,56 @@ function ValueText({ ranked, metric }: { ranked: Ranked; metric: Metric }) {
   return (
     <>
       {number}
-      {unit && <span className="ml-0.5 text-[0.55em] not-italic opacity-80">{unit}</span>}
+      {unit && <span className="ml-0.5 text-[0.55em] opacity-80">{unit}</span>}
     </>
   )
 }
 
 function Row({ ranked, metric, mine }: { ranked: Ranked; metric: Metric; mine: boolean }) {
   const { entry } = ranked
-  const details = [
-    countOf(entry.workouts, WORDS.workout),
-    entry.hosted > 0 ? `organizavo ${entry.hosted}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
   return (
     <Link
       to={`/athletes/${entry.user.id}`}
       className={clsx(
-        'flex items-center gap-3 rounded-[20px] border p-3 transition-colors',
-        mine ? 'border-volt/50 bg-volt/[0.07]' : 'border-white/[0.06] bg-surface hover:bg-raised',
+        'flex items-center gap-3 rounded-[26px] p-3 pr-4 transition-colors',
+        mine
+          ? 'bg-lilac text-black'
+          : 'border border-white/[0.07] bg-surface text-white hover:bg-raised',
       )}
     >
-      <span className="w-7 shrink-0 text-center font-display text-[18px] font-bold text-slate-400 tabular">
+      <span
+        className={clsx(
+          'w-6 shrink-0 text-center font-display text-[16px] font-extrabold tabular',
+          mine ? 'text-black/50' : 'text-slate-500',
+        )}
+      >
         {ranked.rank}
       </span>
-      <Avatar user={entry.user} size={40} />
+      <Avatar user={entry.user} size={48} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-bold text-white">
+        <span className="block truncate text-[16px] font-extrabold tracking-tight">
           {entry.user.name}
-          {mine && <span className="text-volt"> (tu)</span>}
+          {mine && ' (tu)'}
         </span>
-        <span className="block truncate text-[12px] text-slate-500">{details}</span>
+        <span className="mt-1 flex items-center gap-1.5">
+          <span
+            className={clsx(
+              'rounded-full px-2 py-0.5 text-[11px] font-bold',
+              mine ? 'bg-black text-volt' : 'bg-volt text-black',
+            )}
+          >
+            {countOf(entry.workouts, WORDS.workout)}
+          </span>
+          {entry.hosted > 0 && (
+            <span className={clsx('text-[12px]', mine ? 'text-black/60' : 'text-slate-500')}>
+              organizavo {entry.hosted}
+            </span>
+          )}
+        </span>
       </span>
-      <span className="shrink-0 font-display text-[20px] font-bold text-white italic tabular">
+      <span className="shrink-0 font-display text-[22px] font-extrabold tracking-tight tabular">
         <ValueText ranked={ranked} metric={metric} />
       </span>
-      {ranked.rank <= 3 && <Medal className="size-4 text-dune" aria-hidden />}
     </Link>
   )
 }

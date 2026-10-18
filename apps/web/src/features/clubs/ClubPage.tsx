@@ -43,15 +43,15 @@ function ClubView({ club }: { club: Club }) {
 
   return (
     <div className="h-full overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+32px)]">
-      <section className="relative flex min-h-[300px] flex-col justify-end overflow-hidden rounded-b-[32px] bg-black">
+      <section className="relative flex min-h-[340px] flex-col justify-end overflow-hidden bg-black">
         <img
           src={clubPhoto(club)}
           alt=""
           className="absolute inset-0 size-full object-cover opacity-80"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-black/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/75" />
         <TopBar overlay fallback="/clubs" />
-        <div className="relative px-4 pt-24 pb-5">
+        <div className="relative px-5 pt-24 pb-12">
           <div className="flex flex-wrap gap-1.5">
             {club.types.map((t) => {
               const meta = CLUB_TYPE_META[t]
@@ -76,7 +76,7 @@ function ClubView({ club }: { club: Club }) {
         </div>
       </section>
 
-      <div className="space-y-5 px-4 pt-5">
+      <div className="relative -mt-7 space-y-5 rounded-t-[32px] bg-ink px-5 pt-6">
         <p className="text-[15px] leading-relaxed text-slate-300">{club.description}</p>
 
         {(club.level || club.membership) && (
@@ -88,7 +88,7 @@ function ClubView({ club }: { club: Club }) {
 
         {club.schedule.length > 0 && (
           <section className="rounded-[24px] border border-white/[0.06] bg-surface p-4">
-            <h2 className="headline text-[24px]">Treniruotės</h2>
+            <h2 className="headline text-[21px]">Treniruotės</h2>
             <ul className="mt-2 space-y-2.5">
               {club.schedule.map((line) => (
                 <li key={line} className="flex gap-2.5 text-[14px] leading-snug text-slate-200">
@@ -131,7 +131,7 @@ function ClubView({ club }: { club: Club }) {
                   href={href}
                   target={href.startsWith('mailto:') ? undefined : '_blank'}
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#1f2440] active:scale-95"
+                  className="flex items-center gap-1.5 rounded-full bg-raised px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#1f2440] active:scale-95"
                 >
                   <Icon className="size-3.5" aria-hidden />
                   {label}

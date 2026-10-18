@@ -245,7 +245,7 @@ export function CreateWorkoutPage() {
             </span>
             <span className="block text-[15px] font-bold">{STEPS[step]}</span>
           </p>
-          <p className="grid size-11 place-items-center font-display text-[17px] font-bold text-slate-400 italic tabular">
+          <p className="grid size-11 place-items-center font-display text-[17px] font-bold text-slate-400 tabular">
             {step + 1}/{STEPS.length}
           </p>
         </div>
@@ -300,7 +300,7 @@ export function CreateWorkoutPage() {
 function Question({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="mb-5">
-      <h1 className="headline text-[40px]">{title}</h1>
+      <h1 className="headline text-[32px]">{title}</h1>
       {hint && <p className="mt-2 text-sm text-slate-400">{hint}</p>}
     </div>
   )
@@ -739,9 +739,7 @@ function DetailsStep({
           >
             <Minus className="size-4" aria-hidden />
           </button>
-          <span className="w-16 text-center font-display text-4xl font-bold italic tabular">
-            {size}
-          </span>
+          <span className="w-16 text-center font-display text-4xl font-bold tabular">{size}</span>
           <button
             type="button"
             aria-label="Daugiau žmonių"
@@ -770,7 +768,7 @@ function DetailsStep({
           </span>
         </div>
         <div className="p-4 pt-2">
-          <p className="headline text-[28px] text-white">
+          <p className="headline text-[24px] text-white">
             {draft.title.trim() || suggestTitle(draft)}
           </p>
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[14px]">

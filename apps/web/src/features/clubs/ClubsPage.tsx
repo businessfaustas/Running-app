@@ -44,7 +44,7 @@ export function ClubsPage() {
     <div className="flex h-full flex-col">
       <TopBar fallback="/inspire" title="Klubai" />
       <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+32px)]">
-        <header className="px-4 pt-4">
+        <header className="px-5 pt-4">
           <p className="text-[12px] font-bold tracking-[0.14em] text-slate-500 uppercase">
             Bėk ir mink su savais
           </p>
@@ -54,7 +54,7 @@ export function ClubsPage() {
           </p>
         </header>
 
-        <div className="space-y-3 px-4 pt-4">
+        <div className="space-y-3 px-5 pt-4">
           <div className="flex gap-2">
             <button
               type="button"
@@ -103,7 +103,7 @@ export function ClubsPage() {
           <div
             role="group"
             aria-label="Sportas"
-            className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4"
+            className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5"
           >
             {CLUB_FILTERS.map(({ id, label }) => (
               <button
@@ -112,7 +112,7 @@ export function ClubsPage() {
                 aria-pressed={type === id}
                 onClick={() => setType(id)}
                 className={clsx(
-                  'h-9 shrink-0 rounded-full px-4 text-[13px] font-bold transition-colors',
+                  'h-9 shrink-0 rounded-full px-5 text-[13px] font-bold transition-colors',
                   type === id
                     ? 'bg-volt text-black'
                     : 'bg-surface text-slate-300 ring-1 ring-white/10 hover:text-white',
@@ -124,7 +124,7 @@ export function ClubsPage() {
           </div>
         </div>
 
-        <div className="px-4 pt-2">
+        <div className="px-5 pt-2">
           {shown.length === 0 ? (
             <EmptyState
               Icon={UsersRound}

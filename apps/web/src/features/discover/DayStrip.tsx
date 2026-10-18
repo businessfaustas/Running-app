@@ -11,12 +11,12 @@ interface DayStripProps {
   onSelect: (date: string) => void
 }
 
-/** Tall day pills on the blue header; the chosen day turns volt. */
+/** Day tiles: weekday over a big date; the chosen day turns volt. */
 export function DayStrip({ days, today, selected, counts, onSelect }: DayStripProps) {
   return (
     <nav
       aria-label="Pasirink dieną"
-      className="scrollbar-none flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4"
+      className="scrollbar-none flex snap-x scroll-px-5 gap-2 overflow-x-auto px-5"
     >
       {days.map((date) => {
         const active = date === selected
@@ -29,17 +29,17 @@ export function DayStrip({ days, today, selected, counts, onSelect }: DayStripPr
             aria-label={`${longDay(date)}, ${countOf(count, WORDS.workout)}`}
             onClick={() => onSelect(date)}
             className={clsx(
-              'flex h-[70px] w-[52px] shrink-0 snap-start flex-col items-center justify-center rounded-full transition-all duration-200 active:scale-95',
+              'flex h-[76px] w-[58px] shrink-0 snap-start flex-col items-center justify-center rounded-[20px] transition-all duration-200 active:scale-95',
               active
-                ? 'bg-volt text-black shadow-[0_10px_28px_rgb(212_255_63/0.35)]'
-                : 'bg-white/[0.13] text-white hover:bg-white/20',
-              !active && date === today && 'ring-2 ring-white/50',
+                ? 'bg-volt text-black shadow-[0_10px_28px_rgb(212_255_63/0.25)]'
+                : 'border border-white/[0.08] bg-surface text-white hover:bg-raised',
+              !active && date === today && 'border-volt/50',
             )}
           >
-            <span className={clsx('text-[11px] font-bold', !active && 'text-white/70')}>
+            <span className={clsx('text-[12px] font-semibold', !active && 'text-slate-400')}>
               {weekday(date)}
             </span>
-            <span className="font-display text-[23px] leading-6 font-bold tabular">
+            <span className="mt-0.5 font-display text-[22px] leading-6 font-extrabold tracking-tight tabular">
               {fromISODate(date).getDate()}
             </span>
             <span aria-hidden className="mt-0.5 flex h-1 gap-0.5">

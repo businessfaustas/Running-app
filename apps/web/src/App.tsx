@@ -17,6 +17,7 @@ import { NotFoundPage, RouteErrorPage } from './features/errors/ErrorPages'
 import { InboxPage } from './features/inbox/InboxPage'
 import { InspirePage } from './features/inspire/InspirePage'
 import { PlansPage } from './features/plans/PlansPage'
+import { ClubsPage } from './features/clubs/ClubsPage'
 import { RacesPage } from './features/races/RacesPage'
 import { AthletePage, MyProfilePage } from './features/profile/ProfilePages'
 import { WelcomePage } from './features/welcome/WelcomePage'
@@ -56,9 +57,6 @@ const FuelingPage = lazy(() =>
 )
 const LeaderboardPage = lazy(() =>
   import('./features/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
-)
-const ClubsPage = lazy(() =>
-  import('./features/clubs/ClubsPage').then((m) => ({ default: m.ClubsPage })),
 )
 const ClubPage = lazy(() =>
   import('./features/clubs/ClubPage').then((m) => ({ default: m.ClubPage })),
@@ -131,6 +129,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <Home /> },
           { path: 'races', element: <RacesPage /> },
+          { path: 'clubs', element: <ClubsPage /> },
           { path: 'plans', element: <PlansPage /> },
           { path: 'inspire', element: <InspirePage /> },
           { path: 'inbox', element: <InboxPage /> },
@@ -147,7 +146,6 @@ const router = createBrowserRouter([
       { path: 'fueling', element: page(<FuelingPage />) },
       { path: 'leaderboard', element: page(<LeaderboardPage />) },
       { path: 'badges', element: page(<BadgesPage />) },
-      { path: 'clubs', element: page(<ClubsPage />) },
       { path: 'clubs/:slug', element: page(<ClubPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },
       { path: 'settings', element: signedIn(<SettingsPage />) },

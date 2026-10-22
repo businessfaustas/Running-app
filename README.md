@@ -40,9 +40,11 @@ and join.
   most kilometres ridden, most workouts and most workouts hosted – in your town or across
   Lithuania – with a podium and your own place. Counted from finished PaceMates workouts
   people took part in (not from Strava).
-- **Klubai (`/clubs`):** a directory of local running, triathlon and cycling clubs by town and
-  sport, each with a description, regular sessions, meeting place on a map, level, membership
-  and links (site, Facebook, Instagram, Strava, email).
+- **Klubai (tab, `/clubs`):** local running, triathlon and cycling clubs. Pick a town from the
+  chips (with club counts; starts in your town) or all of Lithuania, filter by sport or search.
+  Each card shows everything: description, regular sessions, meeting place, level, membership
+  and links (site, Facebook, Instagram, Strava, email); the club page adds the map and
+  directions.
 - **Mitybos skaičiuoklė (`/fueling`):** body weight, age, sex, max heart rate (or estimated),
   distance, pace, target heart rate, temperature, climbing, gut training and gel size give an
   estimated carbohydrate burn, a per-hour intake target, a gel timetable along the course, when

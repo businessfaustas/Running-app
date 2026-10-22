@@ -55,6 +55,7 @@ export const WORDS = {
   reply: { one: 'atsakymas', few: 'atsakymai', other: 'atsakymų' },
   option: { one: 'variantas', few: 'variantai', other: 'variantų' },
   ride: { one: 'važiavimas', few: 'važiavimai', other: 'važiavimų' },
+  club: { one: 'klubas', few: 'klubai', other: 'klubų' },
 } satisfies Record<string, PluralForms>
 
 /** "Pr", "An"… */

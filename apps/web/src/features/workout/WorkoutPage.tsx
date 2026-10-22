@@ -235,7 +235,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
               aria-hidden
               className="absolute -top-10 -right-10 size-40 rounded-full bg-white/10 blur-xl"
             />
-            <span className="relative flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/75 uppercase">
+            <span className="relative flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/90 uppercase">
               <Lightbulb className="size-3.5" aria-hidden />
               Ar žinojai?
             </span>

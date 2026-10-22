@@ -235,7 +235,7 @@ export function CreateWorkoutPage() {
             type="button"
             onClick={close}
             aria-label="Uždaryti"
-            className="grid size-11 place-items-center rounded-full bg-raised text-white transition hover:bg-[#1f2440] active:scale-95"
+            className="grid size-11 place-items-center rounded-full bg-raised text-white transition hover:bg-[#2a2a2e] active:scale-95"
           >
             <X className="size-5" aria-hidden />
           </button>
@@ -262,7 +262,7 @@ export function CreateWorkoutPage() {
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-8" key={step}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-8" key={step}>
         <div className="motion-safe:animate-rise">
           {step === 0 && <SportStep draft={draft} onChoose={chooseSport} />}
           {step === 1 && <WhenStep draft={draft} update={update} today={today} />}
@@ -281,7 +281,7 @@ export function CreateWorkoutPage() {
             {error}
           </p>
         )}
-      </main>
+      </div>
 
       <footer className="flex shrink-0 gap-3 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         {step > 0 && (

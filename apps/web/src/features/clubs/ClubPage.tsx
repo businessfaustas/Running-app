@@ -131,7 +131,7 @@ function ClubView({ club }: { club: Club }) {
                   href={href}
                   target={href.startsWith('mailto:') ? undefined : '_blank'}
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 rounded-full bg-raised px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#1f2440] active:scale-95"
+                  className="flex items-center gap-1.5 rounded-full bg-raised px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#2a2a2e] active:scale-95"
                 >
                   <Icon className="size-3.5" aria-hidden />
                   {label}

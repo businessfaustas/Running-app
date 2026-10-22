@@ -121,10 +121,7 @@ function Onboarding({ profile }: { profile: Profile }) {
         </button>
       </header>
 
-      <main
-        key={step}
-        className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 motion-safe:animate-rise"
-      >
+      <div key={step} className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 motion-safe:animate-rise">
         {step === 0 && <Intro name={firstName(profile.name)} />}
         {step === 1 && (
           <>
@@ -149,7 +146,7 @@ function Onboarding({ profile }: { profile: Profile }) {
             <button
               type="button"
               onClick={() => setCityOpen(true)}
-              className="flex h-14 w-full items-center gap-3 rounded-[18px] bg-raised px-4 text-left transition hover:bg-[#1f2440]"
+              className="flex h-14 w-full items-center gap-3 rounded-[18px] bg-raised px-4 text-left transition hover:bg-[#2a2a2e]"
             >
               <MapPin className="size-5 text-volt" aria-hidden />
               <span className="flex-1 text-[16px] font-bold text-white">{city.name}</span>
@@ -202,7 +199,7 @@ function Onboarding({ profile }: { profile: Profile }) {
             {error}
           </p>
         )}
-      </main>
+      </div>
 
       <footer className="flex shrink-0 gap-3 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         {step > 0 && (
@@ -324,7 +321,7 @@ function ChipGroup({
             onClick={() => onChange(value === option ? null : option)}
             className={clsx(
               'h-11 min-w-16 rounded-full px-4 font-display text-[18px] font-bold tabular transition-colors',
-              value === option ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#1f2440]',
+              value === option ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#2a2a2e]',
             )}
           >
             {option}
@@ -365,7 +362,7 @@ function Done({ profile }: { profile: Profile }) {
 
   return (
     <div className="flex h-full flex-col">
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+24px)] pb-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+24px)] pb-6">
         <span className="grid size-16 place-items-center rounded-full bg-volt text-black motion-safe:animate-pop">
           <Sparkles className="size-8" aria-hidden />
         </span>
@@ -387,7 +384,7 @@ function Done({ profile }: { profile: Profile }) {
             </p>
           )}
         </div>
-      </main>
+      </div>
       <footer className="flex shrink-0 flex-col gap-2 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))]">
         <ButtonLink to="/" replace size="lg">
           Į laiko juostą

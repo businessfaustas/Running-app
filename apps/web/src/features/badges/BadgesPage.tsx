@@ -16,7 +16,11 @@ export function BadgesPage() {
   const session = useSession()
   return (
     <div className="flex h-full flex-col">
-      <TopBar fallback="/profile" title={<span className="block text-center">Ženkliukai</span>} />
+      <TopBar
+        fallback="/profile"
+        heading
+        title={<span className="block text-center">Ženkliukai</span>}
+      />
       {session ? (
         <Collection userId={session.userId} />
       ) : (
@@ -75,7 +79,7 @@ function Collection({ userId }: { userId: string }) {
               tab === id ? 'bg-white text-black' : 'text-slate-400 hover:text-white',
             )}
           >
-            {label} <span className="tabular opacity-50">{count}</span>
+            {label} <span className="tabular opacity-80">{count}</span>
           </button>
         ))}
       </div>

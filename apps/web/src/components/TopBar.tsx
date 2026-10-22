@@ -11,10 +11,20 @@ interface TopBarProps {
   actions?: ReactNode
   /** Float over content (e.g. a photo) instead of taking up space. */
   overlay?: boolean
+  /** The title is the page's main heading (for pages without their own h1). */
+  heading?: boolean
   className?: string
 }
 
-export function TopBar({ title, fallback = '/', actions, overlay = false, className }: TopBarProps) {
+export function TopBar({
+  title,
+  fallback = '/',
+  actions,
+  overlay = false,
+  heading = false,
+  className,
+}: TopBarProps) {
+  const Title = heading ? 'h1' : 'div'
   const navigate = useNavigate()
   const goBack = () => {
     if (window.history.state?.idx > 0) navigate(-1)
@@ -33,7 +43,7 @@ export function TopBar({ title, fallback = '/', actions, overlay = false, classN
         <button type="button" onClick={goBack} aria-label="Atgal" className={roundButtonClass(overlay)}>
           <ChevronLeft className="size-6" aria-hidden />
         </button>
-        <div className="min-w-0 flex-1 truncate text-[15px] font-bold">{title}</div>
+        <Title className="min-w-0 flex-1 truncate text-[15px] font-bold">{title}</Title>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
     </header>

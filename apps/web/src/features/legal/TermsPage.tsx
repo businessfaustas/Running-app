@@ -34,6 +34,7 @@ export function TermsPage() {
         <li>siųsti šlamštą ar reklamą be mūsų sutikimo;</li>
         <li>įžeidinėti, grasinti, priekabiauti ar diskriminuoti kitus;</li>
         <li>skelbti kitų žmonių asmens duomenis be jų sutikimo;</li>
+        <li>kelti profilio nuotrauką, kuri nėra tavo ar kurioje be sutikimo matomi kiti žmonės;</li>
         <li>naudoti paslaugą neteisėtiems tikslams;</li>
         <li>bandyti apeiti saugumo priemones, trikdyti paslaugą ar automatiškai rinkti duomenis.</li>
       </ul>
@@ -59,9 +60,10 @@ export function TermsPage() {
 
       <h2>5. Tavo turinys</h2>
       <p>
-        Tai, ką paskelbi (treniruotes, profilį, žinutes), lieka tavo. Suteiki mums neišimtinę,
-        nemokamą teisę šį turinį rodyti paslaugoje tiek, kiek reikia jai teikti. Turinį,
-        pažeidžiantį šias sąlygas ar įstatymus, galime pašalinti.
+        Tai, ką paskelbi (treniruotes, profilį, nuotrauką, žinutes, forumo įrašus), lieka tavo.
+        Suteiki mums neišimtinę, nemokamą teisę šį turinį rodyti paslaugoje tiek, kiek reikia
+        jai teikti. Turinį, pažeidžiantį šias sąlygas ar įstatymus, galime pašalinti. Ištrynus
+        forumo temą ar paskyrą, kartu išnyksta ir kitų atsakymai į tavo temas.
       </p>
 
       <h2>6. Paskyros sustabdymas ir ištrynimas</h2>
@@ -75,6 +77,11 @@ export function TermsPage() {
         Paslauga teikiama tokia, kokia yra. Stengiamės, kad ji veiktų sklandžiai, tačiau
         negalime garantuoti nepertraukiamo veikimo ir galime keisti ar nutraukti atskiras
         funkcijas.
+      </p>
+      <p>
+        Varžybų ir klubų informacija surinkta iš viešai skelbiamų šaltinių ir gali pasikeisti –
+        datas, registraciją ir tvarkaraščius tikrink organizatorių ar klubų svetainėse. Mitybos
+        skaičiuoklės rezultatai yra apytiksliai ir nėra medicininė rekomendacija.
       </p>
 
       <h2>8. Atsakomybė</h2>

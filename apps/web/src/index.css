@@ -24,6 +24,10 @@
   /* Soft lilac for highlight cards (leaders, featured items). */
   --color-lilac: #c9b8ff;
 
+  /* Muted text greys, lifted so small print keeps a 4.5:1 contrast on the dark surfaces. */
+  --color-slate-500: #838c9b;
+  --color-slate-600: #7a8495;
+
   --animate-rise: rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   @keyframes rise {
     from {

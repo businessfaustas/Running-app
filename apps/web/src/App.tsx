@@ -84,9 +84,9 @@ function Shell() {
         <div className="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/80 to-ink" />
       </div>
       <div className="relative mx-auto flex h-dvh max-w-xl flex-col overflow-hidden bg-ink sm:border-x sm:border-white/10 sm:shadow-[0_0_80px_rgb(0_0_0/0.6)]">
-        <div className="min-h-0 flex-1">
+        <main className="min-h-0 flex-1">
           <Outlet />
-        </div>
+        </main>
         <Toaster />
         <OfflineBanner />
         <CelebrationOverlay />

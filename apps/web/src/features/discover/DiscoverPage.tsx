@@ -164,7 +164,7 @@ export function DiscoverPage() {
         })}
       </div>
 
-      <main className="relative min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1">
         {slotsQuery.isError ? (
           <div className="grid h-full place-items-center p-6 text-center">
             <div>
@@ -202,7 +202,7 @@ export function DiscoverPage() {
             />
           </Suspense>
         )}
-      </main>
+      </div>
 
       {view === 'timeline' && (
         <Link

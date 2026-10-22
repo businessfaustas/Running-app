@@ -65,7 +65,7 @@ function Community() {
         to="/leaderboard"
         className="flex min-h-[150px] flex-col rounded-[22px] bg-gradient-to-br from-blue to-blue-deep p-3.5 transition active:scale-[0.98]"
       >
-        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-white/75 uppercase">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-white/90 uppercase">
           <Medal className="size-3.5 text-volt" aria-hidden />
           Savaitės lyderis
         </span>
@@ -79,11 +79,11 @@ function Community() {
             </span>
             <span className="mt-auto font-display text-[30px] leading-none font-bold text-volt tabular">
               {formatKm(leader.value)}
-              <span className="ml-1 text-[14px] text-white/80">km</span>
+              <span className="ml-1 text-[14px] text-white/90">km</span>
             </span>
           </>
         ) : (
-          <span className="mt-3 text-[13px] leading-snug text-white/80">
+          <span className="mt-3 text-[13px] leading-snug text-white/90">
             {city.locative} šią savaitę dar tuščia – užimk pirmą vietą.
           </span>
         )}
@@ -118,7 +118,7 @@ function FuelingLink() {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] font-bold text-white">Mitybos skaičiuoklė</span>
-        <span className="block text-[13px] leading-snug text-white/75">
+        <span className="block text-[13px] leading-snug text-white/90">
           Angliavandeniai, skysčiai ir druska varžyboms
         </span>
       </span>
@@ -221,13 +221,13 @@ function WeeklyChallenge() {
         aria-hidden
         className="pointer-events-none absolute -right-14 -bottom-16 size-56 rounded-full bg-volt/25 blur-2xl"
       />
-      <p className="relative flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/75 uppercase">
+      <p className="relative flex items-center gap-1.5 text-[12px] font-bold tracking-[0.14em] text-white/90 uppercase">
         <Target className="size-3.5" aria-hidden />
         Savaitės iššūkis
       </p>
-      <h3 className="headline relative mt-2 text-[34px] text-white">
+      <h2 className="headline relative mt-2 text-[34px] text-white">
         {WEEKLY_GOAL} treniruotės <span className="text-volt">kartu</span>
-      </h3>
+      </h2>
 
       {session ? (
         <>
@@ -247,7 +247,7 @@ function WeeklyChallenge() {
               ? 'Iššūkis įveiktas! Puikus darbas.'
               : `Dar ${countOf(left, WORDS.workout)} iki tikslo`}
           </p>
-          <p className="relative mt-0.5 text-[13px] text-white/70">
+          <p className="relative mt-0.5 text-[13px] text-white/90">
             Šią savaitę: {countOf(week.workouts, WORDS.workout)}, {formatKm(week.km)} km
             {left > 0 && daysLeft > 0
               ? ` · liko ${daysLeft} ${plural(daysLeft, { one: 'diena', few: 'dienos', other: 'dienų' })}`
@@ -261,7 +261,7 @@ function WeeklyChallenge() {
         </>
       ) : (
         <>
-          <p className="relative mt-2 text-[14px] text-white/80">
+          <p className="relative mt-2 text-[14px] text-white/90">
             Prisijunk ir sek, kiek treniruočių su kitais įveiki per savaitę.
           </p>
           <ButtonLink
@@ -282,7 +282,13 @@ function FunFacts() {
   return (
     <section>
       <SectionTitle Icon={Lightbulb}>Ar žinojai?</SectionTitle>
-      <div className="scrollbar-none -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5">
+      {/* Focusable so the cards can be scrolled with the arrow keys. */}
+      <div
+        role="region"
+        aria-label="Faktai"
+        tabIndex={0}
+        className="scrollbar-none -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5"
+      >
         {FUN_FACTS.map((fact, i) => (
           <article
             key={fact.figure + i}

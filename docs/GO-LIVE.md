@@ -6,6 +6,12 @@ shared between people. These steps switch the site to real, shared accounts. Bud
 
 Everything below uses free tiers: Supabase Free, Vercel Hobby, Sentry Developer, Resend Free.
 
+**Already checked in the code** (October 2026): all database migrations apply cleanly to an
+empty database; the security rules, rate limits, town filter and leaderboard pass the
+integration tests; a full two-account run-through against a real backend works; and every
+screen passes an automated accessibility scan (WCAG AA) with the production
+security headers on. What's left is the setup only the owner can do.
+
 ## 1. Create the Supabase project
 
 1. [supabase.com](https://supabase.com) → **New project**.
@@ -26,9 +32,16 @@ DATABASE_URL="<session pooler string>" pnpm db:migrate
 ```
 
 This creates the tables, row-level security, the database rate limits, the delete-account
-function and the `avatars` Storage bucket for profile photos (check it under Storage → Buckets;
-it should be public, 2 MB limit, images only). (`pnpm db:seed` adds sample athletes and workouts – useful for a demo, skip it for a real
-launch.)
+function, the leaderboard and town search functions, and the `avatars` Storage bucket for
+profile photos. Check the bucket under **Storage → Buckets**: it should be public, 2 MB limit,
+images only, with four "Avatars: …" policies under **Storage → Policies**. If the bucket is
+missing, run `pnpm db:migrate` again – nothing is applied twice.
+
+**Don't run `pnpm db:seed` on the real project**: it adds sample athletes, workouts and forum
+posts, which is right for a demo but would show fake people to real users.
+
+When a later version of the app adds a migration (a new file in `supabase/migrations/`), run
+`pnpm db:migrate` against production **before** the new version is deployed.
 
 ## 3. Configure sign-in and emails (Supabase → Authentication)
 
@@ -43,7 +56,8 @@ launch.)
 
 - Site URL: `https://running-app-web-amber.vercel.app` (or your own domain).
 - Redirect URLs: `https://running-app-web-amber.vercel.app/auth/callback` and
-  `http://localhost:5173/auth/callback`.
+  `http://localhost:5173/auth/callback`. With your own domain, add
+  `https://<your-domain>/auth/callback` too.
 
 **Emails → SMTP Settings** – required for real users. Supabase's built-in sender only delivers to
 your own team members' addresses, a few per hour. For example with [Resend](https://resend.com)
@@ -68,12 +82,19 @@ sign-up limits at their defaults.
 | `VITE_SUPABASE_URL`      | `https://<ref>.supabase.co`            |
 | `VITE_SUPABASE_ANON_KEY` | the anon / publishable key             |
 | `VITE_SENTRY_DSN`        | from step 6 (optional but recommended) |
+| `VITE_SITE_URL`          | optional, see below                    |
 
 Then **Deployments → … → Redeploy**. (If you connected Supabase through the Vercel Marketplace,
 the `NEXT_PUBLIC_SUPABASE_*` variables it adds work too.)
 
 If you use a custom domain, a different Supabase domain or another map provider, add it to the
 `Content-Security-Policy` header in `apps/web/vercel.json`.
+
+**Link previews** (Facebook, Messenger, WhatsApp) use the production domain Vercel reports at
+build time. With your own domain, set it as the production domain in Vercel → Settings →
+Domains, or set `VITE_SITE_URL=https://<your-domain>`. After deploying, paste the link into
+[Facebook's Sharing Debugger](https://developers.facebook.com/tools/debug/) to check the image
+and text.
 
 ## 5. Analytics
 
@@ -101,7 +122,12 @@ plan adds its own daily backups and point-in-time recovery.)
 ## 8. Legal
 
 - Fill in the operator details in `apps/web/src/content/legal.ts` (company name, code, address,
-  contact email). Until then the privacy policy and terms show `[placeholders]`.
+  contact email). Until then the privacy policy and terms show `[placeholders]` – **don't
+  launch with them**.
+- The privacy policy covers everything the app collects as of 22 October 2026: account and
+  profile (including town and photo), workouts and chats, race attendance and forum posts,
+  the public leaderboards, and the fuelling calculator (which stays on the device). If you add
+  features that collect something new, update it and the date in `legal.ts`.
 - Have a lawyer review both pages; they're written for this app but aren't legal advice.
 - Accept the data processing agreements offered in the Supabase, Vercel and Sentry dashboards.
 
@@ -115,7 +141,26 @@ check the schedule and links; it's worth telling the clubs they're listed.
 
 ## 10. Final check
 
-With two real email addresses: sign up and confirm, finish onboarding, create a workout, join it
-from the second account, chat, reset a password, say you're going to a race and post in its
-forum, reply from the second account, upload a profile photo, switch town, then delete both test
-accounts in Settings.
+With two real email addresses and a phone:
+
+1. Sign up and confirm the email (check it arrives from your own sender, not Supabase's).
+2. Finish onboarding and pick a town; the Discover tab should show that town.
+3. Create a workout; join it from the second account and chat.
+4. Upload a profile photo (this is the one step that can't be tested before a real Supabase
+   project exists).
+5. Say you're going to a race, post in its forum and reply from the second account.
+6. Reset a password from the "Pamiršai slaptažodį?" link.
+7. Add the site to the home screen (Share → Add to Home Screen) and open it from there.
+8. Delete both test accounts in Settings.
+
+The next day, the leaderboard should list the test workout once it has finished – then you know
+the whole chain works.
+
+## 11. After launch
+
+- Sentry emails you about new errors; Vercel → Analytics shows visits.
+- Supabase → Database → Backups (paid plan) or the nightly GitHub backup keep the data safe;
+  try a restore once, as described in the README.
+- Keep the race calendar fresh: once a race has taken place, the app shows an estimated date for
+  next year ("~ spalis 2027 · tiksli data dar nepaskelbta") until you put the confirmed date in
+  `races.ts`.

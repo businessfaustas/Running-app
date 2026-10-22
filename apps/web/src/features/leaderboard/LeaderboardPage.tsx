@@ -50,7 +50,7 @@ export function LeaderboardPage() {
         />
         <TopBar overlay fallback="/inspire" />
         <div className="relative px-5 pt-20">
-          <p className="text-[12px] font-bold tracking-[0.14em] text-white/70 uppercase">
+          <p className="text-[12px] font-bold tracking-[0.14em] text-white/90 uppercase">
             {scope === 'city' ? city.name : 'Visa Lietuva'} · {range.label}
           </p>
           <h1 className="headline mt-1 text-[40px] text-white">{metricInfo.title}</h1>
@@ -67,7 +67,7 @@ export function LeaderboardPage() {
         <div
           role="tablist"
           aria-label="Laikotarpis"
-          className="glass relative mx-5 mt-5 grid grid-cols-3 rounded-full p-1"
+          className="relative mx-5 mt-5 grid grid-cols-3 rounded-full bg-black/15 p-1"
         >
           {PERIODS.map(({ id, label }) => (
             <button
@@ -78,7 +78,7 @@ export function LeaderboardPage() {
               onClick={() => setPeriod(id)}
               className={clsx(
                 'h-10 rounded-full text-[13px] font-bold transition-colors',
-                period === id ? 'bg-white text-black' : 'text-white/80 hover:text-white',
+                period === id ? 'bg-white text-black' : 'text-white hover:bg-white/10',
               )}
             >
               {label}
@@ -227,7 +227,7 @@ function Podium({
               </span>
               <span
                 className={clsx(
-                  'mt-1 w-full rounded-t-[16px] bg-white/12 pt-2 font-display font-bold text-white tabular',
+                  'mt-1 w-full rounded-t-[16px] bg-black/15 pt-2 font-display font-bold text-white tabular',
                   r.rank === 1
                     ? 'h-20 text-[28px]'
                     : r.rank === 2

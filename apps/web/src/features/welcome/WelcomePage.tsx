@@ -53,6 +53,9 @@ export function WelcomePage() {
     <div className="relative h-full overflow-hidden bg-black">
       <div
         ref={trackRef}
+        role="region"
+        aria-label="Apie PaceMates"
+        tabIndex={0}
         onPointerDown={() => setTouched(true)}
         onScroll={(e) => {
           const el = e.currentTarget

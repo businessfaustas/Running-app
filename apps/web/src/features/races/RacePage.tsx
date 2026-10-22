@@ -478,7 +478,7 @@ function DistancePicker({
             onClick={() => onPick(km)}
             className={clsx(
               'h-10 rounded-full px-5 text-[14px] font-bold tabular transition-colors disabled:opacity-60',
-              selected === km ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#1f2440]',
+              selected === km ? 'bg-volt text-black' : 'bg-raised text-white hover:bg-[#2a2a2e]',
             )}
           >
             {formatKm(km)} km
@@ -872,7 +872,7 @@ function PostBody({
   return (
     <div>
       <div className="flex items-start gap-2.5">
-        <Link to={`/athletes/${post.author.id}`} className="shrink-0">
+        <Link to={`/athletes/${post.author.id}`} tabIndex={-1} aria-hidden className="shrink-0">
           <Avatar user={post.author} size={small ? 28 : 36} />
         </Link>
         <div className="min-w-0 flex-1">
@@ -1106,7 +1106,7 @@ function Preparation({
         <button
           type="button"
           onClick={onAskAboutGear}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-raised py-2.5 text-[13px] font-bold text-white hover:bg-[#1f2440]"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-raised py-2.5 text-[13px] font-bold text-white hover:bg-[#2a2a2e]"
         >
           <MessageCircle className="size-4" aria-hidden />
           Ko trūksta? Paklausk forume

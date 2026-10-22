@@ -64,7 +64,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar title="Nustatymai" fallback="/profile" />
+      <TopBar title="Nustatymai" fallback="/profile" heading />
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-10">
         <Group title="Paskyra">
           <div className="px-5 py-3.5">

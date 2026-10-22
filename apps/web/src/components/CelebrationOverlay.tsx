@@ -100,8 +100,8 @@ export function CelebrationOverlay() {
           {joined ? 'Tu dalyvauji!' : 'Paskelbta!'}
         </h2>
         <p className="mt-2 text-[15px] font-semibold text-white/90">{current.title}</p>
-        <p className="mt-6 text-[15px] text-white/80">„{quote.text}“</p>
-        {quote.author && <p className="mt-1 text-[13px] text-white/60">– {quote.author}</p>}
+        <p className="mt-6 text-[15px] text-white/90">„{quote.text}“</p>
+        {quote.author && <p className="mt-1 text-[13px] text-white/90">– {quote.author}</p>}
 
         <div className="mt-9 flex w-full flex-col gap-2.5">
           {joined ? (

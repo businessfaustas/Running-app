@@ -25,16 +25,24 @@ export function PrivacyPage() {
         </li>
         <li>
           <strong>Profilio duomenys, kuriuos pateiki:</strong> aprašymas, sporto šakos,
-          įprasti tempai, Strava ID, nuotraukos nuoroda.
+          įprasti tempai, miestas, kuriame dažniausiai sportuoji, Strava ID ir profilio
+          nuotrauka, jei ją įkeli. Prieš įkeliant nuotrauka apkerpama ir perkoduojama tavo
+          įrenginyje, todėl jos metaduomenys (pvz., fotografavimo vieta) pas mus nepatenka.
         </li>
         <li>
           <strong>Veiklos duomenys:</strong> tavo skelbiamos treniruotės (laikas, susitikimo vieta,
-          atstumas, tempas, aprašymas), dalyvavimas treniruotėse ir žinutės grupių pokalbiuose.
+          atstumas, tempas, aprašymas), dalyvavimas treniruotėse, žinutės grupių pokalbiuose,
+          varžybos, į kurias žadi vykti (ir pasirinkta distancija), bei įrašai ir atsakymai
+          varžybų forumuose.
         </li>
         <li>
-          <strong>Vieta:</strong> tik tada, kai kuriant treniruotę paspaudi „Mano vieta“.
-          Ji naudojama vien tam, kad pažymėtume tašką žemėlapyje; tavo buvimo vietos istorijos
-          nesaugome.
+          <strong>Vieta:</strong> tik tada, kai kuriant treniruotę paspaudi „Mano vieta“ arba
+          renkantis miestą – „Pagal mano vietą“. Ji naudojama vien tam, kad pažymėtume tašką
+          žemėlapyje ar rastume artimiausią miestą; tavo buvimo vietos istorijos nesaugome.
+        </li>
+        <li>
+          <strong>Mitybos skaičiuoklė:</strong> joje įvesti duomenys (svoris, amžius, lytis,
+          pulsas) lieka tik tavo naršyklėje – skaičiuojama tavo įrenginyje, mums jie nesiunčiami.
         </li>
         <li>
           <strong>Techniniai duomenys:</strong> IP adresas ir naršyklės informacija, reikalingi
@@ -65,16 +73,23 @@ export function PrivacyPage() {
 
       <h2>4. Ką mato kiti</h2>
       <p>
-        Tavo vardas, nuotrauka, aprašymas, sporto šakos, tempai ir treniruotės, kurias
-        organizuoji ar kuriose dalyvauji, yra <strong>vieši</strong> – juos gali matyti ir
-        neprisijungę lankytojai, nes tik taip galima rasti grupę. Grupės pokalbį mato tik tos
-        treniruotės dalyviai. Tavo el. pašto adreso kitiems naudotojams nerodome.
+        Tavo vardas, nuotrauka, miestas, aprašymas, sporto šakos, tempai, treniruotės, kurias
+        organizuoji ar kuriose dalyvauji, varžybos, į kurias žadi vykti (su distancija), ir
+        įrašai varžybų forumuose yra <strong>vieši</strong> – juos gali matyti ir neprisijungę
+        lankytojai, nes tik taip galima rasti grupę ar bendraminčius. Grupės pokalbį mato tik
+        tos treniruotės dalyviai. Tavo el. pašto adreso kitiems naudotojams nerodome.
+      </p>
+      <p>
+        <strong>Lyderių lentelės</strong> viešai rodo, kiek kilometrų nubėgai ar numynei, kiek
+        treniruočių įvyko ir kiek jų organizavai per savaitę ar mėnesį. Skaičiuojamos tik
+        įvykusios PaceMates grupinės treniruotės, kuriose dalyvavai, – kitų tavo treniruočių
+        nematome.
       </p>
 
       <h2>5. Kam perduodame duomenis</h2>
       <p>Duomenis tvarko tik mūsų paslaugų teikėjai, pagal sutartis su mumis:</p>
       <ul>
-        <li>Supabase Inc. – duomenų bazė ir prisijungimas;</li>
+        <li>Supabase Inc. – duomenų bazė, prisijungimas ir profilio nuotraukų saugykla;</li>
         <li>Vercel Inc. – svetainės talpinimas ir anoniminė statistika;</li>
         <li>Functional Software Inc. (Sentry) – klaidų ataskaitos, jei jos įjungtos;</li>
         <li>OpenFreeMap – žemėlapio vaizdai (įkeliant žemėlapį jiems matomas tavo IP adresas).</li>
@@ -87,15 +102,17 @@ export function PrivacyPage() {
 
       <h2>6. Kiek laiko saugome</h2>
       <p>
-        Duomenis saugome, kol turi paskyrą. Ištrynus paskyrą, ji ir susiję duomenys pašalinami iš
-        karto, o iš atsarginių kopijų – ne vėliau kaip per 30 dienų. Klaidų ataskaitos ir saugumo
+        Duomenis saugome, kol turi paskyrą. Ištrynus paskyrą, ji ir susiję duomenys (profilio
+        nuotrauka, treniruotės, žinutės, forumo įrašai) pašalinami iš karto, o iš atsarginių
+        kopijų – ne vėliau kaip per 30 dienų. Klaidų ataskaitos ir saugumo
         žurnalai saugomi iki 90 dienų.
       </p>
 
       <h2>7. Slapukai ir naršyklės saugykla</h2>
       <p>
         Reklaminių ar sekimo slapukų nenaudojame. Naršyklės vietinėje saugykloje laikome
-        prisijungimo sesiją ir kelis nustatymus (pvz., ar jau matei įžangą). Be jų programėlė
+        prisijungimo sesiją ir kelis nustatymus (pvz., ar jau matei įžangą, pasirinktą miestą,
+        mitybos skaičiuoklės duomenis ir pasiruošimo varžyboms sąrašo žymes). Be jų programėlė
         neveiktų, todėl sutikimo jiems nereikia.
       </p>
 

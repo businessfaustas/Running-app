@@ -295,13 +295,14 @@ People sign in again after a restore (sessions aren't backed up).
 
 ## Environment variables (web)
 
-| Name                     | Purpose                                                       |
-| ------------------------ | ------------------------------------------------------------- |
-| `VITE_SUPABASE_URL`      | Supabase project URL. Unset → preview mode.                   |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon / publishable key (never the service-role key). |
-| `NEXT_PUBLIC_SUPABASE_*` | Same, as set by the Vercel ↔ Supabase integration.            |
-| `VITE_SENTRY_DSN`        | Turns on error tracking.                                      |
-| `VITE_MAP_STYLE_URL`     | Other map style (default: OpenFreeMap dark).                  |
+| Name                     | Purpose                                                        |
+| ------------------------ | -------------------------------------------------------------- |
+| `VITE_SUPABASE_URL`      | Supabase project URL. Unset → preview mode.                    |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon / publishable key (never the service-role key).  |
+| `NEXT_PUBLIC_SUPABASE_*` | Same, as set by the Vercel ↔ Supabase integration.             |
+| `VITE_SENTRY_DSN`        | Turns on error tracking.                                       |
+| `VITE_MAP_STYLE_URL`     | Other map style (default: OpenFreeMap dark).                   |
+| `VITE_SITE_URL`          | Address for link previews (default: Vercel production domain). |
 
 ## Maps
 
@@ -316,7 +317,6 @@ Set the project's Root Directory to `apps/web`. `apps/web/vercel.json` sends eve
 
 ## Next steps
 
-- Profile photo upload (Supabase Storage).
 - CAPTCHA (Cloudflare Turnstile) on sign-up if bots show up.
 - Data export button (today: on request by email).
 - Push notifications for new messages and changes to workouts you joined.

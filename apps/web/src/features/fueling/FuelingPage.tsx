@@ -315,7 +315,7 @@ function Results({ plan, gel }: { plan: FuelingPlan; gel: number }) {
           aria-hidden
           className="pointer-events-none absolute -top-16 -right-12 size-48 rounded-full bg-white/10 blur-2xl"
         />
-        <p className="relative text-[12px] font-bold tracking-[0.14em] text-white/75 uppercase">
+        <p className="relative text-[12px] font-bold tracking-[0.14em] text-white/90 uppercase">
           Trasoje vartok
         </p>
         {intake.level === 'none' ? (

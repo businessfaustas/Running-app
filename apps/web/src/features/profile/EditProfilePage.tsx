@@ -32,7 +32,7 @@ export function EditProfilePage() {
   const me = useMe()
   return (
     <div className="flex h-full flex-col">
-      <TopBar title="Redaguoti profilį" fallback="/profile" />
+      <TopBar title="Redaguoti profilį" fallback="/profile" heading />
       {me.isError ? (
         <ErrorState error={me.error} onRetry={() => me.refetch()} />
       ) : me.data ? (

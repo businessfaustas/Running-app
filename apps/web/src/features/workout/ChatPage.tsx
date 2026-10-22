@@ -38,6 +38,7 @@ export function ChatPage() {
     <div className="flex h-full flex-col">
       <TopBar
         fallback={`/workouts/${id}`}
+        heading
         title={
           slot ? (
             <Link to={`/workouts/${id}`} className="block min-w-0">

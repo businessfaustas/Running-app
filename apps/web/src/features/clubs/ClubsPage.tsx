@@ -180,6 +180,7 @@ export function ClubsPage() {
             ))
           ) : (
             <div className="mt-4">
+              <h2 className="sr-only">{town}</h2>
               <ClubList clubs={shown} />
             </div>
           )}

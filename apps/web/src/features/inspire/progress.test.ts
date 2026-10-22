@@ -1,6 +1,6 @@
 import type { SlotSummary, UserSlot } from '@pacemates/shared'
 import { describe, expect, it } from 'vitest'
-import { computeBadges, paceFromTime, weekProgress, weekStart } from './progress'
+import { paceFromTime, weekProgress, weekStart } from './progress'
 
 const slot = (patch: Partial<SlotSummary>): SlotSummary => ({
   id: Math.random().toString(36),
@@ -23,31 +23,6 @@ const slot = (patch: Partial<SlotSummary>): SlotSummary => ({
 const as = (role: UserSlot['role'], patch: Partial<SlotSummary> = {}): UserSlot => ({
   role,
   slot: slot(patch),
-})
-
-describe('computeBadges', () => {
-  it('starts with nothing earned', () => {
-    expect(computeBadges([]).every((b) => !b.earned && b.current === 0)).toBe(true)
-  })
-
-  it('earns badges from what people did', () => {
-    const badges = Object.fromEntries(
-      computeBadges([
-        as('HOST', { startTime: '06:15' }),
-        as('PARTICIPANT', { sportType: 'GRAVEL', startTime: '20:30', distanceKm: 45 }),
-        as('PARTICIPANT', { sportType: 'TRACK' }),
-      ]).map((b) => [b.id, b]),
-    )
-    for (const id of ['first', 'host', 'early', 'night', 'long', 'ride', 'track']) {
-      expect(badges[id]?.earned).toBe(true)
-    }
-    expect(badges.regular).toMatchObject({ earned: false, current: 3, target: 5 })
-  })
-
-  it('ignores cancelled workouts', () => {
-    const [first] = computeBadges([as('HOST', { status: 'CANCELLED' })])
-    expect(first?.earned).toBe(false)
-  })
 })
 
 describe('weekProgress', () => {

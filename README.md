@@ -31,6 +31,11 @@ and join.
   - **Pasiruošimas:** a packing checklist built from the race type, surface, season and your
     course (ticks are kept on the device), tips for that course, the start on a map, and a
     prefilled fuelling plan.
+- **Ženkliukai (`/badges`):** 12 metal medals from finished workouts – levels that go bronze →
+  silver → gold (workouts together, hosted, total km, rides), one-off enamel achievements (first
+  workout, before 7:00, after 20:00, track, 21 km+) and gold personal-record plaques (longest
+  workout, earliest start, biggest group). Earned / still to get, by category, with a close-up
+  sheet showing progress to the next step (`features/badges/badges.ts`, with tests).
 - **Lyderiai (`/leaderboard`):** this week's, last week's or this month's most kilometres run,
   most kilometres ridden, most workouts and most workouts hosted – in your town or across
   Lithuania – with a podium and your own place. Counted from finished PaceMates workouts
@@ -106,7 +111,8 @@ apps/
       discover/        timeline, overlap layout algorithm (+ tests), day strip, map view
       workout/         workout page, group chat
       create/          post-a-workout steps
-      inspire/         inspiration tab, badges and weekly progress (+ tests)
+      inspire/         inspiration tab and weekly progress (+ tests)
+      badges/          medal collection: rules (+ tests), SVG medals, badges page
       races/           race calendar, race page (forum, attendance, packing list), dates and
                        gear rules (+ tests)
       fueling/         fuelling calculator and its model (+ tests)

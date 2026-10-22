@@ -8,14 +8,16 @@ import {
   Footprints,
   MapPin,
 } from 'lucide-react'
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { EmptyState } from '../../components/EmptyState'
 import { useUserSlots } from '../../data/hooks'
 import { formatKm, isPast } from '../../lib/format'
-import { BadgeTile } from '../inspire/BadgeTile'
-import { computeBadges, weekProgress } from '../inspire/progress'
+import { BadgeCard } from '../badges/BadgeCard'
+import { BadgeSheet } from '../badges/BadgesPage'
+import { computeBadges, showcase, type Badge } from '../badges/badges'
+import { weekProgress } from '../inspire/progress'
 import { SlotDayList } from '../slots/SlotDayList'
 
 const PACE_LABELS: [keyof Profile['defaultPaces'], string][] = [
@@ -50,8 +52,8 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
 
   const paces = PACE_LABELS.filter(([key]) => profile.defaultPaces[key])
   const earned = badges.filter((b) => b.earned)
-  // Earned medals first, then the closest ones to earning.
-  const shownBadges = [...earned, ...badges.filter((b) => !b.earned)].slice(0, 6)
+  const shownBadges = showcase(badges, 8)
+  const [openBadge, setOpenBadge] = useState<Badge | null>(null)
 
   return (
     <div className="pb-[calc(var(--nav-space)+16px)]">
@@ -130,7 +132,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="headline text-[21px]">Ženkliukai</h2>
             {isMe ? (
-              <Link to="/inspire" className="flex items-center text-[13px] font-bold text-volt">
+              <Link to="/badges" className="flex items-center text-[13px] font-bold text-volt">
                 {earned.length} iš {badges.length}
                 <ChevronRight className="size-4" aria-hidden />
               </Link>
@@ -140,11 +142,12 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
               </span>
             )}
           </div>
-          <div className="scrollbar-none -mx-5 flex gap-3 overflow-x-auto px-5">
+          <div className="scrollbar-none -mx-5 flex gap-2.5 overflow-x-auto px-5 pt-1">
             {shownBadges.map((badge) => (
-              <BadgeTile key={badge.id} badge={badge} compact />
+              <BadgeCard key={badge.id} badge={badge} onOpen={setOpenBadge} compact />
             ))}
           </div>
+          <BadgeSheet badge={openBadge} onClose={() => setOpenBadge(null)} />
         </section>
 
         {paces.length > 0 && (

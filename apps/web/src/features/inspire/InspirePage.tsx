@@ -14,7 +14,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { ButtonLink } from '../../components/Button'
 import { TextField } from '../../components/Field'
@@ -25,8 +25,9 @@ import { useLeaderboard, useSlots, useUserSlots } from '../../data/hooks'
 import { countOf, firstName, formatKm, plural, WORDS } from '../../lib/format'
 import { PHOTOS } from '../../lib/photos'
 import { periodRange, rank } from '../leaderboard/ranking'
-import { BadgeTile } from './BadgeTile'
-import { computeBadges, paceFromTime, weekProgress } from './progress'
+import { BadgeCard } from '../badges/BadgeCard'
+import { computeBadges, showcase } from '../badges/badges'
+import { paceFromTime, weekProgress } from './progress'
 
 /** Workouts a week that count as "done" for the weekly challenge. */
 const WEEKLY_GOAL = 3
@@ -312,28 +313,29 @@ function FunFacts() {
 
 function Badges() {
   const session = useSession()
+  const navigate = useNavigate()
   const slots = useUserSlots(session?.userId)
   const badges = useMemo(() => computeBadges(slots.data ?? []), [slots.data])
-  const earned = badges.filter((b) => b.earned).length
+  const earned = badges.filter((b) => b.earned)
+  const shown = showcase(badges, 6)
 
   return (
     <section>
       <div className="flex items-baseline justify-between">
         <SectionTitle Icon={Trophy}>Ženkliukai</SectionTitle>
-        {session && (
-          <span className="text-[13px] font-bold text-slate-400 tabular">
-            {earned} iš {badges.length}
-          </span>
-        )}
+        <Link to="/badges" className="flex items-center text-[13px] font-bold text-volt tabular">
+          {session ? `${earned.length} iš ${badges.length}` : 'Visi'}
+          <ChevronRight className="size-4" aria-hidden />
+        </Link>
       </div>
       {!session && (
         <p className="-mt-1 mb-4 text-[13px] text-slate-400">
-          Prisijunk ir rink ženkliukus už bendras treniruotes.
+          Prisijunk ir rink medalius už bendras treniruotes.
         </p>
       )}
-      <div className="grid grid-cols-3 gap-x-2 gap-y-5 rounded-[24px] bg-surface p-4 min-[420px]:grid-cols-4">
-        {badges.map((badge) => (
-          <BadgeTile key={badge.id} badge={badge} />
+      <div className="grid grid-cols-3 gap-x-3 gap-y-5 rounded-[26px] bg-surface p-4 pt-5">
+        {shown.map((badge) => (
+          <BadgeCard key={badge.id} badge={badge} onOpen={() => navigate('/badges')} />
         ))}
       </div>
     </section>

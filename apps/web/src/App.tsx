@@ -63,6 +63,9 @@ const ClubsPage = lazy(() =>
 const ClubPage = lazy(() =>
   import('./features/clubs/ClubPage').then((m) => ({ default: m.ClubPage })),
 )
+const BadgesPage = lazy(() =>
+  import('./features/badges/BadgesPage').then((m) => ({ default: m.BadgesPage })),
+)
 const PrivacyPage = lazy(() =>
   import('./features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -143,6 +146,7 @@ const router = createBrowserRouter([
       { path: 'races/:slug', element: page(<RacePage />) },
       { path: 'fueling', element: page(<FuelingPage />) },
       { path: 'leaderboard', element: page(<LeaderboardPage />) },
+      { path: 'badges', element: page(<BadgesPage />) },
       { path: 'clubs', element: page(<ClubsPage />) },
       { path: 'clubs/:slug', element: page(<ClubPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },

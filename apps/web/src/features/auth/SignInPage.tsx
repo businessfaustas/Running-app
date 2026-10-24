@@ -283,7 +283,8 @@ export function SignInPage() {
                       >
                         Privatumo politika
                       </Link>
-                      . Man yra bent {MIN_AGE} metų.
+                      . Suprantu, kad treniruotėse dalyvauju savo atsakomybe. Man yra bent {MIN_AGE}{' '}
+                      metų.
                     </span>
                   </label>
                   {shown('terms') && (

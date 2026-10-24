@@ -1,16 +1,20 @@
-import { paceFit, toISODate, usualPace, type Participant, type SlotDetail } from '@pacemates/shared'
+import { paceFit, usualPace, type Participant, type SlotDetail } from '@pacemates/shared'
+import { awayFromLithuania, todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import {
   ArrowRight,
   CalendarX2,
   Check,
   ChevronRight,
+  HeartPulse,
   Lightbulb,
   Lock,
   MapPin,
   MessageCircle,
   Navigation,
+  Phone,
   Share,
+  ShieldCheck,
 } from 'lucide-react'
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
@@ -79,7 +83,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
   const me = useMe()
   const sport = SPORT_META[slot.sportType]
   const vibe = VIBE_META[slot.vibeTag]
-  const today = toISODate(new Date())
+  const today = todayISO()
   const myEntry = slot.participants.find((p) => p.id === session?.userId)
   const isMember = myEntry?.status === 'ACCEPTED'
   const going = slot.participants.filter((p) => p.status === 'ACCEPTED')
@@ -135,6 +139,11 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
             </p>
           )}
 
+          {awayFromLithuania() && (
+            <p className="mb-2 text-[12px] font-semibold text-slate-400">
+              Laikas nurodytas Lietuvos laiku.
+            </p>
+          )}
           <dl className="grid grid-cols-3 gap-2">
             <Stat label="Pradžia" value={slot.startTime} sub={time ?? 'Laisva pabaiga'} />
             <Stat label="Atstumas" value={formatKm(slot.distanceKm)} unit="km" />
@@ -203,28 +212,62 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
             title="Dalyvauja"
             aside={
               <span className="font-bold text-slate-400 tabular">
-                {going.length}
+                {slot.participantCount}
                 {slot.maxParticipants ? ` iš ${slot.maxParticipants}` : ''}
               </span>
             }
           >
-            <ul className="rounded-[24px] border border-white/[0.06] bg-surface px-3.5">
-              {going.map((p) => (
-                <ParticipantRow
-                  key={p.id}
-                  participant={p}
-                  slot={slot}
-                  isMe={p.id === session?.userId}
-                />
-              ))}
-            </ul>
+            {isMember ? (
+              <ul className="rounded-[24px] border border-white/[0.06] bg-surface px-3.5">
+                {going.map((p) => (
+                  <ParticipantRow
+                    key={p.id}
+                    participant={p}
+                    slot={slot}
+                    isMe={p.id === session?.userId}
+                  />
+                ))}
+              </ul>
+            ) : (
+              // Who's going stays among the group, so nobody can look up where a person will be.
+              <p className="flex items-start gap-3 rounded-[24px] border border-white/[0.06] bg-surface px-4 py-3.5 text-[14px] leading-snug text-slate-300">
+                <Lock className="mt-0.5 size-4 shrink-0 text-slate-400" aria-hidden />
+                Dalyvių vardus mato tik prisijungę prie šios treniruotės – taip saugome, kur ir kada
+                sportuoja kiekvienas.
+              </p>
+            )}
             {slot.maxParticipants && slot.status !== 'CANCELLED' && (
-              <SpotsLeft taken={going.length} max={slot.maxParticipants} />
+              <SpotsLeft taken={slot.participantCount} max={slot.maxParticipants} />
             )}
           </Section>
 
           <Section title="Grupės pokalbis">
             <ChatTeaser slot={slot} isMember={isMember} />
+          </Section>
+
+          <Section title="Saugiai">
+            <ul className="space-y-2.5 rounded-[24px] border border-white/[0.06] bg-surface p-4 text-[14px] leading-snug text-slate-300">
+              <li className="flex gap-3">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-volt" aria-hidden />
+                Susitikite viešoje vietoje ir pasakyk artimiesiems, kur ir su kuo sportuosi.
+              </li>
+              <li className="flex gap-3">
+                <Phone className="mt-0.5 size-4 shrink-0 text-volt" aria-hidden />
+                <span>
+                  Pasiimk telefoną. Skubiai pagalbai skambink{' '}
+                  <strong className="text-white">112</strong>.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <HeartPulse className="mt-0.5 size-4 shrink-0 text-volt" aria-hidden />
+                <span>
+                  Dalyvauji savo atsakomybe – rinkis tempą pagal jėgas.{' '}
+                  <Link to="/salygos" className="font-bold text-white underline">
+                    Sąlygos
+                  </Link>
+                </span>
+              </li>
+            </ul>
           </Section>
 
           <Link
@@ -417,7 +460,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
 
   const isHost = session?.userId === slot.host.id
   const finished = isPast(slot.date, slot.startTime, slot.endTime)
-  const going = slot.participants.filter((p) => p.status === 'ACCEPTED').length
+  const going = slot.participantCount
 
   let content: ReactNode
   if (slot.status === 'CANCELLED') {
@@ -560,7 +603,7 @@ function Summary({ going, max }: { going: number; max: number | null }) {
 function ShareButton({ slot }: { slot: SlotDetail }) {
   const share = async () => {
     const url = window.location.href
-    const text = `${slot.title}: ${relativeDay(slot.date, toISODate(new Date()))}, ${slot.startTime}`
+    const text = `${slot.title}: ${relativeDay(slot.date, todayISO())}, ${slot.startTime}`
     try {
       if (navigator.share) {
         await navigator.share({ title: slot.title, text, url })

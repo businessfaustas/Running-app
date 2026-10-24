@@ -12,6 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_MAP_STYLE_URL?: string
   /** Sentry DSN for error tracking (public by design). Unset → errors only go to the console. */
   readonly VITE_SENTRY_DSN?: string
+  /** When set, the whole app is replaced by a maintenance notice with this text. */
+  readonly VITE_MAINTENANCE_MESSAGE?: string
   /** Release name for error reports; set automatically from the Vercel commit at build time. */
   readonly VITE_APP_VERSION?: string
 }

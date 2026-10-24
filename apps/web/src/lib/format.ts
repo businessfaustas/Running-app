@@ -1,4 +1,5 @@
 import { addDays, fromISODate, timeToMinutes, toISODate } from '@pacemates/shared'
+import { wallClock } from './clock'
 
 /*
  * Lithuanian formatting. Intl's short lt-LT date styles read oddly ("10-15, kt"), so the
@@ -151,21 +152,23 @@ export function greeting(now = new Date()): string {
   return 'Labas vakaras'
 }
 
-/** True once the workout's end (or start, without an end) has passed. */
+/** True once the workout's end (or start, without an end) has passed, in Lithuanian time. */
 export function isPast(date: string, start: string, end: string | null, now = new Date()) {
-  const today = toISODate(now)
+  const wall = wallClock(now)
+  const today = toISODate(wall)
   if (date !== today) return date < today
-  const minutes = now.getHours() * 60 + now.getMinutes()
+  const minutes = wall.getHours() * 60 + wall.getMinutes()
   return timeToMinutes(end ?? start) <= minutes
 }
 
 /** "Po 40 min.", "Po 3 val.", "Rytoj, 07:00" – how soon a workout starts. */
 export function startsIn(date: string, start: string, now = new Date()): string {
+  const wall = wallClock(now)
   const at = fromISODate(date)
   at.setMinutes(timeToMinutes(start))
-  const minutes = Math.round((at.getTime() - now.getTime()) / 60_000)
+  const minutes = Math.round((at.getTime() - wall.getTime()) / 60_000)
   if (minutes <= 0) return 'Jau vyksta'
   if (minutes < 60) return `Po ${minutes} min.`
-  if (date === toISODate(now)) return `Po ${Math.floor(minutes / 60)} val.`
-  return `${relativeDay(date, toISODate(now))}, ${start}`
+  if (date === toISODate(wall)) return `Po ${Math.floor(minutes / 60)} val.`
+  return `${relativeDay(date, toISODate(wall))}, ${start}`
 }

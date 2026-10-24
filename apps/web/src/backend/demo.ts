@@ -26,6 +26,8 @@ import {
   MOCK_SLOTS,
   MOCK_USERS,
 } from '@pacemates/shared/mock'
+import { todayISO } from '../lib/clock'
+import { isPast } from '../lib/format'
 import { emailError, nameError, passwordError } from '../lib/validation'
 import { MESSAGES } from './messages'
 import { BackendError, type AuthEvent, type Backend, type Session } from './types'
@@ -189,7 +191,7 @@ export function createDemoBackend({
   }
 
   const pause = () => new Promise((resolve) => setTimeout(resolve, latencyMs))
-  const today = () => toISODate(now())
+  const today = () => todayISO(now())
 
   function session(): Session | null {
     if (!state.sessionUserId) return null
@@ -280,10 +282,13 @@ export function createDemoBackend({
       status: statusOf(slot, roster),
       host: summaryOf(slot.hostId),
       participantCount: going.length,
-      participantPreview: going
-        .filter((p) => p.userId !== slot.hostId)
-        .slice(0, 3)
-        .map((p) => summaryOf(p.userId)),
+      participantPreview:
+        state.sessionUserId && isMember(slot, state.sessionUserId)
+          ? going
+              .filter((p) => p.userId !== slot.hostId)
+              .slice(0, 3)
+              .map((p) => summaryOf(p.userId))
+          : [],
     }
   }
 
@@ -591,10 +596,14 @@ export function createDemoBackend({
           Number(b.userId === slot.hostId) - Number(a.userId === slot.hostId) ||
           a.joinedAt.localeCompare(b.joinedAt),
       )
+      // Who's going is visible to the people in the workout only.
+      const me = state.sessionUserId
+      const visible =
+        me && isMember(slot, me) ? hostFirst : hostFirst.filter((p) => p.userId === me)
       const detail: SlotDetail = {
         ...toSummary(slot),
         description: slot.description,
-        participants: hostFirst.map((p) => {
+        participants: visible.map((p) => {
           const profile = profileOf(p.userId)
           return {
             id: profile.id,
@@ -612,8 +621,17 @@ export function createDemoBackend({
 
     async listUserSlots(userId) {
       await pause()
+      // Others see what this person hosts and what has already happened – not where
+      // they've signed up to be next.
+      const self = userId === state.sessionUserId
       return allSlots()
         .filter((slot) => isMember(slot, userId))
+        .filter(
+          (slot) =>
+            self ||
+            slot.hostId === userId ||
+            isPast(slot.date, slot.startTime, slot.endTime, now()),
+        )
         .map((slot): UserSlot => ({
           slot: toSummary(slot),
           role: slot.hostId === userId ? 'HOST' : 'PARTICIPANT',
@@ -741,6 +759,8 @@ export function createDemoBackend({
 
     async listRaceAttendees(raceSlug) {
       await pause()
+      // Names for signed-in runners; visitors see head-counts only.
+      if (!state.sessionUserId) return []
       return attendeesOf(raceSlug).map((a): RaceAttendee => ({
         ...summaryOf(a.userId),
         distanceKm: a.distanceKm,
@@ -750,6 +770,7 @@ export function createDemoBackend({
 
     async listUserRaces(userId) {
       await pause()
+      if (!state.sessionUserId) return []
       return allRaceSlugsWithAttendance().flatMap((raceSlug) => {
         const mine = attendeesOf(raceSlug).find((a) => a.userId === userId)
         return mine ? [{ raceSlug, distanceKm: mine.distanceKm }] : []

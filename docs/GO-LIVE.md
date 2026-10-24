@@ -12,6 +12,9 @@ integration tests; a full two-account run-through against a real backend works; 
 screen passes an automated accessibility scan (WCAG AA) with the production
 security headers on. What's left is the setup only the owner can do.
 
+A full security, privacy and safety review (ownership rules, offline behaviour, old phones,
+time zones, liability) is in [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md), with its owner tasks.
+
 ## 1. Create the Supabase project
 
 1. [supabase.com](https://supabase.com) → **New project**.
@@ -164,3 +167,24 @@ the whole chain works.
 - Keep the race calendar fresh: once a race has taken place, the app shows an estimated date for
   next year ("~ spalis 2027 · tiksli data dar nepaskelbta") until you put the confirmed date in
   `races.ts`.
+
+## If something goes wrong
+
+Read this once now, so you know what to do under pressure.
+
+- **A new version broke something:** Vercel → Deployments → the previous production deployment →
+  **⋯ → Instant Rollback**. It's live again within seconds; nothing else changes. (The Hobby
+  plan rolls back one step; to go further back, open an older deployment and **Redeploy** it.)
+- **Take the whole app offline** (a serious bug, a data or security problem): Vercel → Settings
+  → Environment Variables → add `VITE_MAINTENANCE_MESSAGE` with a short note (for example
+  "Tvarkome kai ką svarbaus. Grįžk po valandėlės!") → Deployments → Redeploy. In about a minute
+  every visitor sees a "Trumpam tvarkomės" page and the app stops talking to the database.
+  Delete the variable and redeploy to bring it back.
+- **Stop the database immediately:** Supabase → Project Settings → General → **Pause project**
+  (Free plan). Use it only if data is leaking right now; the app shows errors until resumed.
+- **A key leaked:** Supabase → Project Settings → API Keys → create a new key and delete the
+  leaked one, then put the new one in Vercel and redeploy. Change the database password under
+  Database → Settings and update the `SUPABASE_DB_URL` GitHub secret.
+- **Before every `pnpm db:migrate` on production**, run **Actions → Database backup → Run
+  workflow** and wait for it to finish – migrations only go forward, so the backup is your undo.
+  Restoring is described in the README ("Backups").

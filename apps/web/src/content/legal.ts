@@ -13,7 +13,7 @@ export const OPERATOR = {
   email: '[el. paštas]',
 } as const
 
-export const LEGAL_UPDATED = '2026 m. spalio 22 d.'
+export const LEGAL_UPDATED = '2026 m. spalio 24 d.'
 
 /** Youngest age allowed to sign up. */
 export const MIN_AGE = 16

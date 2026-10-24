@@ -1,4 +1,4 @@
-import { toISODate } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import { Crown, Trophy } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -31,7 +31,7 @@ export function LeaderboardPage() {
   const [period, setPeriod] = useState<Period>('week')
   const [metric, setMetric] = useState<Metric>('run')
   const [scope, setScope] = useState<Scope>('city')
-  const range = periodRange(period, toISODate(new Date()))
+  const range = periodRange(period, todayISO())
   const area = scope === 'city' ? city : null
   const board = useLeaderboard(range.from, range.to, area)
 

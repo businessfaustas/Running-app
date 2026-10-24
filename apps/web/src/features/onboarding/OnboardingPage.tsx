@@ -1,12 +1,12 @@
 import {
   addDays,
   paceFit,
-  toISODate,
   type DefaultPaces,
   type Profile,
   type SportDiscipline,
 } from '@pacemates/shared'
 import clsx from 'clsx'
+import { todayISO } from '../../lib/clock'
 import { Check, MapPin, MessagesSquare, Sparkles, Timer, UsersRound } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router'
@@ -345,7 +345,7 @@ function ChipGroup({
 
 /** Finish line: a few workouts that suit the paces they just gave. */
 function Done({ profile }: { profile: Profile }) {
-  const today = toISODate(new Date())
+  const today = todayISO()
   const city = useCity()
   const slots = useSlots(today, addDays(today, 13), city)
   const matches = useMemo(() => {

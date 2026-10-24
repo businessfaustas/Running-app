@@ -1,4 +1,5 @@
-import { addDays, toISODate, type SlotSummary, type UserSummary } from '@pacemates/shared'
+import { addDays, type SlotSummary, type UserSummary } from '@pacemates/shared'
+import { todayISO, wallClock } from '../../lib/clock'
 import { CLUBS } from '@pacemates/shared/clubs'
 import clsx from 'clsx'
 import {
@@ -53,7 +54,7 @@ export function InspirePage() {
 /** This week's top runner in town, and a way into the clubs directory. */
 function Community() {
   const city = useCity()
-  const today = toISODate(new Date())
+  const today = todayISO()
   const week = periodRange('week', today)
   const board = useLeaderboard(week.from, week.to, city)
   const leader = rank(board.data ?? [], 'run')[0]
@@ -209,11 +210,11 @@ function QuoteHero() {
 function WeeklyChallenge() {
   const session = useSession()
   const slots = useUserSlots(session?.userId)
-  const today = toISODate(new Date())
+  const today = todayISO()
   const week = weekProgress(slots.data ?? [], today)
   const done = Math.min(week.workouts, WEEKLY_GOAL)
   const left = WEEKLY_GOAL - done
-  const daysLeft = Math.max(0, 6 - ((new Date().getDay() + 6) % 7))
+  const daysLeft = Math.max(0, 6 - ((wallClock().getDay() + 6) % 7))
 
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-blue p-5">
@@ -505,7 +506,7 @@ function Tips() {
 }
 
 function TopHosts() {
-  const today = toISODate(new Date())
+  const today = todayISO()
   const city = useCity()
   const slots = useSlots(today, addDays(today, 13), city)
   const hosts = useMemo(() => rankHosts(slots.data ?? []), [slots.data])

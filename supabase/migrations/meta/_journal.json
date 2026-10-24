@@ -78,6 +78,13 @@
       "when": 1792223311871,
       "tag": "20261017074831_city_leaderboard_avatars",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792880604985,
+      "tag": "20261024222324_participation_privacy",
+      "breakpoints": true
     }
   ]
 }

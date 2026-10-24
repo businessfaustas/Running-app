@@ -1,5 +1,6 @@
 import { MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
 import { describe, expect, it } from 'vitest'
+import { isPast } from '../lib/format'
 import { createDemoBackend, type KeyValueStorage } from './demo'
 import { MESSAGES } from './messages'
 import { BackendError } from './types'
@@ -289,5 +290,38 @@ describe('demo backend', () => {
     expect(withPhoto.avatarUrl).toMatch(/^data:image\/webp;base64,/)
     expect((await backend.getProfile(withPhoto.id))?.avatarUrl).toBe(withPhoto.avatarUrl)
     expect((await backend.setAvatar(null)).avatarUrl).toBeNull()
+  })
+
+  it('keeps who is going among the group, like the database rules', async () => {
+    const backend = setup()
+    const today = await backend.listSlots({ from: TODAY, to: TODAY })
+    // An upcoming workout with someone other than the host in it.
+    const upcoming = today.find(
+      (s) =>
+        !isPast(s.date, s.startTime, s.endTime, NOW) &&
+        s.participantCount > 1 &&
+        s.status === 'OPEN',
+    )!
+    const detail = (await backend.getSlot(upcoming.id))!
+    expect(detail.participantCount).toBeGreaterThan(1)
+    expect(detail.participants).toEqual([])
+    expect(upcoming.participantPreview).toEqual([])
+
+    // A runner's profile shows others what they host – not where they've signed up to be.
+    const joiner = MOCK_SLOTS.find((s) => s.id === upcoming.id)!.participantIds.find(
+      (id) => id !== upcoming.host.id,
+    )!
+    const theirs = await backend.listUserSlots(joiner)
+    expect(theirs.some(({ slot }) => slot.id === upcoming.id)).toBe(false)
+
+    // Race attendees: head-counts for visitors, names once signed in.
+    expect(await backend.listRaceAttendees('trail-kursiu-nerija')).toEqual([])
+    expect((await backend.listRaceAttendance())['trail-kursiu-nerija']).toBeGreaterThan(0)
+
+    await backend.signUp({ name: 'Ana', email: 'ana@b.co', password: 'longenough1' })
+    expect((await backend.listRaceAttendees('trail-kursiu-nerija')).length).toBeGreaterThan(0)
+    await backend.joinSlot(upcoming.id)
+    const asMember = (await backend.getSlot(upcoming.id))!
+    expect(asMember.participants.map((p) => p.id)).toContain(joiner)
   })
 })

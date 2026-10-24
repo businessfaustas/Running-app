@@ -1,4 +1,5 @@
 import { toISODate, type ChatMessage, type SlotDetail } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import { ArrowUp, Lock, MessageCircle } from 'lucide-react'
 import {
@@ -44,7 +45,7 @@ export function ChatPage() {
             <Link to={`/workouts/${id}`} className="block min-w-0">
               <span className="block truncate">{slot.title}</span>
               <span className="block truncate text-[12px] font-medium text-slate-500">
-                {relativeDay(slot.date, toISODate(new Date()))}, {slot.startTime} ·{' '}
+                {relativeDay(slot.date, todayISO())}, {slot.startTime} ·{' '}
                 {countOf(slot.participantCount, WORDS.person)}
               </span>
             </Link>
@@ -175,7 +176,7 @@ function MessageList({
   myId: string
   accent: string
 }) {
-  const today = toISODate(new Date())
+  const today = todayISO()
   return (
     <ol className="flex flex-col">
       {messages.map((message, i) => {

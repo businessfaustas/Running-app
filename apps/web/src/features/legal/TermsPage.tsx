@@ -51,8 +51,15 @@ export function TermsPage() {
           žibintais;
         </li>
         <li>susitik viešose vietose ir rinkis tempą pagal savo galimybes;</li>
+        <li>pasiimk telefoną; skubiai pagalbai skambink bendruoju pagalbos numeriu 112;</li>
         <li>organizatoriai paprastai nėra profesionalūs treneriai, nebent nurodyta kitaip.</li>
       </ul>
+      <p>
+        <strong>Organizatoriai</strong>, skelbdami treniruotę, patvirtina, kad susitikimo vieta yra
+        vieša (ne namų adresas), aprašymas, atstumas ir tempas teisingi, o pasikeitus planams
+        treniruotę atšauks programėlėje. Organizatoriai nėra mūsų darbuotojai ar atstovai, ir mes
+        jų netikriname.
+      </p>
       <p>
         Kiek leidžia įstatymai, neatsakome už traumas, žalą ar nuostolius, patirtus treniruočių
         metu arba dėl kitų naudotojų veiksmų.

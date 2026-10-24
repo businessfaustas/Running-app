@@ -19,5 +19,10 @@ export const queryClient = new QueryClient({
         failures < 2 && (!(error instanceof BackendError) || error.message === MESSAGES.offline),
       refetchOnWindowFocus: true,
     },
+    mutations: {
+      // Offline, try at once and say so ("Nėra ryšio…") rather than waiting silently behind a
+      // spinner until the connection comes back. What was typed stays in the form.
+      networkMode: 'always',
+    },
   },
 })

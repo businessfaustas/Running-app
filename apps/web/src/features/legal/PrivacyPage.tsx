@@ -73,12 +73,27 @@ export function PrivacyPage() {
 
       <h2>4. Ką mato kiti</h2>
       <p>
-        Tavo vardas, nuotrauka, miestas, aprašymas, sporto šakos, tempai, treniruotės, kurias
-        organizuoji ar kuriose dalyvauji, varžybos, į kurias žadi vykti (su distancija), ir
-        įrašai varžybų forumuose yra <strong>vieši</strong> – juos gali matyti ir neprisijungę
-        lankytojai, nes tik taip galima rasti grupę ar bendraminčius. Grupės pokalbį mato tik
-        tos treniruotės dalyviai. Tavo el. pašto adreso kitiems naudotojams nerodome.
+        <strong>Vieša</strong> (mato ir neprisijungę lankytojai): tavo vardas, nuotrauka, miestas,
+        aprašymas, sporto šakos ir tempai, treniruotės, kurias organizuoji (laikas, susitikimo
+        vieta, aprašymas), jau įvykusios treniruotės, kuriose dalyvavai, ir įrašai varžybų
+        forumuose.
       </p>
+      <ul>
+        <li>
+          <strong>Kas dalyvauja treniruotėje</strong>, mato tik tos treniruotės dalyviai ir
+          organizatorius. Visi kiti mato tik dalyvių skaičių – taip niekas negali sužinoti, kur
+          ir kada konkretus žmogus sportuos.
+        </li>
+        <li>
+          Būsimas treniruotes, į kurias užsirašei, matai tik tu – kitų profilyje jos nerodomos.
+        </li>
+        <li>
+          <strong>Kas vyksta į varžybas</strong> (ir kurią distanciją renkasi), mato prisijungę
+          naudotojai; neprisijungę lankytojai mato tik skaičių.
+        </li>
+        <li>Grupės pokalbį mato tik tos treniruotės dalyviai.</li>
+        <li>Tavo el. pašto adreso kitiems naudotojams nerodome niekada.</li>
+      </ul>
       <p>
         <strong>Lyderių lentelės</strong> viešai rodo, kiek kilometrų nubėgai ar numynei, kiek
         treniruočių įvyko ir kiek jų organizavai per savaitę ar mėnesį. Skaičiuojamos tik

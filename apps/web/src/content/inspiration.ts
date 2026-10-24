@@ -1,4 +1,5 @@
 import type { SportType } from '@pacemates/shared'
+import { wallClock } from '../lib/clock'
 
 export interface Quote {
   text: string
@@ -116,13 +117,11 @@ export const TIPS: Tip[] = [
 ]
 
 /** Day number since 1970, for picking "today's" item the same for everyone. */
-function dayNumber(date = new Date()): number {
-  return Math.floor(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,
-  )
+function dayNumber(date = wallClock()): number {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000)
 }
 
-export function quoteOfTheDay(offset = 0, date = new Date()): Quote {
+export function quoteOfTheDay(offset = 0, date = wallClock()): Quote {
   return QUOTES[(dayNumber(date) + offset) % QUOTES.length]!
 }
 

@@ -1,4 +1,5 @@
-import { cityById, toISODate, type Profile } from '@pacemates/shared'
+import { cityById, type Profile } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import {
   ArrowUpRight,
   Bike,
@@ -36,7 +37,7 @@ interface ProfileViewProps {
 
 export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
   const slots = useUserSlots(profile.id)
-  const today = toISODate(new Date())
+  const today = todayISO()
 
   const { upcoming, hosted, joined, week, badges } = useMemo(() => {
     const items = slots.data ?? []
@@ -170,12 +171,17 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
         )}
 
         <section className="mt-7">
-          <h2 className="headline text-[21px]">Artimiausios treniruotės</h2>
+          {/* Others only see what this person hosts – never where they've signed up to be. */}
+          <h2 className="headline text-[21px]">
+            {isMe ? 'Artimiausios treniruotės' : 'Organizuoja'}
+          </h2>
           {slots.isPending ? (
             <div className="mt-3 h-20 animate-pulse rounded-[22px] bg-surface" />
           ) : upcoming.length === 0 ? (
             <EmptyState Icon={CalendarPlus} title="Kol kas nieko">
-              {isMe ? 'Prisijunk prie treniruotės arba sukurk savo – ji atsiras čia.' : null}
+              {isMe
+                ? 'Prisijunk prie treniruotės arba sukurk savo – ji atsiras čia.'
+                : 'Artimiausiu metu treniruočių neorganizuoja.'}
             </EmptyState>
           ) : (
             <SlotDayList items={upcoming} />

@@ -3,15 +3,15 @@ import {
   minutesToTime,
   newSlotInputSchema,
   timeToMinutes,
-  toISODate,
   type NewSlotInput,
   type SportType,
   type VibeTag,
 } from '@pacemates/shared'
 import clsx from 'clsx'
-import { Check, LocateFixed, MapPin, Minus, Plus, X } from 'lucide-react'
+import { todayISO, wallClock } from '../../lib/clock'
+import { Check, House, LocateFixed, MapPin, Minus, Plus, X } from 'lucide-react'
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '../../components/Button'
 import { TextArea, TextField } from '../../components/Field'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
@@ -49,6 +49,8 @@ interface Draft {
   meetingPoint: { name: string; lat: number; lng: number } | null
   title: string
   maxParticipants: number | null
+  /** The host confirms the organiser rules before publishing. */
+  hostAgreed: boolean
 }
 
 const SPORT_PHOTO: Record<SportType, { src: string; position: string }> = {
@@ -68,7 +70,7 @@ const NOUN: Record<SportType, string> = {
 
 function defaultStart(date: string, today: string): string {
   if (date !== today) return '08:00'
-  const now = new Date()
+  const now = wallClock()
   const next = Math.min((now.getHours() + 1) * 60, 22 * 60)
   return minutesToTime(next)
 }
@@ -148,7 +150,8 @@ function stepError(step: number, draft: Draft): string | null {
       return draft.meetingPoint.name.trim().length >= 2 ? null : 'Įvardyk susitikimo vietą'
     default: {
       const parsed = newSlotInputSchema.safeParse(toInput(draft))
-      return parsed.success ? null : parsed.error.issues[0]!.message
+      if (!parsed.success) return parsed.error.issues[0]!.message
+      return draft.hostAgreed ? null : 'Pažymėk, kad sutinki su organizatoriaus taisyklėmis'
     }
   }
 }
@@ -156,7 +159,7 @@ function stepError(step: number, draft: Draft): string | null {
 export function CreateWorkoutPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const today = toISODate(new Date())
+  const today = todayISO()
   const me = useMe()
   const create = useCreateSlot()
   const showSlot = useDiscoverStore((s) => s.showSlot)
@@ -177,6 +180,7 @@ export function CreateWorkoutPage() {
     meetingPoint: null,
     title: '',
     maxParticipants: 6,
+    hostAgreed: false,
   }))
 
   const update = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
@@ -589,6 +593,8 @@ function WhereStep({
   // Places people already meet at in this town.
   const slots = useSlots(addDays(today, -30), addDays(today, 13), area)
   const [locating, setLocating] = useState(false)
+  // The meeting point is public; a pin dropped from the phone's location may be someone's home.
+  const [fromMyLocation, setFromMyLocation] = useState(false)
   const point = draft.meetingPoint
   const lngLat = useMemo(() => (point ? { lng: point.lng, lat: point.lat } : null), [point])
 
@@ -611,6 +617,7 @@ function WhereStep({
       (pos) => {
         setLocating(false)
         pick({ lng: pos.coords.longitude, lat: pos.coords.latitude })
+        setFromMyLocation(true)
       },
       () => {
         setLocating(false)
@@ -624,12 +631,15 @@ function WhereStep({
     <>
       <Question
         title="Kur susitinkate?"
-        hint={`Bakstelk žemėlapį arba pasirink populiarią vietą ${city.locative}.`}
+        hint={`Bakstelk žemėlapį arba pasirink populiarią vietą ${city.locative}. Rinkis viešą vietą – ne namų adresą: ją matys visi.`}
       />
       <div className="relative h-60 overflow-hidden rounded-[24px] border border-white/10">
         <LazyLocationMap
           point={lngLat}
-          onPick={pick}
+          onPick={(spot) => {
+            pick(spot)
+            setFromMyLocation(false)
+          }}
           accent={draft.sportType ? SPORT_META[draft.sportType].accent : undefined}
           zoom={13}
           fallbackCenter={city}
@@ -644,6 +654,16 @@ function WhereStep({
           Mano vieta
         </button>
       </div>
+      {fromMyLocation && (
+        <p
+          role="status"
+          className="mt-3 flex items-start gap-2.5 rounded-[18px] bg-dune/15 px-4 py-3 text-[13px] leading-snug text-dune"
+        >
+          <House className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Tai tavo dabartinė vieta. Jei esi namie, pasirink viešą vietą netoliese – parką, stadioną
+          ar kavinę: susitikimo taškas matomas visiems.
+        </p>
+      )}
 
       {popular.length > 0 && (
         <>
@@ -653,7 +673,10 @@ function WhereStep({
               <Chip
                 key={spot.name}
                 selected={point?.name === spot.name && point.lat === spot.lat}
-                onClick={() => update({ meetingPoint: { ...spot } })}
+                onClick={() => {
+                  update({ meetingPoint: { ...spot } })
+                  setFromMyLocation(false)
+                }}
               >
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="size-3.5" aria-hidden />
@@ -790,6 +813,25 @@ function DetailsStep({
           </dl>
         </div>
       </div>
+
+      <label className="mt-6 flex items-start gap-3 rounded-[22px] bg-surface p-4 text-[13px] leading-snug text-slate-300">
+        <input
+          id="host-agreed"
+          type="checkbox"
+          checked={draft.hostAgreed}
+          onChange={(e) => update({ hostAgreed: e.target.checked })}
+          className="mt-0.5 size-5 shrink-0 accent-[var(--color-volt)]"
+        />
+        <span>
+          Patvirtinu: susitikimo vieta vieša (ne namų adresas), aprašymas ir tempas teisingi, o
+          pasikeitus planams treniruotę atšauksiu. Suprantu, kad dalyviai sportuoja savo atsakomybe,
+          o PaceMates treniruočių neorganizuoja –{' '}
+          <Link to="/salygos" target="_blank" className="font-bold text-white underline">
+            sąlygos
+          </Link>
+          .
+        </span>
+      </label>
     </>
   )
 }

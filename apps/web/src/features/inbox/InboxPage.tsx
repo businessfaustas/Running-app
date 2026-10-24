@@ -1,4 +1,5 @@
-import { toISODate, type ChatThread } from '@pacemates/shared'
+import { type ChatThread } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import { MessageCircle } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
@@ -101,7 +102,7 @@ function ThreadRow({ thread, myId }: { thread: ChatThread; myId: string }) {
                 {lastMessage.content}
               </>
             ) : (
-              `${relativeDay(slot.date, toISODate(new Date()))}, ${slot.startTime} · žinučių dar nėra`
+              `${relativeDay(slot.date, todayISO())}, ${slot.startTime} · žinučių dar nėra`
             )}
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { toISODate } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import { create } from 'zustand'
 import type { SportFilter } from '../slots/meta'
 
@@ -19,7 +19,7 @@ interface DiscoverState {
 }
 
 export const useDiscoverStore = create<DiscoverState>()((set) => ({
-  selectedDate: toISODate(new Date()),
+  selectedDate: todayISO(),
   sportFilter: 'ALL',
   view: 'timeline',
   focusedSlotId: null,

@@ -295,14 +295,15 @@ People sign in again after a restore (sessions aren't backed up).
 
 ## Environment variables (web)
 
-| Name                     | Purpose                                                        |
-| ------------------------ | -------------------------------------------------------------- |
-| `VITE_SUPABASE_URL`      | Supabase project URL. Unset → preview mode.                    |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon / publishable key (never the service-role key).  |
-| `NEXT_PUBLIC_SUPABASE_*` | Same, as set by the Vercel ↔ Supabase integration.             |
-| `VITE_SENTRY_DSN`        | Turns on error tracking.                                       |
-| `VITE_MAP_STYLE_URL`     | Other map style (default: OpenFreeMap dark).                   |
-| `VITE_SITE_URL`          | Address for link previews (default: Vercel production domain). |
+| Name                       | Purpose                                                                  |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `VITE_SUPABASE_URL`        | Supabase project URL. Unset → preview mode.                              |
+| `VITE_SUPABASE_ANON_KEY`   | Supabase anon / publishable key (never the service-role key).            |
+| `NEXT_PUBLIC_SUPABASE_*`   | Same, as set by the Vercel ↔ Supabase integration.                       |
+| `VITE_SENTRY_DSN`          | Turns on error tracking.                                                 |
+| `VITE_MAP_STYLE_URL`       | Other map style (default: OpenFreeMap dark).                             |
+| `VITE_SITE_URL`            | Address for link previews (default: Vercel production domain).           |
+| `VITE_MAINTENANCE_MESSAGE` | Kill switch: shows a maintenance page with this text instead of the app. |
 
 ## Maps
 

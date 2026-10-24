@@ -1,4 +1,5 @@
 import { minutesToTime, timeToMinutes, type SlotSummary, type UserSlot } from '@pacemates/shared'
+import { wallClock } from '../../lib/clock'
 import clsx from 'clsx'
 import { ChevronsRight, Layers, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
@@ -48,7 +49,7 @@ export function Timeline({
 }: TimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
-  const now = useNow()
+  const now = wallClock(useNow())
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
   const [draft, setDraft] = useState<{ date: string; minute: number } | null>(null)
   const draftMinute = draft?.date === date ? draft.minute : null

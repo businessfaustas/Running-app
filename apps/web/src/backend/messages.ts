@@ -19,6 +19,7 @@ export const MESSAGES = {
   longMessage: 'Žinutė per ilga',
   notAllowed: 'Neturi teisės to daryti',
   offline: 'Nėra ryšio su serveriu. Patikrink internetą ir bandyk dar kartą.',
+  timeout: 'Serveris per ilgai neatsako – gal silpnas ryšys? Bandyk dar kartą.',
   weakPassword: 'Slaptažodį turi sudaryti bent 8 simboliai: raidės ir bent vienas skaičius',
   samePassword: 'Naujas slaptažodis turi skirtis nuo dabartinio',
   rateLimited: 'Per daug bandymų per trumpą laiką. Palauk minutę ir bandyk vėl.',

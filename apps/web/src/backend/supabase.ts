@@ -135,6 +135,7 @@ const FRIENDLY_ERRORS: [RegExp, string][] = [
   [/violates check constraint/i, MESSAGES.invalidInput],
   [/row-level security|permission denied/i, MESSAGES.notAllowed],
   [/sign in to/i, MESSAGES.signInFirst],
+  [/timeouterror|timed out/i, MESSAGES.timeout],
   [/failed to fetch|network ?error|load failed/i, MESSAGES.offline],
 ]
 
@@ -186,11 +187,36 @@ const toAuthEvent = (event: AuthChangeEvent): AuthEvent =>
     ? event
     : 'OTHER'
 
+/*
+ * On a weak signal a request can hang for minutes, leaving a spinner that never stops. Give
+ * every call to Supabase a deadline instead, so the person gets a clear message and can retry.
+ */
+const REQUEST_TIMEOUT_MS = 20_000
+/** Newest chat messages and forum posts loaded at once – old ones fall off the end. */
+const MESSAGE_LIMIT = 300
+const RACE_POST_LIMIT = 500
+const UPLOAD_TIMEOUT_MS = 90_000
+
+export function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}) {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+  const ms = url.includes('/storage/v1/') ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+  const controller = new AbortController()
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('Request timed out', 'TimeoutError')),
+    ms,
+  )
+  const outer = init.signal
+  if (outer?.aborted) controller.abort(outer.reason)
+  else outer?.addEventListener('abort', () => controller.abort(outer.reason), { once: true })
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer))
+}
+
 /** Where links in auth emails land: /auth/callback reads the result and moves on. */
 const callbackUrl = () => `${window.location.origin}/auth/callback`
 
 export function createSupabaseBackend(url: string, anonKey: string): Backend {
   const supabase = createClient(url, anonKey, {
+    global: { fetch: fetchWithTimeout },
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -429,10 +455,12 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .from('slot_messages')
         .select(MESSAGE_COLUMNS)
         .eq('slot_id', slotId)
-        .order('created_at')
+        // The latest messages are what matter; a busy chat never loads unbounded.
+        .order('created_at', { ascending: false })
+        .limit(MESSAGE_LIMIT)
         .returns<MessageRow[]>()
       if (error) fail(error)
-      return data.map(toMessage)
+      return data.map(toMessage).reverse()
     },
 
     async sendMessage(slotId, content) {
@@ -554,10 +582,11 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .from('race_posts')
         .select(RACE_POST_COLUMNS)
         .eq('race_slug', raceSlug)
-        .order('created_at')
+        .order('created_at', { ascending: false })
+        .limit(RACE_POST_LIMIT)
         .returns<RacePostRow[]>()
       if (error) fail(error)
-      return data.map(toRacePost)
+      return data.map(toRacePost).reverse()
     },
 
     async createRacePost(raceSlug, post) {

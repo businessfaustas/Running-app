@@ -1,4 +1,5 @@
-import { toISODate, type UserSlot } from '@pacemates/shared'
+import { type UserSlot } from '@pacemates/shared'
+import { todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import { relativeDay } from '../../lib/format'
 import { SlotRow } from './SlotRow'
@@ -12,7 +13,7 @@ interface SlotDayListProps {
 
 /** Workouts grouped under "Šiandien", "Rytoj", "Kt, spalio 15 d."… in the order given. */
 export function SlotDayList({ items, dimmed = false, stickyHeadings = false }: SlotDayListProps) {
-  const today = toISODate(new Date())
+  const today = todayISO()
   const days = new Map<string, UserSlot[]>()
   for (const item of items) days.set(item.slot.date, [...(days.get(item.slot.date) ?? []), item])
 

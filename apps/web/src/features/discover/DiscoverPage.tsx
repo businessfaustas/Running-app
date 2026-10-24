@@ -1,4 +1,5 @@
-import { addDays, toISODate } from '@pacemates/shared'
+import { addDays } from '@pacemates/shared'
+import { awayFromLithuania, todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import {
   CalendarClock,
@@ -29,7 +30,7 @@ const DiscoverMap = lazy(() => import('./DiscoverMap'))
 const DAYS_AHEAD = 14
 
 export function DiscoverPage() {
-  const today = toISODate(new Date())
+  const today = todayISO()
   const days = useMemo(
     () => Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i)),
     [today],
@@ -109,6 +110,7 @@ export function DiscoverPage() {
               <ChevronDown className="size-4 text-slate-400" aria-hidden />
             </button>
             {dayMonth(selectedDate)}
+            {awayFromLithuania() && <span className="text-slate-500">· Lietuvos laiku</span>}
           </div>
           <h1 className="headline mt-3 text-[34px] [@media(max-height:560px)]:text-[26px]">
             {whenHeadline(selectedDate, today)}

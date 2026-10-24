@@ -33,6 +33,7 @@ import {
   useCreateRacePost,
   useDeleteRacePost,
   useRaceAttendees,
+  useRaceCounts,
   useRacePosts,
   useSetRaceAttendance,
 } from '../../data/hooks'
@@ -278,6 +279,9 @@ function Attendance({
   const [confirmLeave, setConfirmLeave] = useState(false)
   const list = useMemo(() => attendees ?? [], [attendees])
   const others = list.filter((a) => a.id !== session?.userId)
+  // Names are for signed-in runners; visitors only get the head-count.
+  const counts = useRaceCounts()
+  const headCount = session ? list.length : (counts.data?.[race.slug] ?? 0)
   const choices = race.distances.length > 1
 
   const perDistance = useMemo(() => {
@@ -314,8 +318,11 @@ function Attendance({
     })
 
   const names = others.slice(0, 2).map((a) => firstName(a.name))
-  const summary =
-    others.length === 0
+  const summary = !session
+    ? headCount === 0
+      ? 'Dar niekas iš PaceMates nepažymėjo, kad dalyvaus.'
+      : 'Prisijunk, kad matytum, kas dalyvauja.'
+    : others.length === 0
       ? me
         ? 'Kol kas iš PaceMates – tik tu. Pakviesk bėgimo draugus!'
         : 'Dar niekas iš PaceMates nepažymėjo, kad dalyvaus.'
@@ -329,7 +336,7 @@ function Attendance({
         <div className="min-w-0">
           <h2 className="headline text-[21px]">Kas dalyvauja</h2>
           <p className="text-[13px] text-slate-500">
-            {loading ? 'Kraunama…' : `${countOf(list.length, WORDS.person)} iš PaceMates`}
+            {loading ? 'Kraunama…' : `${countOf(headCount, WORDS.person)} iš PaceMates`}
           </p>
         </div>
         {others.length > 0 && (

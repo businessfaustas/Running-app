@@ -91,6 +91,15 @@ export function useThreads() {
 }
 
 /** After anything that changes attendance, refresh every view that shows it. */
+/*
+ * After a change, refresh what it touched. On success the button waits for the fresh data, so
+ * it doesn't flicker back; on failure it doesn't – the error shows at once, even on a slow line.
+ */
+const refreshAfter = (invalidate: () => Promise<unknown>) => ({
+  onSuccess: invalidate,
+  onError: () => void invalidate(),
+})
+
 function useInvalidateSlots() {
   const queryClient = useQueryClient()
   return () =>
@@ -103,17 +112,17 @@ function useInvalidateSlots() {
 
 export function useJoinSlot() {
   const invalidate = useInvalidateSlots()
-  return useMutation({ mutationFn: backend.joinSlot, onSettled: invalidate })
+  return useMutation({ mutationFn: backend.joinSlot, ...refreshAfter(invalidate) })
 }
 
 export function useLeaveSlot() {
   const invalidate = useInvalidateSlots()
-  return useMutation({ mutationFn: backend.leaveSlot, onSettled: invalidate })
+  return useMutation({ mutationFn: backend.leaveSlot, ...refreshAfter(invalidate) })
 }
 
 export function useCancelSlot() {
   const invalidate = useInvalidateSlots()
-  return useMutation({ mutationFn: backend.cancelSlot, onSettled: invalidate })
+  return useMutation({ mutationFn: backend.cancelSlot, ...refreshAfter(invalidate) })
 }
 
 export function useCreateSlot() {
@@ -212,7 +221,7 @@ export function useSetRaceAttendance(slug: string) {
   return useMutation({
     mutationFn: (attendance: { distanceKm: number | null } | null) =>
       backend.setRaceAttendance(slug, attendance),
-    onSettled: invalidate,
+    ...refreshAfter(invalidate),
   })
 }
 
@@ -228,6 +237,6 @@ export function useDeleteRacePost(slug: string) {
   const invalidate = useInvalidateRace(slug)
   return useMutation({
     mutationFn: (postId: string) => backend.deleteRacePost(postId),
-    onSettled: invalidate,
+    ...refreshAfter(invalidate),
   })
 }

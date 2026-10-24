@@ -1,4 +1,4 @@
-import { fromISODate, toISODate, type Race } from '@pacemates/shared'
+import { fromISODate, type Race } from '@pacemates/shared'
 import { dayMonth, weekday } from '../../lib/format'
 
 export const MONTHS = [
@@ -75,4 +75,4 @@ export function countdown(days: number | null): string | null {
   return `Po ${days} d.`
 }
 
-export const todayISO = () => toISODate(new Date())
+export { todayISO } from '../../lib/clock'

@@ -7,6 +7,7 @@ import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { TopBar } from '../../components/TopBar'
+import { ClubBadge } from './ClubBadge'
 import { CLUB_TYPE_META, clubPhoto } from './meta'
 
 export function ClubPage() {
@@ -52,6 +53,11 @@ function ClubView({ club }: { club: Club }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/75" />
         <TopBar overlay fallback="/clubs" />
         <div className="relative px-5 pt-24 pb-12">
+          {club.logo && (
+            <div className="mb-3">
+              <ClubBadge club={club} size="lg" />
+            </div>
+          )}
           <div className="flex flex-wrap gap-1.5">
             {club.types.map((t) => {
               const meta = CLUB_TYPE_META[t]

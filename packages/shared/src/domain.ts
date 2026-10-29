@@ -173,6 +173,8 @@ export interface Club {
   email: string | null
   founded: number | null
   location: { lat: number; lng: number }
+  /** Square logo under apps/web/public/clubs, for clubs that have given us one. */
+  logo?: string
 }
 
 // ─── Races (the Lithuanian race calendar and its community) ────────────────────

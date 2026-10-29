@@ -18,6 +18,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { PageHeader } from '../../components/PageHeader'
 import { useCity } from '../../data/city'
 import { countOf, WORDS } from '../../lib/format'
+import { ClubBadge } from './ClubBadge'
 import { CLUB_FILTERS, CLUB_TYPE_META, fold } from './meta'
 
 const ALL = 'Visa Lietuva'
@@ -219,21 +220,7 @@ function ClubCard({ club }: { club: Club }) {
   return (
     <article className="rounded-[26px] border border-white/[0.07] bg-surface p-4">
       <header className="flex items-start gap-3">
-        <span className="flex shrink-0 -space-x-2">
-          {club.types.map((t) => {
-            const meta = CLUB_TYPE_META[t]
-            return (
-              <span
-                key={t}
-                className="grid size-11 place-items-center rounded-full text-black ring-4 ring-surface"
-                style={{ backgroundColor: meta.accent }}
-                title={meta.label}
-              >
-                <meta.Icon className="size-5" aria-hidden />
-              </span>
-            )
-          })}
-        </span>
+        <ClubBadge club={club} />
         <div className="min-w-0 flex-1">
           <h3 className="text-[17px] leading-snug font-extrabold tracking-tight text-white">
             {club.name}

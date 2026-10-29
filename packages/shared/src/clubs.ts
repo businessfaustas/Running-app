@@ -354,6 +354,7 @@ export const CLUBS: Club[] = [
   {
     slug: 'danes-dviraciu-takas-parkrun',
     name: 'Danės dviračių takas parkrun',
+    logo: '/clubs/danes-dviraciu-takas-parkrun.webp',
     types: ['RUNNING'],
     city: 'Klaipėda',
     description:
@@ -373,6 +374,7 @@ export const CLUBS: Club[] = [
   {
     slug: 'flowteam-klaipeda',
     name: 'FlowTeam Klaipėda',
+    logo: '/clubs/flowteam-klaipeda.webp',
     types: ['RUNNING'],
     city: 'Klaipėda',
     description:
@@ -392,6 +394,7 @@ export const CLUBS: Club[] = [
   {
     slug: 'klaipedos-begiku-sporto-klubas-maratonas',
     name: 'Klaipėdos bėgikų sporto klubas „Maratonas“',
+    logo: '/clubs/klaipedos-begiku-sporto-klubas-maratonas.webp',
     types: ['RUNNING'],
     city: 'Klaipėda',
     description:
@@ -430,6 +433,7 @@ export const CLUBS: Club[] = [
   {
     slug: 'klaipedos-triatlono-klubas',
     name: 'Klaipėdos triatlono klubas',
+    logo: '/clubs/klaipedos-triatlono-klubas.webp',
     types: ['TRIATHLON'],
     city: 'Klaipėda',
     description:
@@ -449,6 +453,7 @@ export const CLUBS: Club[] = [
   {
     slug: 'dviraciu-kultura',
     name: 'Dviračių kultūra',
+    logo: '/clubs/dviraciu-kultura.webp',
     types: ['CYCLING'],
     city: 'Klaipėda',
     description:

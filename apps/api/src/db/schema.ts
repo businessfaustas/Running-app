@@ -76,8 +76,10 @@ export const profiles = pgTable(
     ),
     check('profiles_city_id', sql`${t.city} is null or ${t.city} ~ '^[a-z]{3,24}$'`),
     check(
-      'profiles_avatar_url_https',
-      sql`${t.avatarUrl} is null or (${t.avatarUrl} like 'https://%' and char_length(${t.avatarUrl}) <= 500)`,
+      // Only files in this project's own avatars bucket: any other URL would let a profile
+      // load a third-party tracking image in every viewer's browser.
+      'profiles_avatar_url_own_storage',
+      sql`${t.avatarUrl} is null or (${t.avatarUrl} ~ '^https://[^/]+/storage/v1/object/public/avatars/' and char_length(${t.avatarUrl}) <= 500)`,
     ),
   ],
 )

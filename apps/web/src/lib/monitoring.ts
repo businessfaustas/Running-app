@@ -29,8 +29,12 @@ export async function initMonitoring() {
       release: import.meta.env.VITE_APP_VERSION,
       sendDefaultPii: false,
       // Errors only: no performance tracing or session replay, so nothing about what
-      // people type or look at leaves the device.
+      // people type or look at leaves the device. Replay is not installed; if it ever is
+      // (Sentry.replayIntegration), keep maskAllText, maskAllInputs and blockAllMedia on,
+      // mention it in the privacy policy and ask for consent before recording.
       tracesSampleRate: 0,
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 0,
       beforeSend(event) {
         if (event.request?.url) event.request.url = scrub(event.request.url)
         delete event.request?.cookies

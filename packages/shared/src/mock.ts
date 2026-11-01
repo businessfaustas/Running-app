@@ -9,14 +9,12 @@ export const MOCK_CITY_CENTER = { name: 'Vilnius', lat: 54.6872, lng: 25.2797 } 
 
 const user = (n: number) => `a0000000-0000-4000-8000-0000000000${String(n).padStart(2, '0')}`
 const slot = (n: number) => `b0000000-0000-4000-8000-0000000000${String(n).padStart(2, '0')}`
-/** Placeholder portraits from randomuser.me for the sample athletes. */
-const portrait = (path: string) => `https://randomuser.me/api/portraits/${path}.jpg`
 
 export const MOCK_USERS: Profile[] = [
   {
     id: user(1),
     name: 'Gabija Kazlauskaitė',
-    avatarUrl: portrait('women/44'),
+    avatarUrl: null,
     bio: 'Ruošiuosi maratonui ir vejuosi 3:30. Bėgu už avižinį kapučino.',
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '5:30/km', cycling_avg: '27 km/h' },
@@ -27,7 +25,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(2),
     name: 'Lukas Jankauskas',
-    avatarUrl: portrait('men/32'),
+    avatarUrl: null,
     bio: 'Plento dviratis. Sekmadieniais kavos išvykos, antradieniais greiti ratai.',
     sports: ['cycling'],
     defaultPaces: { cycling_avg: '31 km/h' },
@@ -38,7 +36,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(3),
     name: 'Ieva Stankevičiūtė',
-    avatarUrl: portrait('women/68'),
+    avatarUrl: null,
     bio: 'Takai ir asfaltas. Visada už ilgą bėgimą su pokalbiais.',
     sports: ['running'],
     defaultPaces: { running_easy: '5:45/km', running_tempo: '4:50/km' },
@@ -49,7 +47,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(4),
     name: 'Mantas Vasiliauskas',
-    avatarUrl: portrait('men/45'),
+    avatarUrl: null,
     bio: '800 m stadione, 10 km plente.',
     sports: ['running'],
     defaultPaces: { running_easy: '5:00/km', running_tempo: '4:05/km' },
@@ -60,7 +58,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(5),
     name: 'Rūta Žukauskaitė',
-    avatarUrl: portrait('women/65'),
+    avatarUrl: null,
     bio: 'Gravel priklausomybė. Jei yra žvyrkelis, aš ten.',
     sports: ['cycling'],
     defaultPaces: { gravel_avg: '24 km/h', cycling_avg: '29 km/h' },
@@ -71,7 +69,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(6),
     name: 'Dovydas Paulauskas',
-    avatarUrl: portrait('men/22'),
+    avatarUrl: null,
     bio: 'Ruošiuosi pirmam ultramaratonui.',
     sports: ['running'],
     defaultPaces: { running_easy: '5:40/km' },
@@ -82,7 +80,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(7),
     name: 'Eglė Butkutė',
-    avatarUrl: portrait('women/12'),
+    avatarUrl: null,
     bio: 'Duatlonas: bėgimas, dviratis, bėgimas, kava.',
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '5:20/km', cycling_avg: '30 km/h' },
@@ -93,7 +91,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(8),
     name: 'Karolis Urbonas',
-    avatarUrl: portrait('men/75'),
+    avatarUrl: null,
     bio: 'Bėgu per pietų pertrauką, savaitgaliais – parkrun.',
     sports: ['running'],
     defaultPaces: { running_easy: '5:50/km' },
@@ -104,7 +102,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(9),
     name: 'Austėja Rimkutė',
-    avatarUrl: portrait('women/90'),
+    avatarUrl: null,
     bio: 'Grįžtu po traumos, kol kas tik lengvi kilometrai.',
     sports: ['running'],
     defaultPaces: { running_easy: '6:10/km' },
@@ -115,7 +113,7 @@ export const MOCK_USERS: Profile[] = [
   {
     id: user(10),
     name: 'Tomas Navickas',
-    avatarUrl: portrait('men/86'),
+    avatarUrl: null,
     bio: 'Stadiono fanatikas ir tempo vedlys.',
     sports: ['running', 'cycling'],
     defaultPaces: { running_easy: '4:55/km', cycling_avg: '28 km/h' },

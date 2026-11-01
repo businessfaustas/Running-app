@@ -13,7 +13,9 @@ screen passes an automated accessibility scan (WCAG AA) with the production
 security headers on. What's left is the setup only the owner can do.
 
 A full security, privacy and safety review (ownership rules, offline behaviour, old phones,
-time zones, liability) is in [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md), with its owner tasks.
+time zones, liability) is in [`SECURITY-AUDIT.md`](SECURITY-AUDIT.md), and the legal review (age
+gate, content reports, photos, marketing and payment rules) in
+[`LEGAL-REVIEW.md`](LEGAL-REVIEW.md) – each with its owner tasks.
 
 ## 1. Create the Supabase project
 

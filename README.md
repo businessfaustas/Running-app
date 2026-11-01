@@ -88,8 +88,8 @@ wordmark as SVG paths (used by `Logo.tsx`); standalone files are in `apps/web/pu
 the app icons, favicon and social preview image (`og.png`) sit in `apps/web/public/`.
 
 **Photos.** `apps/web/public/photos/` holds the three photos used for headers and tiles. They came
-from the client brief; confirm the rights before a public launch. Sample avatars load from
-randomuser.me and fall back to initials.
+from the client brief; confirm the rights before a public launch. Sample athletes show
+initials, so the app loads no images from third-party sites.
 
 ## Stack
 

@@ -14,13 +14,15 @@ import { track } from '../../lib/analytics'
 import { PHOTOS } from '../../lib/photos'
 import { toast } from '../../lib/toast'
 import { useCooldown } from '../../lib/useCooldown'
+import { isAgeBlocked, oldEnough, rememberTooYoung } from '../../lib/ageGate'
 import { emailError, nameError, passwordChecks, passwordError } from '../../lib/validation'
+import { BirthDateField } from './BirthDateField'
 import { CheckEmail } from './CheckEmail'
 import { safeNext } from './safeNext'
 import { useSampleSignIn } from './useSampleSignIn'
 
 type Mode = 'signin' | 'signup'
-type FieldName = 'name' | 'email' | 'password' | 'terms'
+type FieldName = 'name' | 'email' | 'password' | 'birth' | 'terms'
 
 /** After this many wrong passwords in a row the form pauses (the server limits too). */
 const MAX_FAILED_ATTEMPTS = 5
@@ -39,6 +41,9 @@ export function SignInPage() {
   const [email, setEmail] = useState(params.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [acceptTerms, setAcceptTerms] = useState(false)
+  const [birthYear, setBirthYear] = useState('')
+  const [birthMonth, setBirthMonth] = useState('')
+  const [tooYoung, setTooYoung] = useState(() => isAgeBlocked())
   const [touched, setTouched] = useState<Set<FieldName>>(new Set())
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -56,6 +61,7 @@ export function SignInPage() {
     name: signup ? nameError(name) : null,
     email: emailError(email),
     password: signup ? passwordError(password) : password ? null : 'Įvesk slaptažodį',
+    birth: signup && (!birthYear || !birthMonth) ? 'Pasirink gimimo metus ir mėnesį' : null,
     terms: signup && !acceptTerms ? 'Pažymėk, kad sutinki su sąlygomis' : null,
   }
   const shown = (field: FieldName) => (submitted || touched.has(field) ? errors[field] : null)
@@ -74,9 +80,17 @@ export function SignInPage() {
     setSubmitted(true)
     setFormError(null)
     setUnconfirmed(null)
-    const firstInvalid = (['name', 'email', 'password', 'terms'] as const).find((f) => errors[f])
+    const firstInvalid = (['name', 'email', 'password', 'birth', 'terms'] as const).find(
+      (f) => errors[f],
+    )
     if (firstInvalid) {
       document.getElementById(`auth-${firstInvalid}`)?.focus()
+      return
+    }
+    // Neutral age screen: under the minimum, stop here and remember it on this device.
+    if (signup && !oldEnough(Number(birthYear), Number(birthMonth))) {
+      rememberTooYoung()
+      setTooYoung(true)
       return
     }
     if (lockout.remaining > 0) return
@@ -196,126 +210,151 @@ export function SignInPage() {
               ))}
             </div>
 
-            <form onSubmit={submit} noValidate className="mt-4 space-y-3.5">
-              {formError && (
-                <div
-                  role="alert"
-                  className="flex gap-2.5 rounded-2xl bg-blaze/20 px-3.5 py-3 text-[13.5px] font-semibold text-[#ffb08f]"
-                >
-                  <CircleAlert className="mt-px size-4 shrink-0" aria-hidden />
+            {signup && tooYoung ? (
+              <div role="status" className="mt-4 rounded-[22px] bg-black/30 p-5 text-center">
+                <p className="headline text-[22px] text-white">Atsiprašome</p>
+                <p className="mt-2 text-[14px] leading-relaxed text-white/80">
+                  PaceMates paskyrą gali susikurti tik nuo {MIN_AGE} metų. Treniruotes ir varžybas
+                  vis tiek gali peržiūrėti ir be paskyros.
+                </p>
+                <Link to="/" className="mt-4 inline-block text-[14px] font-bold text-volt">
+                  Į pradžią
+                </Link>
+              </div>
+            ) : (
+              <form onSubmit={submit} noValidate className="mt-4 space-y-3.5">
+                {formError && (
+                  <div
+                    role="alert"
+                    className="flex gap-2.5 rounded-2xl bg-blaze/20 px-3.5 py-3 text-[13.5px] font-semibold text-[#ffb08f]"
+                  >
+                    <CircleAlert className="mt-px size-4 shrink-0" aria-hidden />
+                    <div>
+                      {formError}
+                      {unconfirmed && (
+                        <button
+                          type="button"
+                          onClick={resendConfirmation}
+                          className="mt-1 block font-bold text-white underline underline-offset-2"
+                        >
+                          Siųsti patvirtinimo laišką dar kartą
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {signup && (
+                  <TextField
+                    id="auth-name"
+                    label="Vardas ir pavardė"
+                    autoComplete="name"
+                    maxLength={80}
+                    value={name}
+                    error={shown('name')}
+                    onBlur={() => touch('name')}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                )}
+                <TextField
+                  id="auth-email"
+                  label="El. paštas"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  maxLength={254}
+                  value={email}
+                  error={shown('email')}
+                  onBlur={() => touch('email')}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <PasswordField
+                  id="auth-password"
+                  label="Slaptažodis"
+                  autoComplete={signup ? 'new-password' : 'current-password'}
+                  maxLength={72}
+                  value={password}
+                  error={shown('password')}
+                  hint={
+                    signup ? <PasswordChecklist checks={passwordChecks(password)} /> : undefined
+                  }
+                  onBlur={() => touch('password')}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+
+                {signup && (
+                  <BirthDateField
+                    year={birthYear}
+                    month={birthMonth}
+                    error={shown('birth')}
+                    onYear={setBirthYear}
+                    onMonth={setBirthMonth}
+                    onBlur={() => touch('birth')}
+                  />
+                )}
+
+                {signup ? (
                   <div>
-                    {formError}
-                    {unconfirmed && (
-                      <button
-                        type="button"
-                        onClick={resendConfirmation}
-                        className="mt-1 block font-bold text-white underline underline-offset-2"
-                      >
-                        Siųsti patvirtinimo laišką dar kartą
-                      </button>
+                    <label className="flex items-start gap-3 text-[13px] leading-snug text-white/80">
+                      <input
+                        id="auth-terms"
+                        type="checkbox"
+                        checked={acceptTerms}
+                        aria-invalid={Boolean(shown('terms')) || undefined}
+                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                        className="mt-0.5 size-5 shrink-0 accent-[var(--color-volt)]"
+                      />
+                      <span>
+                        Sutinku su{' '}
+                        <Link
+                          to="/salygos"
+                          target="_blank"
+                          className="font-bold text-white underline"
+                        >
+                          Naudojimosi sąlygomis
+                        </Link>{' '}
+                        ir{' '}
+                        <Link
+                          to="/privatumas"
+                          target="_blank"
+                          className="font-bold text-white underline"
+                        >
+                          Privatumo politika
+                        </Link>
+                        . Suprantu, kad treniruotėse dalyvauju savo atsakomybe.
+                      </span>
+                    </label>
+                    {shown('terms') && (
+                      <p role="alert" className="mt-1.5 text-[13px] text-[#ff7a7a]">
+                        {shown('terms')}
+                      </p>
                     )}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <Link
+                    to={`/forgot-password${email ? `?email=${encodeURIComponent(email.trim())}` : ''}`}
+                    className="block text-right text-[13px] font-bold text-white/80 hover:text-white"
+                  >
+                    Pamiršai slaptažodį?
+                  </Link>
+                )}
 
-              {signup && (
-                <TextField
-                  id="auth-name"
-                  label="Vardas ir pavardė"
-                  autoComplete="name"
-                  maxLength={80}
-                  value={name}
-                  error={shown('name')}
-                  onBlur={() => touch('name')}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              )}
-              <TextField
-                id="auth-email"
-                label="El. paštas"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                maxLength={254}
-                value={email}
-                error={shown('email')}
-                onBlur={() => touch('email')}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <PasswordField
-                id="auth-password"
-                label="Slaptažodis"
-                autoComplete={signup ? 'new-password' : 'current-password'}
-                maxLength={72}
-                value={password}
-                error={shown('password')}
-                hint={signup ? <PasswordChecklist checks={passwordChecks(password)} /> : undefined}
-                onBlur={() => touch('password')}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-
-              {signup ? (
-                <div>
-                  <label className="flex items-start gap-3 text-[13px] leading-snug text-white/80">
-                    <input
-                      id="auth-terms"
-                      type="checkbox"
-                      checked={acceptTerms}
-                      aria-invalid={Boolean(shown('terms')) || undefined}
-                      onChange={(e) => setAcceptTerms(e.target.checked)}
-                      className="mt-0.5 size-5 shrink-0 accent-[var(--color-volt)]"
-                    />
-                    <span>
-                      Sutinku su{' '}
-                      <Link
-                        to="/salygos"
-                        target="_blank"
-                        className="font-bold text-white underline"
-                      >
-                        Naudojimosi sąlygomis
-                      </Link>{' '}
-                      ir{' '}
-                      <Link
-                        to="/privatumas"
-                        target="_blank"
-                        className="font-bold text-white underline"
-                      >
-                        Privatumo politika
-                      </Link>
-                      . Suprantu, kad treniruotėse dalyvauju savo atsakomybe. Man yra bent {MIN_AGE}{' '}
-                      metų.
-                    </span>
-                  </label>
-                  {shown('terms') && (
-                    <p role="alert" className="mt-1.5 text-[13px] text-[#ff7a7a]">
-                      {shown('terms')}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  to={`/forgot-password${email ? `?email=${encodeURIComponent(email.trim())}` : ''}`}
-                  className="block text-right text-[13px] font-bold text-white/80 hover:text-white"
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  loading={busy}
+                  disabled={lockout.remaining > 0}
                 >
-                  Pamiršai slaptažodį?
-                </Link>
-              )}
-
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                loading={busy}
-                disabled={lockout.remaining > 0}
-              >
-                {lockout.remaining > 0
-                  ? `Per daug bandymų – palauk ${lockout.remaining} s`
-                  : signup
-                    ? 'Sukurti paskyrą'
-                    : 'Prisijungti'}
-              </Button>
-            </form>
+                  {lockout.remaining > 0
+                    ? `Per daug bandymų – palauk ${lockout.remaining} s`
+                    : signup
+                      ? 'Sukurti paskyrą'
+                      : 'Prisijungti'}
+                </Button>
+              </form>
+            )}
           </div>
 
           {sample && (

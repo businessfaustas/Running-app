@@ -41,6 +41,14 @@ export function PrivacyPage() {
           žemėlapyje ar rastume artimiausią miestą; tavo buvimo vietos istorijos nesaugome.
         </li>
         <li>
+          <strong>Gimimo data registruojantis:</strong> metus ir mėnesį naudojame tik patikrinti,
+          ar tau jau yra {MIN_AGE} metų. Jų niekur neišsaugome ir niekam neperduodame.
+        </li>
+        <li>
+          <strong>Pranešimai apie turinį:</strong> jei pranešei apie netinkamą turinį, saugome tavo
+          laišką (vardą, el. paštą, pranešimą), kol jį išnagrinėjame, ir ne ilgiau kaip 1 metus.
+        </li>
+        <li>
           <strong>Mitybos skaičiuoklė:</strong> joje įvesti duomenys (svoris, amžius, lytis,
           pulsas) lieka tik tavo naršyklėje – skaičiuojama tavo įrenginyje, mums jie nesiunčiami.
         </li>

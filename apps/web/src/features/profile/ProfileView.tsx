@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { ReportLink } from '../../components/ReportLink'
 import { Avatar } from '../../components/Avatar'
 import { EmptyState } from '../../components/EmptyState'
 import { useUserSlots } from '../../data/hooks'
@@ -187,6 +188,16 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
             <SlotDayList items={upcoming} />
           )}
         </section>
+
+        {!isMe && (
+          <p className="mt-8 text-center text-[12px] text-slate-500">
+            <ReportLink
+              what={`profilis (${profile.name})`}
+              path={`/athletes/${profile.id}`}
+              label="Pranešti apie profilį"
+            />
+          </p>
+        )}
       </div>
     </div>
   )

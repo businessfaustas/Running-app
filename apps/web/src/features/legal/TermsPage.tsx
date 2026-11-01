@@ -73,13 +73,37 @@ export function TermsPage() {
         forumo temą ar paskyrą, kartu išnyksta ir kitų atsakymai į tavo temas.
       </p>
 
-      <h2>6. Paskyros sustabdymas ir ištrynimas</h2>
+      <h2>6. Pranešimai apie netinkamą turinį ir autorių teises</h2>
+      <p>
+        Jei manai, kad įrašas, treniruotė, profilis ar nuotrauka yra neteisėti arba pažeidžia šias
+        sąlygas (įskaitant <strong>autorių teises</strong>), spausk „Pranešti“ prie to turinio
+        arba rašyk <strong>{OPERATOR.email}</strong>. Pranešime nurodyk:
+      </p>
+      <ul>
+        <li>nuorodą į turinį (ar kur jį rasti);</li>
+        <li>kodėl jis, tavo manymu, neteisėtas ar pažeidžia sąlygas;</li>
+        <li>savo vardą ir el. pašto adresą;</li>
+        <li>patvirtinimą, kad informacija pateikta sąžiningai ir yra tiksli.</li>
+      </ul>
+      <p>
+        Dėl autorių teisių pažeidimo pranešti gali teisių turėtojas arba jo atstovas – nurodyk,
+        kurį kūrinį pažeidžia turinys. Pranešimus nagrinėja žmonės, ne automatinės sistemos;
+        gavimą patvirtiname ir sprendimą priimame nedelsdami. Pašalinę ar apriboję turinį,
+        turinio autoriui paaiškiname, kodėl, ir jis gali mums atsakyti bei paprašyti sprendimą
+        peržiūrėti. Už pakartotinius pažeidimus paskyra gali būti sustabdyta.
+      </p>
+      <p>
+        Vienas kontaktinis taškas naudotojams ir institucijoms (ES skaitmeninių paslaugų aktas):{' '}
+        <strong>{OPERATOR.email}</strong>, lietuvių ir anglų kalbomis.
+      </p>
+
+      <h2>7. Paskyros sustabdymas ir ištrynimas</h2>
       <p>
         Pažeidus sąlygas, galime apriboti, sustabdyti ar ištrinti paskyrą. Tu gali bet kada
         ištrinti paskyrą skiltyje <Link to="/settings">Nustatymai</Link>.
       </p>
 
-      <h2>7. Paslaugos veikimas</h2>
+      <h2>8. Paslaugos veikimas</h2>
       <p>
         Paslauga teikiama tokia, kokia yra. Stengiamės, kad ji veiktų sklandžiai, tačiau
         negalime garantuoti nepertraukiamo veikimo ir galime keisti ar nutraukti atskiras
@@ -91,19 +115,19 @@ export function TermsPage() {
         skaičiuoklės rezultatai yra apytiksliai ir nėra medicininė rekomendacija.
       </p>
 
-      <h2>8. Atsakomybė</h2>
+      <h2>9. Atsakomybė</h2>
       <p>
         Mūsų atsakomybė ribojama tiek, kiek leidžia teisės aktai. Šios sąlygos neriboja
         vartotojų teisių, kurių pagal įstatymus apriboti negalima.
       </p>
 
-      <h2>9. Sąlygų pakeitimai</h2>
+      <h2>10. Sąlygų pakeitimai</h2>
       <p>
         Apie esminius pakeitimus pranešime ne vėliau kaip prieš 14 dienų programėlėje arba el.
         paštu. Jei su pakeitimais nesutinki, gali ištrinti paskyrą.
       </p>
 
-      <h2>10. Taikoma teisė ir ginčai</h2>
+      <h2>11. Taikoma teisė ir ginčai</h2>
       <p>
         Taikoma Lietuvos Respublikos teisė. Ginčus pirmiausia stengsimės išspręsti derybomis.
         Vartotojai taip pat gali kreiptis į Valstybinę vartotojų teisių apsaugos tarnybą (

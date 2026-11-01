@@ -24,6 +24,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import { Avatar, AvatarStack } from '../../components/Avatar'
 import { Button, ButtonLink } from '../../components/Button'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { ReportLink } from '../../components/ReportLink'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
@@ -911,21 +912,26 @@ function PostBody({
       >
         {post.content}
       </p>
-      {(mine || replyCount > 0) && (
-        <div className="mt-1.5 flex items-center gap-3 text-[12px] text-slate-500">
-          {replyCount > 0 && <span>{countOf(replyCount, WORDS.reply)}</span>}
-          {mine && (
-            <button
-              type="button"
-              onClick={() => setConfirming(true)}
-              className="flex items-center gap-1 font-bold hover:text-[#ff7a7a]"
-            >
-              <Trash2 className="size-3.5" aria-hidden />
-              Ištrinti
-            </button>
-          )}
-        </div>
-      )}
+      <div className="mt-1.5 flex items-center gap-3 text-[12px] text-slate-500">
+        {replyCount > 0 && <span>{countOf(replyCount, WORDS.reply)}</span>}
+        {!mine && (
+          <ReportLink
+            what={`„${race.name}“ forumo įrašas (${post.author.name})`}
+            path={`/races/${race.slug}`}
+            id={post.id}
+          />
+        )}
+        {mine && (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="flex items-center gap-1 font-bold hover:text-[#ff7a7a]"
+          >
+            <Trash2 className="size-3.5" aria-hidden />
+            Ištrinti
+          </button>
+        )}
+      </div>
       <ConfirmDialog
         open={confirming}
         title="Ištrinti įrašą?"

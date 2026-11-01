@@ -6,6 +6,7 @@ import {
   CalendarX2,
   Check,
   ChevronRight,
+  Flag,
   HeartPulse,
   Lightbulb,
   Lock,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { ReportLink } from '../../components/ReportLink'
 import { Avatar } from '../../components/Avatar'
 import { Button, ButtonLink } from '../../components/Button'
 import { roundButtonClass } from '../../components/buttonClass'
@@ -265,6 +267,18 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
                   <Link to="/salygos" className="font-bold text-white underline">
                     Sąlygos
                   </Link>
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <Flag className="mt-0.5 size-4 shrink-0 text-volt" aria-hidden />
+                <span>
+                  Kažkas negerai su šia treniruote ar jos aprašymu?{' '}
+                  <ReportLink
+                    what={`treniruotė „${slot.title}“ (organizuoja ${slot.host.name})`}
+                    path={`/workouts/${slot.id}`}
+                    label="Pranešk mums"
+                    className="text-white underline"
+                  />
                 </span>
               </li>
             </ul>

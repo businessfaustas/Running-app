@@ -8,8 +8,8 @@ import {
   type TextareaHTMLAttributes,
 } from 'react'
 
-const CONTROL =
-  'w-full rounded-2xl border border-line bg-raised px-4 text-[15px] text-white placeholder:text-slate-500' +
+export const CONTROL =
+  'w-full rounded-2xl border border-line bg-raised px-4 text-[15px] text-white placeholder:text-slate-500 ' +
   'transition-colors focus:border-volt/70 focus:outline-none disabled:opacity-60'
 
 interface FieldShellProps {

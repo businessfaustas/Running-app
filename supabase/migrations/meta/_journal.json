@@ -85,6 +85,13 @@
       "when": 1792880604985,
       "tag": "20261024222324_participation_privacy",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793515286794,
+      "tag": "20261101064126_avatar_storage_only",
+      "breakpoints": true
     }
   ]
 }

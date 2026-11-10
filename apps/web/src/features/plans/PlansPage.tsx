@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { CalendarCheck2, CalendarPlus, Clock, MapPin } from 'lucide-react'
 import { useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
+import { SportArt } from '../../components/SportArt'
 import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
@@ -10,7 +11,7 @@ import { PageHeader } from '../../components/PageHeader'
 import { useSession } from '../../data/auth'
 import { useUserSlots } from '../../data/hooks'
 import { countOf, formatKm, isPast, startsIn, WORDS } from '../../lib/format'
-import { PHOTOS, photoFor } from '../../lib/photos'
+import { PHOTOS } from '../../lib/photos'
 import { useNow } from '../../lib/useNow'
 import { SignedOutPrompt } from '../auth/RequireAuth'
 import { MyRaces } from '../races/MyRaces'
@@ -136,11 +137,7 @@ function NextUp({ item }: { item: UserSlot }) {
       style={{ '--accent': sport.accent } as CSSProperties}
       className="relative mt-3 flex h-60 flex-col justify-end overflow-hidden rounded-[28px] p-5 transition active:scale-[0.99]"
     >
-      <img
-        src={photoFor(slot.sportType, slot.vibeTag)}
-        alt=""
-        className="absolute inset-0 size-full object-cover"
-      />
+      <SportArt sport={slot.sportType} vibe={slot.vibeTag} />
       <span className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/10" />
       <span className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-volt px-3 py-1 text-[12px] font-bold text-black">
         <Clock className="size-3.5" aria-hidden />

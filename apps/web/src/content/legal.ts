@@ -10,7 +10,7 @@ export const OPERATOR = {
   code: '[įmonės kodas]',
   address: '[registracijos adresas]',
   /** Inbox for privacy requests and support. */
-  email: '[el. paštas]',
+  email: 'info.pacemates@gmail.com',
 } as const
 
 export const LEGAL_UPDATED = '2026 m. lapkričio 10 d.'

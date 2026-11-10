@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   ChatThread,
   ClubPhoto,
+  CommunityClub,
   LeaderboardEntry,
   Profile,
   ProfileUpdate,
@@ -19,6 +20,7 @@ import {
   type Session as AuthSession,
 } from '@supabase/supabase-js'
 import { reportError } from '../lib/monitoring'
+import { newClubSlug } from './clubSlug'
 import { MESSAGES, waitSeconds } from './messages'
 import { BackendError, type AuthEvent, type Backend, type Session } from './types'
 
@@ -50,6 +52,8 @@ const LEGACY_PROFILE_COLUMNS =
   'id, name, avatar_url, bio, sports, default_paces, strava_id, onboarded_at'
 const isMissingColumn = (error: PostgrestError) => error.code === '42703'
 const isMissingFunction = (error: PostgrestError) => error.code === 'PGRST202'
+const isMissingTable = (error: PostgrestError) =>
+  error.code === 'PGRST205' || error.code === '42P01'
 
 interface MessageRow {
   id: string
@@ -84,6 +88,48 @@ interface ClubPhotoRow {
   created_at: string
   author: PersonRow | null
 }
+
+interface ClubRow {
+  slug: string
+  name: string
+  types: CommunityClub['types']
+  city: string
+  description: string
+  schedule: string[]
+  meeting_place: string | null
+  website: string | null
+  facebook: string | null
+  instagram: string | null
+  strava: string | null
+  email: string | null
+  lat: number
+  lng: number
+  status: CommunityClub['status']
+}
+
+/** Every column but submitted_by, which isn't readable: who added a club stays private. */
+const CLUB_COLUMNS =
+  'slug, name, types, city, description, schedule, meeting_place, website, facebook, instagram, strava, email, lat, lng, status'
+
+const toCommunityClub = (row: ClubRow): CommunityClub => ({
+  slug: row.slug,
+  name: row.name,
+  types: row.types,
+  city: row.city,
+  description: row.description,
+  schedule: row.schedule,
+  meetingPlace: row.meeting_place,
+  level: null,
+  membership: null,
+  website: row.website,
+  facebook: row.facebook,
+  instagram: row.instagram,
+  strava: row.strava,
+  email: row.email,
+  founded: null,
+  location: { lat: row.lat, lng: row.lng },
+  status: row.status,
+})
 
 const CLUB_PHOTO_COLUMNS = 'id, club_slug, path, created_at, author:profiles(id, name, avatar_url)'
 
@@ -132,6 +178,10 @@ const FRIENDLY_ERRORS: [RegExp, string][] = [
   [/workout is full/i, MESSAGES.full],
   [/workout is cancelled/i, MESSAGES.cancelled],
   [/workout is completed/i, MESSAGES.completed],
+  [/workout has finished/i, MESSAGES.workoutFinished],
+  [/new start is in the past/i, MESSAGES.startInPast],
+  [/fewer places than people going/i, MESSAGES.fewerPlacesThanGoing],
+  [/only the host can edit/i, MESSAGES.hostOnlyEdit],
   [/reply must belong|replies can only/i, MESSAGES.notAllowed],
   [/rate limit/i, MESSAGES.rateLimited],
   [/too many requests/i, MESSAGES.rateLimited],
@@ -440,6 +490,13 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return data as SlotSummary
     },
 
+    async updateSlot(slotId, input) {
+      await requireUserId()
+      const { data, error } = await supabase.rpc('update_slot', { p_id: slotId, p: input })
+      if (error) fail(error)
+      return data as SlotSummary
+    },
+
     async cancelSlot(slotId) {
       const userId = await requireUserId()
       const { data, error } = await supabase
@@ -713,6 +770,67 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       if (error) fail(error)
       if (data.length === 0) throw new BackendError(MESSAGES.notAllowed)
       await supabase.storage.from(CLUB_PHOTOS).remove(data.map((p) => p.path))
+    },
+
+    async listCommunityClubs() {
+      const { data, error } = await supabase
+        .from('club_submissions')
+        .select(CLUB_COLUMNS)
+        .in('status', ['APPROVED', 'PENDING'])
+        .order('name')
+        .limit(500)
+        .returns<ClubRow[]>()
+      if (error) {
+        // Deployed before the migration: just the listed clubs.
+        if (isMissingTable(error)) return []
+        fail(error)
+      }
+      return data.map(toCommunityClub)
+    },
+
+    async submitClub(input) {
+      const userId = await requireUserId()
+      const { data, error } = await supabase
+        .from('club_submissions')
+        .insert({
+          slug: newClubSlug(input.name),
+          name: input.name,
+          types: input.types,
+          city: input.city,
+          description: input.description,
+          schedule: input.schedule,
+          meeting_place: input.meetingPlace,
+          website: input.website,
+          facebook: input.facebook,
+          instagram: input.instagram,
+          strava: input.strava,
+          email: input.email,
+          lat: input.location.lat,
+          lng: input.location.lng,
+          submitted_by: userId,
+        })
+        .select(CLUB_COLUMNS)
+        .single<ClubRow>()
+      if (error) fail(error)
+      return toCommunityClub(data)
+    },
+
+    async reportContent(report) {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session && (!report.reporterName || !report.reporterEmail)) {
+        throw new BackendError(MESSAGES.reporterDetails)
+      }
+      // No .select(): reports can be sent but never read back through the API.
+      const { error } = await supabase.from('content_reports').insert({
+        subject: report.subject,
+        path: report.path,
+        target_id: report.targetId,
+        reason: report.reason,
+        details: report.details,
+        reporter_name: report.reporterName,
+        reporter_email: report.reporterEmail,
+      })
+      if (error) fail(error)
     },
   }
 }

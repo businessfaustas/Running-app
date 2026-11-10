@@ -11,6 +11,7 @@ export type AnalyticsEvent =
   | 'onboarding_completed'
   | 'onboarding_skipped'
   | 'workout_created'
+  | 'workout_edited'
   | 'workout_joined'
   | 'workout_left'
   | 'message_sent'
@@ -18,6 +19,8 @@ export type AnalyticsEvent =
   | 'race_left'
   | 'race_post_created'
   | 'club_photo_added'
+  | 'club_submitted'
+  | 'content_reported'
   | 'password_reset_requested'
   | 'account_deleted'
 

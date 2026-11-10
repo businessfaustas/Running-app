@@ -127,12 +127,14 @@ plan adds its own daily backups and point-in-time recovery.)
 
 ## 8. Legal
 
-- Fill in the operator details in `apps/web/src/content/legal.ts` (company name, code, address,
-  contact email). Until then the privacy policy and terms show `[placeholders]` – **don't
-  launch with them**.
+- Fill in the operator details in `apps/web/src/content/legal.ts` (company name, code,
+  address). Until then the privacy policy and terms show `[placeholders]` – **don't launch with
+  them**. The contact email is set to `info.pacemates@gmail.com`; it's shown on the legal pages
+  and under every report form, so change it there if you use another inbox.
 - The privacy policy covers everything the app collects as of 22 October 2026: account and
   profile (including town and photo), workouts and chats, race attendance and forum posts,
-  the public leaderboards, and the fuelling calculator (which stays on the device). If you add
+  the public leaderboards, club photos, content reports, clubs people add, and the fuelling
+  calculator (which stays on the device). If you add
   features that collect something new, update it and the date in `legal.ts`.
 - Have a lawyer review both pages; they're written for this app but aren't legal advice.
 - Accept the data processing agreements offered in the Supabase, Vercel and Sentry dashboards.
@@ -145,6 +147,47 @@ link – especially the ones marked with a date. When organisers announce new da
 redeploy. Do the same for the clubs in `packages/shared/src/clubs.ts`: open each club's page and
 check the schedule and links; it's worth telling the clubs they're listed.
 
+### Clubs people add
+
+Anyone signed in can add a club (Klubai → "Pridėti"). It's saved in the `club_submissions`
+table as `PENDING`, and only the person who added it can see it. To review new ones, open
+Supabase → Table Editor → `club_submissions` and filter `status = PENDING`, or run in the SQL
+Editor:
+
+```sql
+select created_at, name, city, types, description, website, facebook, instagram, email, slug
+  from club_submissions where status = 'PENDING' order by created_at;
+```
+
+Check the links, then set `status` to `APPROVED` (it appears for everyone straight away) or
+`REJECTED`. You can fix typos in the same row before approving. A club that becomes official
+can move into `clubs.ts` later (with its logo); delete the row then. Each person can add three
+clubs a day.
+
+## 9a. Reports about content
+
+Every "Pranešti" link (workouts, profiles, forum posts, club photos) opens a form. Reports land
+in the `content_reports` table; nobody can read them through the app, only you in Supabase. They
+also arrive by email if people use the address under the form. Check them at least daily:
+
+```sql
+select r.created_at, r.reason, r.subject, r.path, r.details,
+       coalesce(p.name, r.reporter_name) as reporter,
+       coalesce(u.email, r.reporter_email) as reply_to
+  from content_reports r
+  left join profiles p on p.id = r.reporter_id
+  left join auth.users u on u.id = r.reporter_id
+ where r.status = 'NEW'
+ order by r.created_at;
+```
+
+Open the `path` in the app to see the content (`/athletes/<id>`, `/workouts/<id>`, …; for forum
+posts and photos, `target_id` is the row in `race_posts` or `club_photos`). Remove what breaks the
+law or the terms, tell the author why (the terms promise this, and a way to reply), reply to the
+reporter, then set the report's `status` to `ACTIONED` or `DISMISSED`. Delete reports after a
+year – the privacy policy says so. A visitor can send up to 60 reports an hour in total, a
+signed-in person 10.
+
 ## 10. Final check
 
 With two real email addresses and a phone:
@@ -155,9 +198,13 @@ With two real email addresses and a phone:
 4. Upload a profile photo (this is the one step that can't be tested before a real Supabase
    project exists).
 5. Say you're going to a race, post in its forum and reply from the second account.
-6. Reset a password from the "Pamiršai slaptažodį?" link.
-7. Add the site to the home screen (Share → Add to Home Screen) and open it from there.
-8. Delete both test accounts in Settings.
+6. Edit the workout from the first account (Redaguoti): the second account sees the change, and
+   the group chat gets a message saying what changed.
+7. Report the forum post from the second account and find it with the query in 9a. Add a club,
+   approve it and check it shows for the other account.
+8. Reset a password from the "Pamiršai slaptažodį?" link.
+9. Add the site to the home screen (Share → Add to Home Screen) and open it from there.
+10. Delete both test accounts in Settings.
 
 The next day, the leaderboard should list the test workout once it has finished – then you know
 the whole chain works.

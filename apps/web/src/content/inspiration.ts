@@ -127,7 +127,12 @@ export function quoteOfTheDay(offset = 0, date = wallClock()): Quote {
 
 /** A fact that suits the workout, stable for a given seed (e.g. a workout id). */
 export function factFor(sport: SportType, seed: string): FunFact {
-  const kind: FactSport = sport === 'CYCLING' || sport === 'GRAVEL' ? 'ride' : 'run'
+  const kind: FactSport =
+    sport === 'CYCLING' || sport === 'GRAVEL'
+      ? 'ride'
+      : sport === 'HIKING' || sport === 'SWIMMING'
+        ? 'any'
+        : 'run'
   const pool = FUN_FACTS.filter((f) => f.sport === kind || f.sport === 'any')
   let h = 0
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0

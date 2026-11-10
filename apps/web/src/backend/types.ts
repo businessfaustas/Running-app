@@ -3,6 +3,9 @@ import type {
   ChatMessage,
   ClubPhoto,
   ChatThread,
+  CommunityClub,
+  NewClubInput,
+  NewReport,
   NewRacePost,
   LeaderboardEntry,
   NewSlotInput,
@@ -80,6 +83,8 @@ export interface Backend {
   /** Workouts the user hosts or has joined, oldest first. */
   listUserSlots(userId: string): Promise<UserSlot[]>
   createSlot(input: NewSlotInput): Promise<SlotSummary>
+  /** The host changes their workout's details (not once it's over or cancelled). */
+  updateSlot(slotId: string, input: NewSlotInput): Promise<SlotSummary>
   cancelSlot(slotId: string): Promise<void>
   joinSlot(slotId: string): Promise<void>
   leaveSlot(slotId: string): Promise<void>
@@ -115,4 +120,11 @@ export interface Backend {
   addClubPhoto(clubSlug: string, image: Blob): Promise<ClubPhoto>
   /** Removes one of your own photos. */
   deleteClubPhoto(photoId: string): Promise<void>
+  /** Clubs people added: approved ones, plus your own while they wait for review. */
+  listCommunityClubs(): Promise<CommunityClub[]>
+  /** Adds a club for review, as the signed-in user. */
+  submitClub(input: NewClubInput): Promise<CommunityClub>
+
+  /** Sends the operator a notice about content; works signed in or not. */
+  reportContent(report: NewReport): Promise<void>
 }

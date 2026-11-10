@@ -1,6 +1,9 @@
 import {
   addDays,
   distanceKm,
+  isRunning,
+  newClubInputSchema,
+  newReportSchema,
   newSlotInputSchema,
   timeToMinutes,
   toISODate,
@@ -8,7 +11,9 @@ import {
   type ChatMessage,
   type ChatThread,
   type ClubPhoto,
+  type CommunityClub,
   type LeaderboardEntry,
+  type NewReport,
   type NewSlotInput,
   type ParticipantStatus,
   type Profile,
@@ -30,6 +35,7 @@ import {
 import { todayISO } from '../lib/clock'
 import { isPast } from '../lib/format'
 import { emailError, nameError, passwordError } from '../lib/validation'
+import { newClubSlug } from './clubSlug'
 import { MESSAGES } from './messages'
 import { BackendError, type AuthEvent, type Backend, type Session } from './types'
 
@@ -91,6 +97,10 @@ interface StoredClubPhoto {
   createdAt: string
 }
 
+interface StoredClub extends CommunityClub {
+  submittedBy: string
+}
+
 /** Photos are the heaviest thing kept on the device; older ones make room for new ones. */
 const MAX_DEMO_CLUB_PHOTOS = 24
 
@@ -102,6 +112,8 @@ interface DemoState {
   slots: Record<string, StoredSlot>
   /** E.g. a host cancelling one of the sample workouts. */
   statusOverrides: Record<string, SlotStatus>
+  /** A host's changes to one of the sample workouts (created ones are edited in place). */
+  slotEdits: Record<string, NewSlotInput>
   /** Replaces a workout's sample roster once anyone joins or leaves. */
   rosters: Record<string, StoredParticipant[]>
   messages: StoredMessage[]
@@ -114,6 +126,10 @@ interface DemoState {
   /** Sample posts their (sample) authors deleted. */
   deletedRacePostIds: string[]
   clubPhotos: StoredClubPhoto[]
+  /** Clubs added on this device; nobody reviews them, so they stay PENDING. */
+  communityClubs: StoredClub[]
+  /** Notices sent from this device (nobody reads them in the demo). */
+  reports: (NewReport & { at: string })[]
 }
 
 const emptyState = (): DemoState => ({
@@ -121,6 +137,7 @@ const emptyState = (): DemoState => ({
   profiles: {},
   slots: {},
   statusOverrides: {},
+  slotEdits: {},
   rosters: {},
   messages: [],
   sessionUserId: null,
@@ -129,6 +146,8 @@ const emptyState = (): DemoState => ({
   racePosts: [],
   deletedRacePostIds: [],
   clubPhotos: [],
+  communityClubs: [],
+  reports: [],
 })
 
 /** Mirrors the database's limits on how fast one person can write. */
@@ -137,6 +156,8 @@ const RATE_LIMITS = {
   workout: { max: 3, windowMs: 60_000 },
   racePost: { max: 6, windowMs: 60_000 },
   clubPhoto: { max: 10, windowMs: 60 * 60_000 },
+  clubSubmission: { max: 3, windowMs: 24 * 60 * 60_000 },
+  report: { max: 10, windowMs: 60 * 60_000 },
 } as const
 
 async function hashPassword(email: string, password: string): Promise<string> {
@@ -168,6 +189,8 @@ export function createDemoBackend({
     workout: [],
     racePost: [],
     clubPhoto: [],
+    clubSubmission: [],
+    report: [],
   }
   const raceListeners = new Map<string, Set<() => void>>()
 
@@ -249,6 +272,7 @@ export function createDemoBackend({
     const sample = MOCK_SLOTS.map(({ dayOffset, participantIds: _, ...slot }): StoredSlot => ({
       ...slot,
       date: addDays(today(), dayOffset),
+      ...state.slotEdits[slot.id],
     }))
     return [...sample, ...Object.values(state.slots)]
   }
@@ -591,7 +615,7 @@ export function createDemoBackend({
         const end = slot.endTime ? timeToMinutes(slot.endTime) : start + 60
         const finished = slot.date < todayKey || (slot.date === todayKey && end <= nowMinutes)
         if (!finished) continue
-        const running = slot.sportType === 'RUN' || slot.sportType === 'TRACK'
+        const running = isRunning(slot.sportType)
         for (const { userId } of accepted(roster)) {
           const entry = totals.get(userId) ?? {
             user: summaryOf(userId),
@@ -677,6 +701,36 @@ export function createDemoBackend({
       state.rosters[id] = [{ userId, status: 'ACCEPTED', joinedAt: now().toISOString() }]
       save()
       return toSummary(slot)
+    },
+
+    async updateSlot(slotId, input) {
+      await pause()
+      const userId = requireUserId()
+      const slot = findSlot(slotId)
+      if (slot.hostId !== userId) throw new BackendError(MESSAGES.hostOnlyEdit)
+      const parsed = newSlotInputSchema.safeParse(input)
+      if (!parsed.success) throw new BackendError(parsed.error.issues[0]!.message)
+      // The same guards as the database's update_slot.
+      const roster = rosterOf(slot)
+      const status = statusOf(slot, roster)
+      if (status === 'CANCELLED') throw new BackendError(MESSAGES.cancelled)
+      if (status === 'COMPLETED') throw new BackendError(MESSAGES.completed)
+      if (isPast(slot.date, slot.startTime, slot.endTime, now())) {
+        throw new BackendError(MESSAGES.workoutFinished)
+      }
+      const next = parsed.data
+      const moved = next.date !== slot.date || next.startTime !== slot.startTime
+      if (moved && isPast(next.date, next.startTime, null, now())) {
+        throw new BackendError(MESSAGES.startInPast)
+      }
+      if (next.maxParticipants !== null && next.maxParticipants < accepted(roster).length) {
+        throw new BackendError(MESSAGES.fewerPlacesThanGoing)
+      }
+      const updated: StoredSlot = { ...slot, ...next }
+      if (state.slots[slotId]) state.slots[slotId] = updated
+      else state.slotEdits[slotId] = next
+      save()
+      return toSummary(updated)
     },
 
     async cancelSlot(slotId) {
@@ -906,6 +960,49 @@ export function createDemoBackend({
       const photo = state.clubPhotos.find((p) => p.id === photoId)
       if (!photo || photo.authorId !== userId) throw new BackendError(MESSAGES.notAllowed)
       state.clubPhotos = state.clubPhotos.filter((p) => p.id !== photoId)
+      save()
+    },
+
+    async listCommunityClubs() {
+      await pause()
+      const userId = state.sessionUserId
+      return state.communityClubs
+        .filter((club) => club.status === 'APPROVED' || club.submittedBy === userId)
+        .map(({ submittedBy: _, ...club }) => club)
+    },
+
+    async submitClub(input) {
+      await pause()
+      const userId = requireUserId()
+      const parsed = newClubInputSchema.safeParse(input)
+      if (!parsed.success) throw new BackendError(parsed.error.issues[0]!.message)
+      hitRateLimit('clubSubmission')
+      const { location, ...fields } = parsed.data
+      const club: StoredClub = {
+        ...fields,
+        slug: newClubSlug(fields.name),
+        location,
+        level: null,
+        membership: null,
+        founded: null,
+        status: 'PENDING',
+        submittedBy: userId,
+      }
+      state.communityClubs.push(club)
+      save()
+      const { submittedBy: _, ...shown } = club
+      return shown
+    },
+
+    async reportContent(report) {
+      await pause()
+      const parsed = newReportSchema.safeParse(report)
+      if (!parsed.success) throw new BackendError(parsed.error.issues[0]!.message)
+      if (!state.sessionUserId && (!parsed.data.reporterName || !parsed.data.reporterEmail)) {
+        throw new BackendError(MESSAGES.reporterDetails)
+      }
+      hitRateLimit('report')
+      state.reports = [...state.reports, { ...parsed.data, at: now().toISOString() }].slice(-20)
       save()
     },
   }

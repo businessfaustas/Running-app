@@ -46,8 +46,17 @@ export function PrivacyPage() {
           ar tau jau yra {MIN_AGE} metų. Jų niekur neišsaugome ir niekam neperduodame.
         </li>
         <li>
-          <strong>Pranešimai apie turinį:</strong> jei pranešei apie netinkamą turinį, saugome tavo
-          laišką (vardą, el. paštą, pranešimą), kol jį išnagrinėjame, ir ne ilgiau kaip 1 metus.
+          <strong>Pranešimai apie turinį:</strong> jei pranešei apie netinkamą turinį (per
+          „Pranešti“ formą ar el. paštu), saugome pranešimą: kas ir kur pranešta, priežastį,
+          paaiškinimą ir kas pranešė (paskyrą arba, jei pranešei neprisijungus, nurodytą vardą
+          ir el. paštą). Pranešimą mato tik už jo nagrinėjimą atsakingi
+          žmonės; saugome jį, kol išnagrinėjame, ir ne ilgiau kaip 1 metus.
+        </li>
+        <li>
+          <strong>Klubai, kuriuos pridedi:</strong> klubo pavadinimas, sportas, miestas, aprašymas,
+          treniruočių laikas, susitikimo vieta, nuorodos ir viešas klubo el. paštas. Kol klubą
+          peržiūrime, jį matai tik tu; patvirtintą mato visi. Kas pridėjo klubą, kitiems
+          nerodome.
         </li>
         <li>
           <strong>Mitybos skaičiuoklė:</strong> joje įvesti duomenys (svoris, amžius, lytis,
@@ -73,6 +82,10 @@ export function PrivacyPage() {
         <li>
           Saugumui, piktnaudžiavimo prevencijai ir klaidoms taisyti – <strong>teisėtas
           interesas</strong> (BDAR 6 str. 1 d. f p.).
+        </li>
+        <li>
+          Pranešimams apie neteisėtą turinį nagrinėti – <strong>teisinė prievolė</strong> (BDAR 6
+          str. 1 d. c p.; ES skaitmeninių paslaugų akto 16 str.).
         </li>
         <li>
           Anoniminei statistikai, padedančiai tobulinti programėlę, – teisėtas interesas.
@@ -132,8 +145,9 @@ export function PrivacyPage() {
       <p>
         Duomenis saugome, kol turi paskyrą. Ištrynus paskyrą, ji ir susiję duomenys (profilio
         nuotrauka, treniruotės, žinutės, forumo įrašai, klubų nuotraukos) pašalinami iš karto, o iš atsarginių
-        kopijų – ne vėliau kaip per 30 dienų. Klaidų ataskaitos ir saugumo
-        žurnalai saugomi iki 90 dienų.
+        kopijų – ne vėliau kaip per 30 dienų. Tavo pridėti klubai lieka sąraše (be nuorodos į
+        tave), o pateikti pranešimai saugomi iki savo termino, bet nebesusieti su paskyra. Klaidų
+        ataskaitos ir saugumo žurnalai saugomi iki 90 dienų.
       </p>
 
       <h2>7. Slapukai ir naršyklės saugykla</h2>

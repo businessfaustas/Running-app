@@ -1,3 +1,4 @@
+import type { NewSlotInput, SlotDetail } from '@pacemates/shared'
 import { MOCK_SLOTS, MOCK_USERS } from '@pacemates/shared/mock'
 import { describe, expect, it } from 'vitest'
 import { isPast } from '../lib/format'
@@ -17,9 +18,29 @@ function setup(storage = memoryStorage()) {
   return createDemoBackend({ storage, now: () => NOW, latencyMs: 0 })
 }
 
+/** 09:00 on the Lithuanian clock, which decides when a workout is over. */
+const VILNIUS_NINE = new Date('2026-10-13T09:00:00+03:00')
+const setupAtNine = (storage = memoryStorage()) =>
+  createDemoBackend({ storage, now: () => VILNIUS_NINE, latencyMs: 0 })
+
 const fullRide = MOCK_SLOTS.find((s) => s.id.endsWith('06'))!
 const coffeeRun = MOCK_SLOTS.find((s) => s.id.endsWith('04'))!
 const cancelledRide = MOCK_SLOTS.find((s) => s.status === 'CANCELLED')!
+
+/** A saved workout as the edit form sends it back. */
+const inputOf = (slot: SlotDetail): NewSlotInput => ({
+  title: slot.title,
+  sportType: slot.sportType,
+  date: slot.date,
+  startTime: slot.startTime,
+  endTime: slot.endTime,
+  distanceKm: slot.distanceKm,
+  targetPace: slot.targetPace,
+  vibeTag: slot.vibeTag,
+  description: slot.description,
+  meetingPoint: slot.meetingPoint,
+  maxParticipants: slot.maxParticipants,
+})
 
 describe('demo backend', () => {
   it('dates the sample workouts around today and derives FULL from the head-count', async () => {
@@ -94,6 +115,111 @@ describe('demo backend', () => {
     await backend.cancelSlot(coffeeRun.id)
     expect((await backend.getSlot(coffeeRun.id))?.status).toBe('CANCELLED')
     await expect(backend.cancelSlot(fullRide.id)).rejects.toThrow(MESSAGES.hostOnlyCancel)
+  })
+
+  it('lets the host edit a workout and keeps the change', async () => {
+    const storage = memoryStorage()
+    const backend = setupAtNine(storage)
+    await backend.signInAsSample!() // Gabija hosts the coffee run (10:00, 3 going)
+    const before = (await backend.getSlot(coffeeRun.id))!
+    const saved = await backend.updateSlot(coffeeRun.id, {
+      ...inputOf(before),
+      startTime: '10:30',
+      endTime: '12:00',
+      distanceKm: 500,
+      meetingPoint: { name: 'Vingio parkas', lat: 54.684, lng: 25.239 },
+    })
+    expect(saved).toMatchObject({ startTime: '10:30', distanceKm: 500, participantCount: 3 })
+    const reloaded = await setupAtNine(storage).getSlot(coffeeRun.id)
+    expect(reloaded).toMatchObject({
+      startTime: '10:30',
+      endTime: '12:00',
+      meetingPoint: { name: 'Vingio parkas' },
+      description: before.description,
+    })
+    expect(reloaded?.participants).toHaveLength(3)
+  })
+
+  it('guards edits like the database does', async () => {
+    const backend = setupAtNine()
+    await backend.signInAsSample!()
+    const coffee = inputOf((await backend.getSlot(coffeeRun.id))!)
+    // Someone else's workout.
+    const ride = inputOf((await backend.getSlot(fullRide.id))!)
+    await expect(backend.updateSlot(fullRide.id, ride)).rejects.toThrow(MESSAGES.hostOnlyEdit)
+    // Three are going, so the group can't shrink to two.
+    await expect(
+      backend.updateSlot(coffeeRun.id, { ...coffee, maxParticipants: 2 }),
+    ).rejects.toThrow(MESSAGES.fewerPlacesThanGoing)
+    // It's 09:00: a new start at 08:00 has already passed.
+    await expect(
+      backend.updateSlot(coffeeRun.id, { ...coffee, startTime: '08:00', endTime: '09:30' }),
+    ).rejects.toThrow(MESSAGES.startInPast)
+    await expect(
+      backend.updateSlot(coffeeRun.id, { ...coffee, distanceKm: 1001 }),
+    ).rejects.toBeInstanceOf(BackendError)
+    // Over or cancelled: no more changes.
+    const early = await backend.createSlot({ ...coffee, startTime: '07:00', endTime: '08:00' })
+    await expect(
+      backend.updateSlot(early.id, { ...coffee, startTime: '07:00', endTime: '08:00' }),
+    ).rejects.toThrow(MESSAGES.workoutFinished)
+    await backend.cancelSlot(coffeeRun.id)
+    await expect(backend.updateSlot(coffeeRun.id, coffee)).rejects.toThrow(MESSAGES.cancelled)
+  })
+
+  it('adds clubs for review, visible only to whoever added them', async () => {
+    const storage = memoryStorage()
+    const backend = setup(storage)
+    const club = {
+      name: 'Bėgimo klubas „Vėjas“',
+      types: ['RUNNING' as const],
+      city: 'Kaunas',
+      description: 'Bėgame kartu kiekvieną savaitę, laukiami visi.',
+      schedule: ['Antradieniais 19:00'],
+      meetingPlace: null,
+      website: null,
+      facebook: 'https://facebook.com/vejas',
+      instagram: null,
+      strava: null,
+      email: null,
+      location: { lat: 54.9, lng: 23.89 },
+    }
+    await expect(backend.submitClub(club)).rejects.toThrow(MESSAGES.signInFirst)
+    await backend.signUp({ name: 'Ana', email: 'a@b.co', password: 'longenough1' })
+    const added = await backend.submitClub(club)
+    expect(added).toMatchObject({ status: 'PENDING', founded: null, level: null })
+    expect(added.slug).toMatch(/^begimo-klubas-vejas-[a-z0-9]{4}$/)
+    expect(await setup(storage).listCommunityClubs()).toEqual([added])
+    await expect(backend.submitClub({ ...club, website: 'http://x.lt' })).rejects.toThrow(
+      'https://',
+    )
+    await backend.signOut()
+    expect(await backend.listCommunityClubs()).toEqual([])
+  })
+
+  it('takes reports from anyone, but visitors say who they are', async () => {
+    const backend = setup()
+    const report = {
+      subject: 'treniruotė „15 km lengvai + kava“',
+      path: `/workouts/${coffeeRun.id}`,
+      targetId: coffeeRun.id,
+      reason: 'SPAM' as const,
+      details: 'Reklamuoja savo parduotuvę.',
+      reporterName: null,
+      reporterEmail: null,
+    }
+    await expect(backend.reportContent(report)).rejects.toThrow(MESSAGES.reporterDetails)
+    await expect(backend.reportContent({ ...report, details: 'trumpai' })).rejects.toThrow(
+      'bent 10',
+    )
+    await backend.reportContent({
+      ...report,
+      reporterName: 'Ona',
+      reporterEmail: 'ona@example.com',
+    })
+    await backend.signInAsSample!()
+    for (let i = 1; i < 10; i++) await backend.reportContent(report)
+    await expect(backend.reportContent(report)).rejects.toThrow(MESSAGES.rateLimited)
   })
 
   it('creates workouts with the host already going', async () => {

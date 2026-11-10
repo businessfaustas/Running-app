@@ -1,10 +1,10 @@
 import { OPERATOR } from '../content/legal'
 
 /*
- * Reporting illegal or abusive content (EU Digital Services Act, Art. 16): anyone – signed in
- * or not – can send a notice by email from the content itself. The draft already holds what a
- * valid notice needs: where the content is, why it's a problem, who is reporting, and a
- * good-faith statement. Notices go to OPERATOR.email.
+ * The email way to report content (EU Digital Services Act, Art. 16), offered under the in-app
+ * report form (components/ReportLink.tsx). The draft already holds what a valid notice needs:
+ * where the content is, why it's a problem, who is reporting, and a good-faith statement.
+ * Notices go to OPERATOR.email.
  */
 export function reportHref(what: string, path: string, id?: string): string {
   const url = `${window.location.origin}${path}`

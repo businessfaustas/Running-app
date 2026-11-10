@@ -1,0 +1,1375 @@
+{
+  "id": "3539d866-7535-4ef1-8894-a8ebbc58ab51",
+  "prevId": "633909aa-66f8-4d70-8f3e-c850f158fade",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.club_photos": {
+      "name": "club_photos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_slug": {
+          "name": "club_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "club_photos_club_created_idx": {
+          "name": "club_photos_club_created_idx",
+          "columns": [
+            {
+              "expression": "club_slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "club_photos_author_idx": {
+          "name": "club_photos_author_idx",
+          "columns": [
+            {
+              "expression": "author_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "club_photos_author_id_profiles_id_fk": {
+          "name": "club_photos_author_id_profiles_id_fk",
+          "tableFrom": "club_photos",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "club_photos_slug_format": {
+          "name": "club_photos_slug_format",
+          "value": "\"club_photos\".\"club_slug\" ~ '^[a-z0-9-]{3,80}$'"
+        },
+        "club_photos_path_own_folder": {
+          "name": "club_photos_path_own_folder",
+          "value": "\"club_photos\".\"path\" ~ ('^' || \"club_photos\".\"author_id\"::text || '/' || \"club_photos\".\"club_slug\" || '/[0-9a-f-]{36}\\.(webp|jpg)$')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.club_submissions": {
+      "name": "club_submissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "types": {
+          "name": "types",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schedule": {
+          "name": "schedule",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "meeting_place": {
+          "name": "meeting_place",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "facebook": {
+          "name": "facebook",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "instagram": {
+          "name": "instagram",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "strava": {
+          "name": "strava",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lat": {
+          "name": "lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lng": {
+          "name": "lng",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "submitted_by": {
+          "name": "submitted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "auth.uid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "club_submissions_status_idx": {
+          "name": "club_submissions_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "club_submissions_submitted_by_idx": {
+          "name": "club_submissions_submitted_by_idx",
+          "columns": [
+            {
+              "expression": "submitted_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "club_submissions_submitted_by_profiles_id_fk": {
+          "name": "club_submissions_submitted_by_profiles_id_fk",
+          "tableFrom": "club_submissions",
+          "columnsFrom": [
+            "submitted_by"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "club_submissions_slug_unique": {
+          "name": "club_submissions_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "club_submissions_slug_format": {
+          "name": "club_submissions_slug_format",
+          "value": "\"club_submissions\".\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(\"club_submissions\".\"slug\") between 3 and 80"
+        },
+        "club_submissions_name_length": {
+          "name": "club_submissions_name_length",
+          "value": "char_length(\"club_submissions\".\"name\") between 3 and 80"
+        },
+        "club_submissions_types": {
+          "name": "club_submissions_types",
+          "value": "cardinality(\"club_submissions\".\"types\") between 1 and 3 and \"club_submissions\".\"types\" <@ array['RUNNING', 'TRIATHLON', 'CYCLING', 'SWIMMING', 'HIKING']::text[]"
+        },
+        "club_submissions_city_length": {
+          "name": "club_submissions_city_length",
+          "value": "char_length(\"club_submissions\".\"city\") between 2 and 40"
+        },
+        "club_submissions_description_length": {
+          "name": "club_submissions_description_length",
+          "value": "char_length(\"club_submissions\".\"description\") between 20 and 600"
+        },
+        "club_submissions_schedule": {
+          "name": "club_submissions_schedule",
+          "value": "cardinality(\"club_submissions\".\"schedule\") <= 5 and char_length(array_to_string(\"club_submissions\".\"schedule\", '')) <= 600"
+        },
+        "club_submissions_meeting_place_length": {
+          "name": "club_submissions_meeting_place_length",
+          "value": "char_length(\"club_submissions\".\"meeting_place\") <= 120"
+        },
+        "club_submissions_links": {
+          "name": "club_submissions_links",
+          "value": "(\"club_submissions\".\"website\" is null or \"club_submissions\".\"website\" ~ '^https://[^\\s]{4,200}$')\n        and (\"club_submissions\".\"facebook\" is null or \"club_submissions\".\"facebook\" ~ '^https://[^\\s]{4,200}$')\n        and (\"club_submissions\".\"instagram\" is null or \"club_submissions\".\"instagram\" ~ '^https://[^\\s]{4,200}$')\n        and (\"club_submissions\".\"strava\" is null or \"club_submissions\".\"strava\" ~ '^https://[^\\s]{4,200}$')"
+        },
+        "club_submissions_email_format": {
+          "name": "club_submissions_email_format",
+          "value": "\"club_submissions\".\"email\" ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' and char_length(\"club_submissions\".\"email\") <= 254"
+        },
+        "club_submissions_location": {
+          "name": "club_submissions_location",
+          "value": "\"club_submissions\".\"lat\" between 53.8 and 56.5 and \"club_submissions\".\"lng\" between 20.9 and 26.9"
+        },
+        "club_submissions_status": {
+          "name": "club_submissions_status",
+          "value": "\"club_submissions\".\"status\" in ('PENDING', 'APPROVED', 'REJECTED')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.content_reports": {
+      "name": "content_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reporter_id": {
+          "name": "reporter_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "auth.uid()"
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details": {
+          "name": "details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reporter_name": {
+          "name": "reporter_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reporter_email": {
+          "name": "reporter_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NEW'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "content_reports_status_created_idx": {
+          "name": "content_reports_status_created_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "content_reports_reporter_idx": {
+          "name": "content_reports_reporter_idx",
+          "columns": [
+            {
+              "expression": "reporter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "content_reports_reporter_id_profiles_id_fk": {
+          "name": "content_reports_reporter_id_profiles_id_fk",
+          "tableFrom": "content_reports",
+          "columnsFrom": [
+            "reporter_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "content_reports_subject_length": {
+          "name": "content_reports_subject_length",
+          "value": "char_length(\"content_reports\".\"subject\") between 1 and 300"
+        },
+        "content_reports_path_format": {
+          "name": "content_reports_path_format",
+          "value": "\"content_reports\".\"path\" ~ '^/[A-Za-z0-9/_.-]{0,200}$'"
+        },
+        "content_reports_target_length": {
+          "name": "content_reports_target_length",
+          "value": "char_length(\"content_reports\".\"target_id\") <= 100"
+        },
+        "content_reports_reason": {
+          "name": "content_reports_reason",
+          "value": "\"content_reports\".\"reason\" in ('SPAM', 'ABUSE', 'DANGER', 'PRIVACY', 'COPYRIGHT', 'ILLEGAL', 'OTHER')"
+        },
+        "content_reports_details_length": {
+          "name": "content_reports_details_length",
+          "value": "char_length(\"content_reports\".\"details\") between 10 and 2000"
+        },
+        "content_reports_name_length": {
+          "name": "content_reports_name_length",
+          "value": "char_length(\"content_reports\".\"reporter_name\") between 2 and 120"
+        },
+        "content_reports_email_format": {
+          "name": "content_reports_email_format",
+          "value": "\"content_reports\".\"reporter_email\" ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' and char_length(\"content_reports\".\"reporter_email\") <= 254"
+        },
+        "content_reports_status": {
+          "name": "content_reports_status",
+          "value": "\"content_reports\".\"status\" in ('NEW', 'ACTIONED', 'DISMISSED')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bio": {
+          "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sports": {
+          "name": "sports",
+          "type": "sport_discipline[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "default_paces": {
+          "name": "default_paces",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "strava_id": {
+          "name": "strava_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "onboarded_at": {
+          "name": "onboarded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_id_users_id_fk": {
+          "name": "profiles_id_users_id_fk",
+          "tableFrom": "profiles",
+          "columnsFrom": [
+            "id"
+          ],
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "profiles_strava_id_unique": {
+          "name": "profiles_strava_id_unique",
+          "columns": [
+            "strava_id"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "profiles_name_length": {
+          "name": "profiles_name_length",
+          "value": "char_length(\"profiles\".\"name\") between 1 and 80"
+        },
+        "profiles_bio_length": {
+          "name": "profiles_bio_length",
+          "value": "\"profiles\".\"bio\" is null or char_length(\"profiles\".\"bio\") <= 280"
+        },
+        "profiles_strava_id_format": {
+          "name": "profiles_strava_id_format",
+          "value": "\"profiles\".\"strava_id\" is null or \"profiles\".\"strava_id\" ~ '^[0-9]{1,20}$'"
+        },
+        "profiles_city_id": {
+          "name": "profiles_city_id",
+          "value": "\"profiles\".\"city\" is null or \"profiles\".\"city\" ~ '^[a-z]{3,24}$'"
+        },
+        "profiles_avatar_url_own_storage": {
+          "name": "profiles_avatar_url_own_storage",
+          "value": "\"profiles\".\"avatar_url\" is null or (\"profiles\".\"avatar_url\" ~ '^https://[^/]+/storage/v1/object/public/avatars/' and char_length(\"profiles\".\"avatar_url\") <= 500)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.race_attendees": {
+      "name": "race_attendees",
+      "schema": "",
+      "columns": {
+        "race_slug": {
+          "name": "race_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "distance_km": {
+          "name": "distance_km",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "race_attendees_user_idx": {
+          "name": "race_attendees_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "race_attendees_user_id_profiles_id_fk": {
+          "name": "race_attendees_user_id_profiles_id_fk",
+          "tableFrom": "race_attendees",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "race_attendees_race_slug_user_id_pk": {
+          "name": "race_attendees_race_slug_user_id_pk",
+          "columns": [
+            "race_slug",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "race_attendees_slug_format": {
+          "name": "race_attendees_slug_format",
+          "value": "\"race_attendees\".\"race_slug\" ~ '^[a-z0-9-]{3,80}$'"
+        },
+        "race_attendees_distance_range": {
+          "name": "race_attendees_distance_range",
+          "value": "\"race_attendees\".\"distance_km\" is null or (\"race_attendees\".\"distance_km\" > 0 and \"race_attendees\".\"distance_km\" <= 400)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.race_posts": {
+      "name": "race_posts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "race_slug": {
+          "name": "race_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "topic": {
+          "name": "topic",
+          "type": "race_post_topic",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'GENERAL'"
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "race_posts_race_created_idx": {
+          "name": "race_posts_race_created_idx",
+          "columns": [
+            {
+              "expression": "race_slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "race_posts_author_created_idx": {
+          "name": "race_posts_author_created_idx",
+          "columns": [
+            {
+              "expression": "author_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "race_posts_parent_idx": {
+          "name": "race_posts_parent_idx",
+          "columns": [
+            {
+              "expression": "parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "race_posts_author_id_profiles_id_fk": {
+          "name": "race_posts_author_id_profiles_id_fk",
+          "tableFrom": "race_posts",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "race_posts_parent_id_race_posts_id_fk": {
+          "name": "race_posts_parent_id_race_posts_id_fk",
+          "tableFrom": "race_posts",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "tableTo": "race_posts",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "race_posts_slug_format": {
+          "name": "race_posts_slug_format",
+          "value": "\"race_posts\".\"race_slug\" ~ '^[a-z0-9-]{3,80}$'"
+        },
+        "race_posts_content_length": {
+          "name": "race_posts_content_length",
+          "value": "char_length(\"race_posts\".\"content\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.slot_messages": {
+      "name": "slot_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slot_id": {
+          "name": "slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "slot_messages_slot_created_idx": {
+          "name": "slot_messages_slot_created_idx",
+          "columns": [
+            {
+              "expression": "slot_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "slot_messages_sender_created_idx": {
+          "name": "slot_messages_sender_created_idx",
+          "columns": [
+            {
+              "expression": "sender_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "slot_messages_slot_id_workout_slots_id_fk": {
+          "name": "slot_messages_slot_id_workout_slots_id_fk",
+          "tableFrom": "slot_messages",
+          "columnsFrom": [
+            "slot_id"
+          ],
+          "tableTo": "workout_slots",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "slot_messages_sender_id_profiles_id_fk": {
+          "name": "slot_messages_sender_id_profiles_id_fk",
+          "tableFrom": "slot_messages",
+          "columnsFrom": [
+            "sender_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "slot_messages_content_length": {
+          "name": "slot_messages_content_length",
+          "value": "char_length(\"slot_messages\".\"content\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.slot_participants": {
+      "name": "slot_participants",
+      "schema": "",
+      "columns": {
+        "slot_id": {
+          "name": "slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "participant_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ACCEPTED'"
+        },
+        "joined_at": {
+          "name": "joined_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "slot_participants_user_idx": {
+          "name": "slot_participants_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "slot_participants_slot_id_workout_slots_id_fk": {
+          "name": "slot_participants_slot_id_workout_slots_id_fk",
+          "tableFrom": "slot_participants",
+          "columnsFrom": [
+            "slot_id"
+          ],
+          "tableTo": "workout_slots",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "slot_participants_user_id_profiles_id_fk": {
+          "name": "slot_participants_user_id_profiles_id_fk",
+          "tableFrom": "slot_participants",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "slot_participants_slot_id_user_id_pk": {
+          "name": "slot_participants_slot_id_user_id_pk",
+          "columns": [
+            "slot_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.workout_slots": {
+      "name": "workout_slots",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "host_id": {
+          "name": "host_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sport_type": {
+          "name": "sport_type",
+          "type": "sport_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "distance_km": {
+          "name": "distance_km",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_pace": {
+          "name": "target_pace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vibe_tag": {
+          "name": "vibe_tag",
+          "type": "vibe_tag",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meeting_point_name": {
+          "name": "meeting_point_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "geometry(Point, 4326)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_participants": {
+          "name": "max_participants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "slot_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OPEN'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "workout_slots_date_start_idx": {
+          "name": "workout_slots_date_start_idx",
+          "columns": [
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "start_time",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "workout_slots_host_idx": {
+          "name": "workout_slots_host_idx",
+          "columns": [
+            {
+              "expression": "host_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "workout_slots_location_geog_idx": {
+          "name": "workout_slots_location_geog_idx",
+          "columns": [
+            {
+              "expression": "(\"location\"::geography)",
+              "isExpression": true,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "gist",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "workout_slots_host_id_profiles_id_fk": {
+          "name": "workout_slots_host_id_profiles_id_fk",
+          "tableFrom": "workout_slots",
+          "columnsFrom": [
+            "host_id"
+          ],
+          "tableTo": "profiles",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "workout_slots_title_length": {
+          "name": "workout_slots_title_length",
+          "value": "char_length(\"workout_slots\".\"title\") between 1 and 120"
+        },
+        "workout_slots_distance_positive": {
+          "name": "workout_slots_distance_positive",
+          "value": "\"workout_slots\".\"distance_km\" > 0"
+        },
+        "workout_slots_distance_max": {
+          "name": "workout_slots_distance_max",
+          "value": "\"workout_slots\".\"distance_km\" <= 1000"
+        },
+        "workout_slots_target_pace_length": {
+          "name": "workout_slots_target_pace_length",
+          "value": "char_length(\"workout_slots\".\"target_pace\") between 1 and 40"
+        },
+        "workout_slots_meeting_point_length": {
+          "name": "workout_slots_meeting_point_length",
+          "value": "char_length(\"workout_slots\".\"meeting_point_name\") between 2 and 120"
+        },
+        "workout_slots_description_length": {
+          "name": "workout_slots_description_length",
+          "value": "\"workout_slots\".\"description\" is null or char_length(\"workout_slots\".\"description\") <= 1000"
+        },
+        "workout_slots_end_after_start": {
+          "name": "workout_slots_end_after_start",
+          "value": "\"workout_slots\".\"end_time\" is null or \"workout_slots\".\"end_time\" > \"workout_slots\".\"start_time\""
+        },
+        "workout_slots_max_participants_min": {
+          "name": "workout_slots_max_participants_min",
+          "value": "\"workout_slots\".\"max_participants\" is null or \"workout_slots\".\"max_participants\" >= 2"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.participant_status": {
+      "name": "participant_status",
+      "schema": "public",
+      "values": [
+        "ACCEPTED",
+        "PENDING"
+      ]
+    },
+    "public.race_post_topic": {
+      "name": "race_post_topic",
+      "schema": "public",
+      "values": [
+        "TIP",
+        "QUESTION",
+        "GEAR",
+        "LOGISTICS",
+        "GENERAL"
+      ]
+    },
+    "public.slot_status": {
+      "name": "slot_status",
+      "schema": "public",
+      "values": [
+        "OPEN",
+        "FULL",
+        "COMPLETED",
+        "CANCELLED"
+      ]
+    },
+    "public.sport_discipline": {
+      "name": "sport_discipline",
+      "schema": "public",
+      "values": [
+        "running",
+        "cycling"
+      ]
+    },
+    "public.sport_type": {
+      "name": "sport_type",
+      "schema": "public",
+      "values": [
+        "RUN",
+        "CYCLING",
+        "GRAVEL",
+        "TRACK",
+        "TRAIL",
+        "HIKING",
+        "SWIMMING"
+      ]
+    },
+    "public.vibe_tag": {
+      "name": "vibe_tag",
+      "schema": "public",
+      "values": [
+        "ZONE_2_COFFEE",
+        "PACE_PUSH",
+        "SOCIAL_CHAT",
+        "LONG_RUN",
+        "INTERVALS"
+      ]
+    }
+  },
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

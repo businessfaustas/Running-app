@@ -3,7 +3,15 @@
  * The `as const` tuples are the single source of truth for the Postgres enums.
  */
 
-export const SPORT_TYPES = ['RUN', 'CYCLING', 'GRAVEL', 'TRACK'] as const
+export const SPORT_TYPES = [
+  'RUN',
+  'CYCLING',
+  'GRAVEL',
+  'TRACK',
+  'TRAIL',
+  'HIKING',
+  'SWIMMING',
+] as const
 export type SportType = (typeof SPORT_TYPES)[number]
 
 /** Disciplines a user can list on their profile (coarser than SportType). */
@@ -149,7 +157,7 @@ export interface LeaderboardEntry {
 
 // ─── Clubs (the directory of local running, triathlon and cycling clubs) ──────
 
-export const CLUB_TYPES = ['RUNNING', 'TRIATHLON', 'CYCLING'] as const
+export const CLUB_TYPES = ['RUNNING', 'TRIATHLON', 'CYCLING', 'SWIMMING', 'HIKING'] as const
 export type ClubType = (typeof CLUB_TYPES)[number]
 
 /** A club from the curated directory (packages/shared/src/clubs.ts). */
@@ -175,6 +183,55 @@ export interface Club {
   location: { lat: number; lng: number }
   /** Square logo under apps/web/public/clubs, for clubs that have given us one. */
   logo?: string
+}
+
+/** A club someone from the community added: PENDING until the operator reviews it (and then
+ *  visible only to whoever added it), APPROVED once it's listed for everyone. */
+export interface CommunityClub extends Club {
+  status: 'PENDING' | 'APPROVED'
+}
+
+/** What the "add your club" form sends. */
+export interface NewClubInput {
+  name: string
+  types: ClubType[]
+  city: string
+  description: string
+  schedule: string[]
+  meetingPlace: string | null
+  website: string | null
+  facebook: string | null
+  instagram: string | null
+  strava: string | null
+  email: string | null
+  location: { lat: number; lng: number }
+}
+
+// ─── Reports (notices about content, EU Digital Services Act Art. 16) ───────────
+
+export const REPORT_REASONS = [
+  'SPAM',
+  'ABUSE',
+  'DANGER',
+  'PRIVACY',
+  'COPYRIGHT',
+  'ILLEGAL',
+  'OTHER',
+] as const
+export type ReportReason = (typeof REPORT_REASONS)[number]
+
+export interface NewReport {
+  /** What is reported, in words: "Treniruotė „15 km lengvai + kava“". */
+  subject: string
+  /** Where it is in the app, e.g. /workouts/<id>. */
+  path: string
+  /** The reported item's id, when it has one. */
+  targetId: string | null
+  reason: ReportReason
+  details: string
+  /** Visitors who aren't signed in say who they are; signed-in people needn't. */
+  reporterName: string | null
+  reporterEmail: string | null
 }
 
 /** A moment from a club's run or ride, added by someone from the community. */

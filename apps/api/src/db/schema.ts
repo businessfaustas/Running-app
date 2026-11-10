@@ -1,4 +1,5 @@
 import {
+  CLUB_TYPES,
   PARTICIPANT_STATUSES,
   RACE_POST_TOPICS,
   SLOT_STATUSES,
@@ -118,7 +119,7 @@ export const workoutSlots = pgTable(
     index('workout_slots_location_geog_idx').using('gist', sql`(${t.location}::geography)`),
     check('workout_slots_title_length', sql`char_length(${t.title}) between 1 and 120`),
     check('workout_slots_distance_positive', sql`${t.distanceKm} > 0`),
-    check('workout_slots_distance_max', sql`${t.distanceKm} <= 400`),
+    check('workout_slots_distance_max', sql`${t.distanceKm} <= 1000`),
     check('workout_slots_target_pace_length', sql`char_length(${t.targetPace}) between 1 and 40`),
     check(
       'workout_slots_meeting_point_length',
@@ -255,5 +256,121 @@ export const clubPhotos = pgTable(
       'club_photos_path_own_folder',
       sql`${t.path} ~ ('^' || ${t.authorId}::text || '/' || ${t.clubSlug} || '/[0-9a-f-]{36}\\.(webp|jpg)$')`,
     ),
+  ],
+)
+
+/** Notices about content (EU Digital Services Act, Art. 16): anyone can send one, signed in
+ *  or not. Nobody can read them through the API – the operator reviews them in Supabase. */
+export const contentReports = pgTable(
+  'content_reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** The signed-in reporter; null for visitors (who leave a name and email instead). */
+    reporterId: uuid('reporter_id')
+      .default(sql`auth.uid()`)
+      .references(() => profiles.id, { onDelete: 'set null' }),
+    /** What is reported, in words: "Treniruotė „15 km lengvai + kava“". */
+    subject: text('subject').notNull(),
+    /** Where it is in the app: a path like /workouts/<id>. */
+    path: text('path').notNull(),
+    /** The reported row's id, when there is one (a forum post, a photo…). */
+    targetId: text('target_id'),
+    reason: text('reason').notNull(),
+    details: text('details').notNull(),
+    reporterName: text('reporter_name'),
+    reporterEmail: text('reporter_email'),
+    status: text('status').notNull().default('NEW'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('content_reports_status_created_idx').on(t.status, t.createdAt),
+    index('content_reports_reporter_idx').on(t.reporterId),
+    check('content_reports_subject_length', sql`char_length(${t.subject}) between 1 and 300`),
+    check('content_reports_path_format', sql`${t.path} ~ '^/[A-Za-z0-9/_.-]{0,200}$'`),
+    check('content_reports_target_length', sql`char_length(${t.targetId}) <= 100`),
+    check(
+      'content_reports_reason',
+      sql`${t.reason} in ('SPAM', 'ABUSE', 'DANGER', 'PRIVACY', 'COPYRIGHT', 'ILLEGAL', 'OTHER')`,
+    ),
+    check('content_reports_details_length', sql`char_length(${t.details}) between 10 and 2000`),
+    check('content_reports_name_length', sql`char_length(${t.reporterName}) between 2 and 120`),
+    check(
+      'content_reports_email_format',
+      sql`${t.reporterEmail} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' and char_length(${t.reporterEmail}) <= 254`,
+    ),
+    check('content_reports_status', sql`${t.status} in ('NEW', 'ACTIONED', 'DISMISSED')`),
+  ],
+)
+
+/** Clubs added by the community. They show up for everyone once the operator sets the
+ *  status to APPROVED; until then only the person who added one sees it. */
+export const clubSubmissions = pgTable(
+  'club_submissions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    slug: text('slug').notNull().unique(),
+    name: text('name').notNull(),
+    types: text('types').array().notNull(),
+    city: text('city').notNull(),
+    description: text('description').notNull(),
+    schedule: text('schedule')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    meetingPlace: text('meeting_place'),
+    website: text('website'),
+    facebook: text('facebook'),
+    instagram: text('instagram'),
+    strava: text('strava'),
+    /** The club's public contact address, if it has one. */
+    email: text('email'),
+    lat: doublePrecision('lat').notNull(),
+    lng: doublePrecision('lng').notNull(),
+    status: text('status').notNull().default('PENDING'),
+    submittedBy: uuid('submitted_by')
+      .default(sql`auth.uid()`)
+      .references(() => profiles.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('club_submissions_status_idx').on(t.status),
+    index('club_submissions_submitted_by_idx').on(t.submittedBy),
+    check(
+      'club_submissions_slug_format',
+      sql`${t.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(${t.slug}) between 3 and 80`,
+    ),
+    check('club_submissions_name_length', sql`char_length(${t.name}) between 3 and 80`),
+    check(
+      'club_submissions_types',
+      sql`cardinality(${t.types}) between 1 and 3 and ${t.types} <@ array[${sql.raw(
+        CLUB_TYPES.map((type) => `'${type}'`).join(', '),
+      )}]::text[]`,
+    ),
+    check('club_submissions_city_length', sql`char_length(${t.city}) between 2 and 40`),
+    check(
+      'club_submissions_description_length',
+      sql`char_length(${t.description}) between 20 and 600`,
+    ),
+    check(
+      'club_submissions_schedule',
+      sql`cardinality(${t.schedule}) <= 5 and char_length(array_to_string(${t.schedule}, '')) <= 600`,
+    ),
+    check('club_submissions_meeting_place_length', sql`char_length(${t.meetingPlace}) <= 120`),
+    check(
+      'club_submissions_links',
+      sql`(${t.website} is null or ${t.website} ~ '^https://[^\\s]{4,200}$')
+        and (${t.facebook} is null or ${t.facebook} ~ '^https://[^\\s]{4,200}$')
+        and (${t.instagram} is null or ${t.instagram} ~ '^https://[^\\s]{4,200}$')
+        and (${t.strava} is null or ${t.strava} ~ '^https://[^\\s]{4,200}$')`,
+    ),
+    check(
+      'club_submissions_email_format',
+      sql`${t.email} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' and char_length(${t.email}) <= 254`,
+    ),
+    check(
+      'club_submissions_location',
+      sql`${t.lat} between 53.8 and 56.5 and ${t.lng} between 20.9 and 26.9`,
+    ),
+    check('club_submissions_status', sql`${t.status} in ('PENDING', 'APPROVED', 'REJECTED')`),
   ],
 )

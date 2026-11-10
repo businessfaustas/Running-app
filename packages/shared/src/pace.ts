@@ -47,9 +47,15 @@ export const PACE_FIT_LABEL: Record<PaceFit, string> = {
 
 const HARD_VIBES: VibeTag[] = ['PACE_PUSH', 'INTERVALS']
 
+/** Runs of any kind share the athlete's running paces. */
+export const isRunning = (sport: SportType) =>
+  sport === 'RUN' || sport === 'TRACK' || sport === 'TRAIL'
+
 /** The athlete's usual pace or speed for this kind of workout, e.g. "5:30/km", if set. */
 export function usualPace(sport: SportType, vibe: VibeTag, paces: DefaultPaces): string | null {
-  if (sport === 'RUN' || sport === 'TRACK') {
+  // No usual pace is kept for hiking or swimming.
+  if (sport === 'HIKING' || sport === 'SWIMMING') return null
+  if (isRunning(sport)) {
     const hard = HARD_VIBES.includes(vibe)
     const pace = hard
       ? (paces.running_tempo ?? paces.running_easy)
@@ -62,7 +68,7 @@ export function usualPace(sport: SportType, vibe: VibeTag, paces: DefaultPaces):
 function referenceFor(sport: SportType, vibe: VibeTag, paces: DefaultPaces): TargetRange | null {
   const text = usualPace(sport, vibe, paces)
   if (!text) return null
-  if (sport === 'RUN' || sport === 'TRACK') {
+  if (isRunning(sport)) {
     const seconds = parsePace(text)
     return seconds === null ? null : { kind: 'pace', min: seconds, max: seconds }
   }

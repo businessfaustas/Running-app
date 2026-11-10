@@ -21,8 +21,11 @@
   --color-blaze: #ff6a2b;
   --color-ice: #5ccbff;
   --color-dune: #ffbe3d;
-  /* Soft lilac for highlight cards (leaders, featured items). */
+  /* Soft lilac for highlight cards (leaders, featured items) and hikes. */
   --color-lilac: #c9b8ff;
+  /* Trail running and swimming. */
+  --color-moss: #7be495;
+  --color-aqua: #4de1d2;
 
   /* Muted text greys, lifted so small print keeps a 4.5:1 contrast on the dark surfaces. */
   --color-slate-500: #838c9b;

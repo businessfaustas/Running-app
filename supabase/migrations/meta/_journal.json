@@ -106,6 +106,41 @@
       "when": 1794286705472,
       "tag": "20261110045825_club_photos_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794287658088,
+      "tag": "20261110051418_more_sports",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794287668265,
+      "tag": "20261110051428_leaderboard_trail",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794287686011,
+      "tag": "20261110051446_update_slot",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794288669417,
+      "tag": "20261110053109_reports_and_club_submissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794288670493,
+      "tag": "20261110053110_reports_and_clubs_rules",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,11 @@
-import type { Area, NewRacePost, NewSlotInput, ProfileUpdate } from '@pacemates/shared'
+import type {
+  Area,
+  NewClubInput,
+  NewRacePost,
+  NewReport,
+  NewSlotInput,
+  ProfileUpdate,
+} from '@pacemates/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { backend } from '../backend'
@@ -19,6 +26,8 @@ export const keys = {
   racePosts: (slug: string) => ['racePosts', slug] as const,
   userRaces: (userId: string) => ['userRaces', userId] as const,
   clubPhotos: (slug: string) => ['clubPhotos', slug] as const,
+  /** Per person: your own clubs waiting for review show up only for you. */
+  communityClubs: (userId: string | null) => ['communityClubs', userId ?? 'visitor'] as const,
 }
 
 /** Workouts in the date range; with an area, only those around it (e.g. the chosen town). */
@@ -130,6 +139,14 @@ export function useCreateSlot() {
   const invalidate = useInvalidateSlots()
   return useMutation({
     mutationFn: (input: NewSlotInput) => backend.createSlot(input),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUpdateSlot(slotId: string) {
+  const invalidate = useInvalidateSlots()
+  return useMutation({
+    mutationFn: (input: NewSlotInput) => backend.updateSlot(slotId, input),
     onSuccess: invalidate,
   })
 }
@@ -269,4 +286,27 @@ export function useDeleteClubPhoto(slug: string) {
         old?.filter((p) => p.id !== photoId),
       ),
   })
+}
+
+// ─── Community clubs and reports ─────────────────────────────────────────────
+
+export function useCommunityClubs() {
+  const session = useSession()
+  return useQuery({
+    queryKey: keys.communityClubs(session?.userId ?? null),
+    queryFn: backend.listCommunityClubs,
+    staleTime: 5 * 60_000,
+  })
+}
+
+export function useSubmitClub() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: NewClubInput) => backend.submitClub(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['communityClubs'] }),
+  })
+}
+
+export function useReportContent() {
+  return useMutation({ mutationFn: (report: NewReport) => backend.reportContent(report) })
 }

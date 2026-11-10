@@ -31,6 +31,12 @@ import { hasSeenWelcome } from './lib/welcome'
 const CreateWorkoutPage = lazy(() =>
   import('./features/create/CreateWorkoutPage').then((m) => ({ default: m.CreateWorkoutPage })),
 )
+const EditWorkoutPage = lazy(() =>
+  import('./features/create/CreateWorkoutPage').then((m) => ({ default: m.EditWorkoutPage })),
+)
+const AddClubPage = lazy(() =>
+  import('./features/clubs/AddClubPage').then((m) => ({ default: m.AddClubPage })),
+)
 const EditProfilePage = lazy(() =>
   import('./features/profile/EditProfilePage').then((m) => ({ default: m.EditProfilePage })),
 )
@@ -140,12 +146,14 @@ const router = createBrowserRouter([
       { path: 'onboarding', element: signedIn(<OnboardingPage />) },
       { path: 'workouts/new', element: signedIn(<CreateWorkoutPage />) },
       { path: 'workouts/:id', element: <WorkoutPage /> },
+      { path: 'workouts/:id/edit', element: signedIn(<EditWorkoutPage />) },
       { path: 'workouts/:id/chat', element: signedIn(<ChatPage />) },
       { path: 'athletes/:id', element: <AthletePage /> },
       { path: 'races/:slug', element: page(<RacePage />) },
       { path: 'fueling', element: page(<FuelingPage />) },
       { path: 'leaderboard', element: page(<LeaderboardPage />) },
       { path: 'badges', element: page(<BadgesPage />) },
+      { path: 'clubs/new', element: signedIn(<AddClubPage />) },
       { path: 'clubs/:slug', element: page(<ClubPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },
       { path: 'settings', element: signedIn(<SettingsPage />) },

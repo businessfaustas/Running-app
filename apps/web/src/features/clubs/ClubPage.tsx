@@ -1,19 +1,24 @@
-import type { Club } from '@pacemates/shared'
+import type { Club, CommunityClub } from '@pacemates/shared'
 import { clubBySlug } from '@pacemates/shared/clubs'
 import { Clock, ExternalLink, Mail, MapPin, Navigation, UsersRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router'
 import { ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
+import { FullScreenLoader } from '../../components/FullScreenLoader'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { TopBar } from '../../components/TopBar'
-import { ClubBadge } from './ClubBadge'
+import { useCommunityClubs } from '../../data/hooks'
+import { ClubBadge, PendingBadge } from './ClubBadge'
 import { ClubPhotos } from './ClubPhotos'
 import { CLUB_TYPE_META, clubPhoto } from './meta'
 
 export function ClubPage() {
   const { slug = '' } = useParams()
-  const club = clubBySlug(slug)
+  const listed = clubBySlug(slug)
+  const community = useCommunityClubs()
+  const club = listed ?? community.data?.find((c) => c.slug === slug)
+  if (!club && community.isPending) return <FullScreenLoader />
   if (!club) {
     return (
       <div className="flex h-full flex-col">
@@ -31,7 +36,7 @@ export function ClubPage() {
   return <ClubView club={club} />
 }
 
-function ClubView({ club }: { club: Club }) {
+function ClubView({ club }: { club: Club & { status?: CommunityClub['status'] } }) {
   const accent = CLUB_TYPE_META[club.types[0] ?? 'RUNNING'].accent
   const links: { href: string; label: string; Icon: typeof ExternalLink }[] = [
     club.website && { href: club.website, label: 'Svetainė', Icon: ExternalLink },
@@ -80,6 +85,7 @@ function ClubView({ club }: { club: Club }) {
             {club.city}
             {club.founded && <span className="text-white/60"> · nuo {club.founded} m.</span>}
           </p>
+          {club.status === 'PENDING' && <PendingBadge />}
         </div>
       </section>
 

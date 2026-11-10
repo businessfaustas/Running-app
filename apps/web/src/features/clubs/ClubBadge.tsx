@@ -1,5 +1,6 @@
 import type { Club } from '@pacemates/shared'
 import clsx from 'clsx'
+import { Clock } from 'lucide-react'
 import { CLUB_TYPE_META } from './meta'
 
 /** The club's own logo when we have it, otherwise its sports as coloured icons. */
@@ -34,6 +35,16 @@ export function ClubBadge({ club, size = 'md' }: { club: Club; size?: 'md' | 'lg
           </span>
         )
       })}
+    </span>
+  )
+}
+
+/** On a club someone added that we haven't reviewed yet – only they can see it. */
+export function PendingBadge() {
+  return (
+    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-dune/15 px-2.5 py-1 text-[12px] font-bold text-dune">
+      <Clock className="size-3.5" aria-hidden />
+      Laukia patvirtinimo – matai tik tu
     </span>
   )
 }

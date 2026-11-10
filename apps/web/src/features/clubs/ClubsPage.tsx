@@ -1,4 +1,4 @@
-import type { Club } from '@pacemates/shared'
+import type { Club, CommunityClub } from '@pacemates/shared'
 import { CLUBS } from '@pacemates/shared/clubs'
 import clsx from 'clsx'
 import {
@@ -7,33 +7,48 @@ import {
   ExternalLink,
   Mail,
   MapPin,
+  Plus,
   Search,
   UsersRound,
   X,
 } from 'lucide-react'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Button } from '../../components/Button'
+import { Button, ButtonLink } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { PageHeader } from '../../components/PageHeader'
 import { useCity } from '../../data/city'
+import { useCommunityClubs } from '../../data/hooks'
 import { countOf, WORDS } from '../../lib/format'
-import { ClubBadge } from './ClubBadge'
+import { ClubBadge, PendingBadge } from './ClubBadge'
 import { CLUB_FILTERS, CLUB_TYPE_META, fold } from './meta'
 
 const ALL = 'Visa Lietuva'
 
+type ListedClub = Club & { status?: CommunityClub['status'] }
+
 /** Towns that have clubs, most clubs first. */
-const TOWNS = [...new Set(CLUBS.map((club) => club.city))]
-  .map((name) => ({ name, count: CLUBS.filter((club) => club.city === name).length }))
-  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'lt'))
+const townsOf = (clubs: Club[]) =>
+  [...new Set(clubs.map((club) => club.city))]
+    .map((name) => ({ name, count: clubs.filter((club) => club.city === name).length }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'lt'))
 
 /** The clubs tab: pick a town and see every club there in full. */
 export function ClubsPage() {
   const city = useCity()
+  const community = useCommunityClubs()
+  // The listed clubs, plus the ones people added (yours show up while they wait for review).
+  const clubs = useMemo<ListedClub[]>(
+    () => [
+      ...CLUBS,
+      ...(community.data ?? []).filter((c) => !CLUBS.some((l) => l.slug === c.slug)),
+    ],
+    [community.data],
+  )
+  const towns = useMemo(() => townsOf(clubs), [clubs])
   // Start in the person's town when it has clubs.
   const [town, setTown] = useState(() =>
-    TOWNS.some((t) => t.name === city.name) ? city.name : ALL,
+    townsOf(CLUBS).some((t) => t.name === city.name) ? city.name : ALL,
   )
   const [type, setType] = useState<(typeof CLUB_FILTERS)[number]['id']>('ALL')
   const [query, setQuery] = useState('')
@@ -41,19 +56,20 @@ export function ClubsPage() {
 
   const shown = useMemo(
     () =>
-      CLUBS.filter((club) => town === ALL || club.city === town)
+      clubs
+        .filter((club) => town === ALL || club.city === town)
         .filter((club) => type === 'ALL' || club.types.includes(type))
         .filter(
           (club) =>
             !search || fold(`${club.name} ${club.city} ${club.description}`).includes(search),
         )
         .sort((a, b) => a.city.localeCompare(b.city, 'lt') || a.name.localeCompare(b.name, 'lt')),
-    [town, search, type],
+    [clubs, town, search, type],
   )
 
   // Across the country, group by town.
   const groups = useMemo(() => {
-    const byCity = new Map<string, Club[]>()
+    const byCity = new Map<string, ListedClub[]>()
     for (const club of shown) byCity.set(club.city, [...(byCity.get(club.city) ?? []), club])
     return [...byCity.entries()]
   }, [shown])
@@ -65,7 +81,7 @@ export function ClubsPage() {
       <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(var(--nav-space)+20px)]">
         <section aria-label="Miestas" className="pt-2">
           <div className="scrollbar-none flex gap-2 overflow-x-auto px-5">
-            {[{ name: ALL, count: CLUBS.length }, ...TOWNS].map(({ name, count }) => {
+            {[{ name: ALL, count: clubs.length }, ...towns].map(({ name, count }) => {
               const active = town === name
               return (
                 <button
@@ -162,10 +178,15 @@ export function ClubsPage() {
                   <Button variant="secondary" onClick={() => setTown(ALL)}>
                     Rodyti visą Lietuvą
                   </Button>
-                ) : undefined
+                ) : (
+                  <ButtonLink to="/clubs/new" variant="secondary">
+                    <Plus className="size-4" aria-hidden />
+                    Pridėti klubą
+                  </ButtonLink>
+                )
               }
             >
-              Pabandyk kitą pavadinimą, sportą ar miestą.
+              Pabandyk kitą pavadinimą, sportą ar miestą – arba pridėk klubą, kurio dar nėra.
             </EmptyState>
           ) : town === ALL ? (
             groups.map(([name, clubs]) => (
@@ -186,7 +207,21 @@ export function ClubsPage() {
             </div>
           )}
 
-          <p className="mt-8 px-1 text-[12px] leading-relaxed text-slate-600">
+          <div className="mt-8 flex items-center gap-3 rounded-[26px] border border-dashed border-white/15 p-4">
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-raised text-volt">
+              <UsersRound className="size-5" aria-hidden />
+            </span>
+            <p className="min-w-0 flex-1 text-[14px] leading-snug text-slate-300">
+              <span className="block font-bold text-white">Nerandi savo klubo?</span>
+              Pridėk jį – peržiūrėję parodysime visiems.
+            </p>
+            <ButtonLink to="/clubs/new" size="sm">
+              <Plus className="size-4" aria-hidden />
+              Pridėti
+            </ButtonLink>
+          </div>
+
+          <p className="mt-6 px-1 text-[12px] leading-relaxed text-slate-600">
             Sąrašas sudarytas iš klubų viešai skelbiamos informacijos. Tvarkaraščiai keičiasi –
             prieš pirmą treniruotę pasitikrink klubo puslapyje.
           </p>
@@ -196,7 +231,7 @@ export function ClubsPage() {
   )
 }
 
-function ClubList({ clubs }: { clubs: Club[] }) {
+function ClubList({ clubs }: { clubs: ListedClub[] }) {
   return (
     <ul className="space-y-3">
       {clubs.map((club) => (
@@ -209,7 +244,7 @@ function ClubList({ clubs }: { clubs: Club[] }) {
 }
 
 /** Everything about a club at a glance: what, when, where, for whom, and how to reach them. */
-function ClubCard({ club }: { club: Club }) {
+function ClubCard({ club }: { club: ListedClub }) {
   const links = [
     club.website && { href: club.website, label: 'Svetainė' },
     club.facebook && { href: club.facebook, label: 'Facebook' },
@@ -231,6 +266,7 @@ function ClubCard({ club }: { club: Club }) {
             {club.types.map((t) => CLUB_TYPE_META[t].label).join(' · ')} · {club.city}
             {club.founded ? ` · nuo ${club.founded}` : ''}
           </p>
+          {club.status === 'PENDING' && <PendingBadge />}
         </div>
       </header>
 

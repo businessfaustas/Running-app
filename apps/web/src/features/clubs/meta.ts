@@ -1,5 +1,5 @@
 import type { Club, ClubType } from '@pacemates/shared'
-import { Bike, Footprints, Waves, type LucideIcon } from 'lucide-react'
+import { Backpack, Bike, Footprints, Waves, type LucideIcon } from 'lucide-react'
 import { PHOTOS } from '../../lib/photos'
 
 export const CLUB_TYPE_META: Record<ClubType, { label: string; Icon: LucideIcon; accent: string }> =
@@ -7,6 +7,8 @@ export const CLUB_TYPE_META: Record<ClubType, { label: string; Icon: LucideIcon;
     RUNNING: { label: 'Bėgimas', Icon: Footprints, accent: 'var(--color-volt)' },
     TRIATHLON: { label: 'Triatlonas', Icon: Waves, accent: '#c4a1ff' },
     CYCLING: { label: 'Dviračiai', Icon: Bike, accent: 'var(--color-ice)' },
+    SWIMMING: { label: 'Plaukimas', Icon: Waves, accent: 'var(--color-aqua)' },
+    HIKING: { label: 'Žygiai', Icon: Backpack, accent: 'var(--color-lilac)' },
   }
 
 export const CLUB_FILTERS: { id: ClubType | 'ALL'; label: string }[] = [
@@ -14,6 +16,8 @@ export const CLUB_FILTERS: { id: ClubType | 'ALL'; label: string }[] = [
   { id: 'RUNNING', label: 'Bėgimas' },
   { id: 'TRIATHLON', label: 'Triatlonas' },
   { id: 'CYCLING', label: 'Dviračiai' },
+  { id: 'SWIMMING', label: 'Plaukimas' },
+  { id: 'HIKING', label: 'Žygiai' },
 ]
 
 export function clubPhoto(club: Club): string {

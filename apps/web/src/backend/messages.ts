@@ -10,6 +10,10 @@ export const MESSAGES = {
   emailTaken: 'Paskyra su šiuo el. paštu jau yra',
   emailNotConfirmed: 'Pirma patvirtink el. paštą – nuorodą rasi laiške',
   hostOnlyCancel: 'Atšaukti gali tik organizatorius',
+  hostOnlyEdit: 'Redaguoti gali tik organizatorius',
+  workoutFinished: 'Ši treniruotė jau baigėsi – jos keisti nebegalima',
+  startInPast: 'Nauja pradžia jau praėjo – pasirink vėlesnį laiką',
+  fewerPlacesThanGoing: 'Vietų negali būti mažiau nei jau užsiregistravusių žmonių',
   cancelled: 'Ši treniruotė atšaukta',
   completed: 'Ši treniruotė jau įvyko',
   full: 'Visos vietos užimtos',
@@ -30,6 +34,7 @@ export const MESSAGES = {
   signupsDisabled: 'Registracija šiuo metu išjungta',
   invalidInput: 'Patikrink įvestus duomenis – kažkas per ilga arba netinkamo formato',
   photoUpload: 'Nepavyko įkelti nuotraukos. Pabandyk kitą arba mažesnę.',
+  reporterDetails: 'Įvesk savo vardą ir el. paštą – be jų pranešimo priimti negalime',
   sampleHasNoPassword: 'Pavyzdinė paskyra neturi slaptažodžio – susikurk savo paskyrą',
   unknown: 'Kažkas nepavyko. Bandyk dar kartą.',
 } as const

@@ -13,12 +13,14 @@ import {
   MapPin,
   MessageCircle,
   Navigation,
+  Pencil,
   Phone,
   Share,
   ShieldCheck,
 } from 'lucide-react'
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { SportArt } from '../../components/SportArt'
 import { ReportLink } from '../../components/ReportLink'
 import { Avatar } from '../../components/Avatar'
 import { Button, ButtonLink } from '../../components/Button'
@@ -49,7 +51,6 @@ import {
   relativeDay,
   WORDS,
 } from '../../lib/format'
-import { photoFor } from '../../lib/photos'
 import { toast, toastError } from '../../lib/toast'
 import { SPORT_META, VIBE_META } from '../slots/meta'
 import { PaceFitBadge } from './PaceFitBadge'
@@ -99,11 +100,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
     <div className="flex h-full flex-col" style={{ '--accent': sport.accent } as CSSProperties}>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="relative h-[400px] shrink-0 overflow-hidden">
-          <img
-            src={photoFor(slot.sportType, slot.vibeTag)}
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-          />
+          <SportArt sport={slot.sportType} vibe={slot.vibeTag} />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-black/50" />
           <TopBar overlay fallback="/" actions={<ShareButton slot={slot} />} />
 
@@ -150,7 +147,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
             <Stat label="Pradžia" value={slot.startTime} sub={time ?? 'Laisva pabaiga'} />
             <Stat label="Atstumas" value={formatKm(slot.distanceKm)} unit="km" />
             <Stat
-              label={sport.measure === 'pace' ? 'Tempas' : 'Greitis'}
+              label={sport.measure === 'speed' ? 'Greitis' : 'Tempas'}
               value={slot.targetPace}
               small
             />
@@ -495,12 +492,28 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
   } else if (isHost) {
     content = (
       <>
-        <Button variant="danger" size="lg" onClick={() => setConfirm('cancel')}>
-          Atšaukti
+        <Button
+          variant="danger"
+          size="lg"
+          onClick={() => setConfirm('cancel')}
+          aria-label="Atšaukti treniruotę"
+          title="Atšaukti treniruotę"
+          className="w-14 shrink-0 px-0!"
+        >
+          <CalendarX2 className="size-5" aria-hidden />
         </Button>
-        <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="flex-1">
+        <ButtonLink
+          to={`/workouts/${slot.id}/edit`}
+          variant="secondary"
+          size="lg"
+          className="shrink-0 px-4!"
+        >
+          <Pencil className="size-4" aria-hidden />
+          Redaguoti
+        </ButtonLink>
+        <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="min-w-0 flex-1 px-4!">
           <MessageCircle className="size-4" aria-hidden />
-          Grupės pokalbis
+          Pokalbis
         </ButtonLink>
       </>
     )
@@ -511,7 +524,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
           <Check className="size-4 text-volt" strokeWidth={3} aria-hidden />
           Dalyvauju
         </Button>
-        <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="flex-1">
+        <ButtonLink to={`/workouts/${slot.id}/chat`} size="lg" className="min-w-0 flex-1 px-4!">
           <MessageCircle className="size-4" aria-hidden />
           Pokalbis
         </ButtonLink>

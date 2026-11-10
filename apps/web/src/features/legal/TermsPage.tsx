@@ -72,12 +72,17 @@ export function TermsPage() {
         jai teikti. Turinį, pažeidžiantį šias sąlygas ar įstatymus, galime pašalinti. Ištrynus
         forumo temą ar paskyrą, kartu išnyksta ir kitų atsakymai į tavo temas.
       </p>
+      <p>
+        Klubą pridėti gali visi prisijungę naudotojai. Pridėjus klubą laikoma, kad patvirtini,
+        jog informacija teisinga ir vieša. Klubą peržiūrime prieš rodydami kitiems ir galime jį
+        pataisyti, atmesti ar vėliau pašalinti – pavyzdžiui, paprašius pačiam klubui.
+      </p>
 
       <h2>6. Pranešimai apie netinkamą turinį ir autorių teises</h2>
       <p>
         Jei manai, kad įrašas, treniruotė, profilis ar nuotrauka yra neteisėti arba pažeidžia šias
-        sąlygas (įskaitant <strong>autorių teises</strong>), spausk „Pranešti“ prie to turinio
-        arba rašyk <strong>{OPERATOR.email}</strong>. Pranešime nurodyk:
+        sąlygas (įskaitant <strong>autorių teises</strong>), spausk „Pranešti“ prie to turinio ir
+        užpildyk formą arba rašyk <strong>{OPERATOR.email}</strong>. Pranešime nurodyk:
       </p>
       <ul>
         <li>nuorodą į turinį (ar kur jį rasti);</li>

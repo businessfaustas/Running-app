@@ -223,7 +223,9 @@ function ClubCard({ club }: { club: Club }) {
         <ClubBadge club={club} />
         <div className="min-w-0 flex-1">
           <h3 className="text-[17px] leading-snug font-extrabold tracking-tight text-white">
-            {club.name}
+            <Link to={`/clubs/${club.slug}`} className="hover:underline">
+              {club.name}
+            </Link>
           </h3>
           <p className="mt-0.5 text-[12px] font-bold tracking-wider text-slate-500 uppercase">
             {club.types.map((t) => CLUB_TYPE_META[t].label).join(' · ')} · {club.city}
@@ -292,7 +294,7 @@ function ClubCard({ club }: { club: Club }) {
           to={`/clubs/${club.slug}`}
           className="ml-auto flex h-9 items-center gap-1 rounded-full bg-volt px-3.5 text-[13px] font-bold text-black transition active:scale-95"
         >
-          Žemėlapis
+          Nuotraukos ir žemėlapis
           <ArrowUpRight className="size-4" aria-hidden />
         </Link>
       </div>

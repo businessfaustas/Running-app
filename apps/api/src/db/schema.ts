@@ -232,3 +232,28 @@ export const racePosts = pgTable(
     check('race_posts_content_length', sql`char_length(${t.content}) between 1 and 2000`),
   ],
 )
+
+/** Photos from clubs' runs and rides, added by signed-in runners. Files live in the
+ *  club-photos storage bucket; clubs themselves are the catalogue in shared/clubs.ts. */
+export const clubPhotos = pgTable(
+  'club_photos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubSlug: text('club_slug').notNull(),
+    authorId: uuid('author_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    /** Path in the bucket: <author id>/<club slug>/<uuid>.webp|jpg – only the author's folder. */
+    path: text('path').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('club_photos_club_created_idx').on(t.clubSlug, t.createdAt),
+    index('club_photos_author_idx').on(t.authorId),
+    check('club_photos_slug_format', raceSlugCheck(t.clubSlug)),
+    check(
+      'club_photos_path_own_folder',
+      sql`${t.path} ~ ('^' || ${t.authorId}::text || '/' || ${t.clubSlug} || '/[0-9a-f-]{36}\\.(webp|jpg)$')`,
+    ),
+  ],
+)

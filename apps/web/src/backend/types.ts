@@ -1,6 +1,7 @@
 import type {
   Area,
   ChatMessage,
+  ClubPhoto,
   ChatThread,
   NewRacePost,
   LeaderboardEntry,
@@ -107,4 +108,11 @@ export interface Backend {
   deleteRacePost(postId: string): Promise<void>
   /** Calls `onChange` when a race's posts or attendance change. */
   subscribeToRace(raceSlug: string, onChange: () => void): () => void
+
+  /** A club's photo grid, newest first. */
+  listClubPhotos(clubSlug: string): Promise<ClubPhoto[]>
+  /** Adds a photo (already resized) as the signed-in user. */
+  addClubPhoto(clubSlug: string, image: Blob): Promise<ClubPhoto>
+  /** Removes one of your own photos. */
+  deleteClubPhoto(photoId: string): Promise<void>
 }

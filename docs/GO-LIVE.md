@@ -37,10 +37,11 @@ DATABASE_URL="<session pooler string>" pnpm db:migrate
 ```
 
 This creates the tables, row-level security, the database rate limits, the delete-account
-function, the leaderboard and town search functions, and the `avatars` Storage bucket for
-profile photos. Check the bucket under **Storage → Buckets**: it should be public, 2 MB limit,
-images only, with four "Avatars: …" policies under **Storage → Policies**. If the bucket is
-missing, run `pnpm db:migrate` again – nothing is applied twice.
+function, the leaderboard and town search functions, and two Storage buckets: `avatars`
+(profile photos) and `club-photos` (the photo grids on club pages). Check them under **Storage →
+Buckets**: both public, images only, 2 MB and 3 MB limits, with four "Avatars: …" and two
+"Club photos: …" policies under **Storage → Policies**. If a bucket is missing, run
+`pnpm db:migrate` again – nothing is applied twice.
 
 **Don't run `pnpm db:seed` on the real project**: it adds sample athletes, workouts and forum
 posts, which is right for a demo but would show fake people to real users.

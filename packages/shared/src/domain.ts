@@ -177,6 +177,16 @@ export interface Club {
   logo?: string
 }
 
+/** A moment from a club's run or ride, added by someone from the community. */
+export interface ClubPhoto {
+  id: string
+  clubSlug: string
+  url: string
+  /** ISO timestamp. */
+  createdAt: string
+  author: UserSummary
+}
+
 // ─── Races (the Lithuanian race calendar and its community) ────────────────────
 
 export const RACE_TYPES = ['ROAD', 'TRAIL', 'ULTRA', 'CYCLING', 'TRIATHLON'] as const

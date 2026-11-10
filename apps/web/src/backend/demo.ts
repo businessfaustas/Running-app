@@ -7,6 +7,7 @@ import {
   type Area,
   type ChatMessage,
   type ChatThread,
+  type ClubPhoto,
   type LeaderboardEntry,
   type NewSlotInput,
   type ParticipantStatus,
@@ -81,6 +82,18 @@ interface StoredRacePost {
   createdAt: string
 }
 
+interface StoredClubPhoto {
+  id: string
+  clubSlug: string
+  authorId: string
+  /** The resized photo itself, as a data URL – this device is the only storage. */
+  url: string
+  createdAt: string
+}
+
+/** Photos are the heaviest thing kept on the device; older ones make room for new ones. */
+const MAX_DEMO_CLUB_PHOTOS = 24
+
 interface DemoState {
   accounts: { userId: string; email: string; passwordHash: string }[]
   /** New users, plus edits to the sample athletes. */
@@ -100,6 +113,7 @@ interface DemoState {
   racePosts: StoredRacePost[]
   /** Sample posts their (sample) authors deleted. */
   deletedRacePostIds: string[]
+  clubPhotos: StoredClubPhoto[]
 }
 
 const emptyState = (): DemoState => ({
@@ -114,6 +128,7 @@ const emptyState = (): DemoState => ({
   raceAttendees: {},
   racePosts: [],
   deletedRacePostIds: [],
+  clubPhotos: [],
 })
 
 /** Mirrors the database's limits on how fast one person can write. */
@@ -121,6 +136,7 @@ const RATE_LIMITS = {
   message: { max: 20, windowMs: 60_000 },
   workout: { max: 3, windowMs: 60_000 },
   racePost: { max: 6, windowMs: 60_000 },
+  clubPhoto: { max: 10, windowMs: 60 * 60_000 },
 } as const
 
 async function hashPassword(email: string, password: string): Promise<string> {
@@ -151,6 +167,7 @@ export function createDemoBackend({
     message: [],
     workout: [],
     racePost: [],
+    clubPhoto: [],
   }
   const raceListeners = new Map<string, Set<() => void>>()
 
@@ -214,6 +231,14 @@ export function createDemoBackend({
     if (!profile) throw new BackendError(MESSAGES.athleteNotFound)
     return profile
   }
+
+  const toClubPhoto = (p: StoredClubPhoto): ClubPhoto => ({
+    id: p.id,
+    clubSlug: p.clubSlug,
+    url: p.url,
+    createdAt: p.createdAt,
+    author: summaryOf(p.authorId),
+  })
 
   const summaryOf = (userId: string) => {
     const { id, name, avatarUrl } = profileOf(userId)
@@ -483,6 +508,7 @@ export function createDemoBackend({
           state.raceAttendees[slug] = attendeesOf(slug).filter((a) => a.userId !== userId)
         }
         state.racePosts = state.racePosts.filter((p) => p.authorId !== userId)
+        state.clubPhotos = state.clubPhotos.filter((p) => p.authorId !== userId)
         state.sessionUserId = null
         state.recoveryUserId = null
       }
@@ -842,6 +868,45 @@ export function createDemoBackend({
       listeners.add(onChange)
       raceListeners.set(raceSlug, listeners)
       return () => listeners.delete(onChange)
+    },
+
+    async listClubPhotos(clubSlug) {
+      await pause()
+      return state.clubPhotos
+        .filter((p) => p.clubSlug === clubSlug)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .map(toClubPhoto)
+    },
+
+    async addClubPhoto(clubSlug, image) {
+      await pause()
+      const userId = requireUserId()
+      hitRateLimit('clubPhoto')
+      const photo: StoredClubPhoto = {
+        id: crypto.randomUUID(),
+        clubSlug,
+        authorId: userId,
+        url: await blobToDataUrl(image),
+        createdAt: now().toISOString(),
+      }
+      const before = state.clubPhotos
+      state.clubPhotos = [...before, photo].slice(-MAX_DEMO_CLUB_PHOTOS)
+      try {
+        storage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state))
+      } catch {
+        state.clubPhotos = before
+        throw new BackendError(MESSAGES.photoUpload)
+      }
+      return toClubPhoto(photo)
+    },
+
+    async deleteClubPhoto(photoId) {
+      await pause()
+      const userId = requireUserId()
+      const photo = state.clubPhotos.find((p) => p.id === photoId)
+      if (!photo || photo.authorId !== userId) throw new BackendError(MESSAGES.notAllowed)
+      state.clubPhotos = state.clubPhotos.filter((p) => p.id !== photoId)
+      save()
     },
   }
 }

@@ -18,6 +18,7 @@ export const keys = {
   raceAttendees: (slug: string) => ['raceAttendees', slug] as const,
   racePosts: (slug: string) => ['racePosts', slug] as const,
   userRaces: (userId: string) => ['userRaces', userId] as const,
+  clubPhotos: (slug: string) => ['clubPhotos', slug] as const,
 }
 
 /** Workouts in the date range; with an area, only those around it (e.g. the chosen town). */
@@ -238,5 +239,34 @@ export function useDeleteRacePost(slug: string) {
   return useMutation({
     mutationFn: (postId: string) => backend.deleteRacePost(postId),
     ...refreshAfter(invalidate),
+  })
+}
+
+// ─── Club photos ─────────────────────────────────────────────────────────────
+
+export function useClubPhotos(slug: string) {
+  return useQuery({ queryKey: keys.clubPhotos(slug), queryFn: () => backend.listClubPhotos(slug) })
+}
+
+export function useAddClubPhoto(slug: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (image: Blob) => backend.addClubPhoto(slug, image),
+    onSuccess: (photo) =>
+      queryClient.setQueryData(keys.clubPhotos(slug), (old: (typeof photo)[] | undefined) => [
+        photo,
+        ...(old ?? []),
+      ]),
+  })
+}
+
+export function useDeleteClubPhoto(slug: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (photoId: string) => backend.deleteClubPhoto(photoId),
+    onSuccess: (_, photoId) =>
+      queryClient.setQueryData(keys.clubPhotos(slug), (old: { id: string }[] | undefined) =>
+        old?.filter((p) => p.id !== photoId),
+      ),
   })
 }

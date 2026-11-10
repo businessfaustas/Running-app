@@ -92,6 +92,20 @@
       "when": 1793515286794,
       "tag": "20261101064126_avatar_storage_only",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794286698496,
+      "tag": "20261110045818_club_photos",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794286705472,
+      "tag": "20261110045825_club_photos_rules",
+      "breakpoints": true
     }
   ]
 }

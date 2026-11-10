@@ -2,6 +2,7 @@ import { distanceKm } from '@pacemates/shared'
 import type {
   ChatMessage,
   ChatThread,
+  ClubPhoto,
   LeaderboardEntry,
   Profile,
   ProfileUpdate,
@@ -75,6 +76,16 @@ interface RacePostRow {
   created_at: string
   author: PersonRow | null
 }
+
+interface ClubPhotoRow {
+  id: string
+  club_slug: string
+  path: string
+  created_at: string
+  author: PersonRow | null
+}
+
+const CLUB_PHOTO_COLUMNS = 'id, club_slug, path, created_at, author:profiles(id, name, avatar_url)'
 
 const RACE_POST_COLUMNS =
   'id, race_slug, parent_id, topic, content, created_at, author:profiles(id, name, avatar_url)'
@@ -163,6 +174,9 @@ const toProfile = (row: ProfileRow): Profile => ({
 })
 
 const AVATARS = 'avatars'
+const CLUB_PHOTOS = 'club-photos'
+/** Newest photos loaded for a club's grid. */
+const CLUB_PHOTO_LIMIT = 60
 /** One photo per person, replaced in place; the URL carries a version to skip stale caches. */
 const avatarPath = (userId: string) => `${userId}/avatar`
 
@@ -225,6 +239,14 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       detectSessionInUrl: true,
       flowType: 'implicit',
     },
+  })
+
+  const toClubPhoto = (row: ClubPhotoRow): ClubPhoto => ({
+    id: row.id,
+    clubSlug: row.club_slug,
+    url: supabase.storage.from(CLUB_PHOTOS).getPublicUrl(row.path).data.publicUrl,
+    createdAt: row.created_at,
+    author: person(row.author),
   })
 
   async function requireUserId(): Promise<string> {
@@ -317,8 +339,14 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
 
     async deleteAccount() {
       const userId = await requireUserId()
-      // Storage files aren't rows that cascade, so remove the photo first (best effort).
+      // Storage files aren't rows that cascade, so remove the photos first (best effort).
       await supabase.storage.from(AVATARS).remove([avatarPath(userId)])
+      const { data: photos } = await supabase
+        .from('club_photos')
+        .select('path')
+        .eq('author_id', userId)
+        .returns<{ path: string }[]>()
+      if (photos?.length) await supabase.storage.from(CLUB_PHOTOS).remove(photos.map((p) => p.path))
       const { error } = await supabase.rpc('delete_account')
       if (error) fail(error)
       // The login no longer exists; drop the local session without calling the server.
@@ -634,6 +662,57 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         )
         .subscribe()
       return () => void supabase.removeChannel(channel)
+    },
+
+    async listClubPhotos(clubSlug) {
+      const { data, error } = await supabase
+        .from('club_photos')
+        .select(CLUB_PHOTO_COLUMNS)
+        .eq('club_slug', clubSlug)
+        .order('created_at', { ascending: false })
+        .limit(CLUB_PHOTO_LIMIT)
+        .returns<ClubPhotoRow[]>()
+      if (error) fail(error)
+      return data.map(toClubPhoto)
+    },
+
+    async addClubPhoto(clubSlug, image) {
+      const userId = await requireUserId()
+      const bucket = supabase.storage.from(CLUB_PHOTOS)
+      const ext = image.type === 'image/webp' ? 'webp' : 'jpg'
+      // Always in the uploader's own folder – the storage rules and the table both insist.
+      const path = `${userId}/${clubSlug}/${crypto.randomUUID()}.${ext}`
+      const upload = await bucket.upload(path, image, {
+        contentType: ext === 'webp' ? 'image/webp' : 'image/jpeg',
+        cacheControl: '31536000',
+      })
+      if (upload.error) {
+        reportError(new Error(`Club photo upload: ${upload.error.message}`))
+        throw new BackendError(MESSAGES.photoUpload)
+      }
+      const { data, error } = await supabase
+        .from('club_photos')
+        .insert({ club_slug: clubSlug, author_id: userId, path })
+        .select(CLUB_PHOTO_COLUMNS)
+        .single<ClubPhotoRow>()
+      if (error) {
+        await bucket.remove([path])
+        fail(error)
+      }
+      return toClubPhoto(data)
+    },
+
+    async deleteClubPhoto(photoId) {
+      await requireUserId()
+      const { data, error } = await supabase
+        .from('club_photos')
+        .delete()
+        .eq('id', photoId)
+        .select('path')
+        .returns<{ path: string }[]>()
+      if (error) fail(error)
+      if (data.length === 0) throw new BackendError(MESSAGES.notAllowed)
+      await supabase.storage.from(CLUB_PHOTOS).remove(data.map((p) => p.path))
     },
   }
 }

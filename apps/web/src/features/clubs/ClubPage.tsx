@@ -8,6 +8,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { LazyLocationMap } from '../../components/maps/LazyLocationMap'
 import { TopBar } from '../../components/TopBar'
 import { ClubBadge } from './ClubBadge'
+import { ClubPhotos } from './ClubPhotos'
 import { CLUB_TYPE_META, clubPhoto } from './meta'
 
 export function ClubPage() {
@@ -91,6 +92,8 @@ function ClubView({ club }: { club: Club }) {
             {club.membership && <Fact label="Narystė">{club.membership}</Fact>}
           </div>
         )}
+
+        <ClubPhotos club={club} />
 
         {club.schedule.length > 0 && (
           <section className="rounded-[24px] border border-white/[0.06] bg-surface p-4">

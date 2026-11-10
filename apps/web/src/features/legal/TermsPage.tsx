@@ -34,7 +34,7 @@ export function TermsPage() {
         <li>siųsti šlamštą ar reklamą be mūsų sutikimo;</li>
         <li>įžeidinėti, grasinti, priekabiauti ar diskriminuoti kitus;</li>
         <li>skelbti kitų žmonių asmens duomenis be jų sutikimo;</li>
-        <li>kelti profilio nuotrauką, kuri nėra tavo ar kurioje be sutikimo matomi kiti žmonės;</li>
+        <li>kelti nuotraukas, kurios nėra tavo ar kuriose be sutikimo matomi kiti žmonės;</li>
         <li>naudoti paslaugą neteisėtiems tikslams;</li>
         <li>bandyti apeiti saugumo priemones, trikdyti paslaugą ar automatiškai rinkti duomenis.</li>
       </ul>
@@ -67,7 +67,7 @@ export function TermsPage() {
 
       <h2>5. Tavo turinys</h2>
       <p>
-        Tai, ką paskelbi (treniruotes, profilį, nuotrauką, žinutes, forumo įrašus), lieka tavo.
+        Tai, ką paskelbi (treniruotes, profilį, nuotraukas, žinutes, forumo įrašus), lieka tavo.
         Suteiki mums neišimtinę, nemokamą teisę šį turinį rodyti paslaugoje tiek, kiek reikia
         jai teikti. Turinį, pažeidžiantį šias sąlygas ar įstatymus, galime pašalinti. Ištrynus
         forumo temą ar paskyrą, kartu išnyksta ir kitų atsakymai į tavo temas.

@@ -69,3 +69,35 @@ export async function squarePhoto(file: File, size = 512): Promise<Blob> {
   if (!jpeg) throw new ImageError('Nuotraukos paruošti nepavyko.')
   return jpeg
 }
+
+/**
+ * Scales a photo down so its longer side is at most `maxSide`, keeping its shape. Like
+ * squarePhoto, re-encoding drops the file's metadata – including GPS position – before upload.
+ */
+export async function fitPhoto(file: File, maxSide = 1600): Promise<Blob> {
+  if (!file.type.startsWith('image/')) throw new ImageError('Pasirink nuotrauką.')
+  if (file.size > MAX_INPUT_BYTES) throw new ImageError('Nuotrauka per didelė (daugiau nei 25 MB).')
+
+  const image = await decode(file)
+  const width = 'naturalWidth' in image ? image.naturalWidth : image.width
+  const height = 'naturalHeight' in image ? image.naturalHeight : image.height
+  if (Math.min(width, height) < 200) {
+    throw new ImageError('Nuotrauka per maža – rinkis bent 200 taškų pločio.')
+  }
+  const scale = Math.min(1, maxSide / Math.max(width, height))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(width * scale)
+  canvas.height = Math.round(height * scale)
+  const context = canvas.getContext('2d')
+  if (!context) throw new ImageError('Šioje naršyklėje nuotraukos apdoroti nepavyko.')
+  context.imageSmoothingQuality = 'high'
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  if ('close' in image) image.close()
+
+  const webp = await toBlob(canvas, 'image/webp', 0.82)
+  if (webp && webp.type === 'image/webp') return webp
+  const jpeg = await toBlob(canvas, 'image/jpeg', 0.85)
+  if (!jpeg) throw new ImageError('Nuotraukos paruošti nepavyko.')
+  return jpeg
+}

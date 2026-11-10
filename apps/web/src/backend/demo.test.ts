@@ -324,4 +324,40 @@ describe('demo backend', () => {
     const asMember = (await backend.getSlot(upcoming.id))!
     expect(asMember.participants.map((p) => p.id)).toContain(joiner)
   })
+  it('keeps a club photo grid: add as yourself, newest first, delete only your own', async () => {
+    let tick = 0
+    const backend = createDemoBackend({
+      storage: memoryStorage(),
+      now: () => new Date(NOW.getTime() + tick++ * 1000),
+      latencyMs: 0,
+    })
+    const photo = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' })
+    await expect(backend.addClubPhoto('flowteam-klaipeda', photo)).rejects.toBeInstanceOf(
+      BackendError,
+    )
+
+    await backend.signUp({ name: 'Ana', email: 'ana@photos.lt', password: 'longenough1' })
+    const first = await backend.addClubPhoto('flowteam-klaipeda', photo)
+    const second = await backend.addClubPhoto('flowteam-klaipeda', photo)
+    expect(first.url).toMatch(/^data:image\/webp;base64,/)
+    expect(first.author.name).toBe('Ana')
+    expect((await backend.listClubPhotos('flowteam-klaipeda')).map((p) => p.id)).toEqual([
+      second.id,
+      first.id,
+    ])
+    expect(await backend.listClubPhotos('dviraciu-kultura')).toEqual([])
+
+    await backend.signOut()
+    await backend.signUp({ name: 'Ben', email: 'ben@photos.lt', password: 'longenough1' })
+    await expect(backend.deleteClubPhoto(first.id)).rejects.toThrow(MESSAGES.notAllowed)
+
+    await backend.signOut()
+    await backend.signIn({ email: 'ana@photos.lt', password: 'longenough1' })
+    await backend.deleteClubPhoto(first.id)
+    expect((await backend.listClubPhotos('flowteam-klaipeda')).map((p) => p.id)).toEqual([
+      second.id,
+    ])
+    await backend.deleteAccount()
+    expect(await backend.listClubPhotos('flowteam-klaipeda')).toEqual([])
+  })
 })

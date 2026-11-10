@@ -17,6 +17,7 @@ export type AnalyticsEvent =
   | 'race_joined'
   | 'race_left'
   | 'race_post_created'
+  | 'club_photo_added'
   | 'password_reset_requested'
   | 'account_deleted'
 

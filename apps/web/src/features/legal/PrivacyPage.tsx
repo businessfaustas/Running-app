@@ -33,7 +33,8 @@ export function PrivacyPage() {
           <strong>Veiklos duomenys:</strong> tavo skelbiamos treniruotės (laikas, susitikimo vieta,
           atstumas, tempas, aprašymas), dalyvavimas treniruotėse, žinutės grupių pokalbiuose,
           varžybos, į kurias žadi vykti (ir pasirinkta distancija), bei įrašai ir atsakymai
-          varžybų forumuose.
+          varžybų forumuose, taip pat nuotraukos, kurias įkeli į klubų puslapius (įkeliant jos
+          sumažinamos, o metaduomenys, pvz., fotografavimo vieta, pašalinami).
         </li>
         <li>
           <strong>Vieta:</strong> tik tada, kai kuriant treniruotę paspaudi „Mano vieta“ arba
@@ -100,6 +101,10 @@ export function PrivacyPage() {
           naudotojai; neprisijungę lankytojai mato tik skaičių.
         </li>
         <li>Grupės pokalbį mato tik tos treniruotės dalyviai.</li>
+        <li>
+          Nuotraukas, kurias įkeli į klubo puslapį, mato visi lankytojai kartu su tavo vardu. Jas
+          gali bet kada ištrinti.
+        </li>
         <li>Tavo el. pašto adreso kitiems naudotojams nerodome niekada.</li>
       </ul>
       <p>
@@ -112,7 +117,7 @@ export function PrivacyPage() {
       <h2>5. Kam perduodame duomenis</h2>
       <p>Duomenis tvarko tik mūsų paslaugų teikėjai, pagal sutartis su mumis:</p>
       <ul>
-        <li>Supabase Inc. – duomenų bazė, prisijungimas ir profilio nuotraukų saugykla;</li>
+        <li>Supabase Inc. – duomenų bazė, prisijungimas ir nuotraukų saugykla;</li>
         <li>Vercel Inc. – svetainės talpinimas ir anoniminė statistika;</li>
         <li>Functional Software Inc. (Sentry) – klaidų ataskaitos, jei jos įjungtos;</li>
         <li>OpenFreeMap – žemėlapio vaizdai (įkeliant žemėlapį jiems matomas tavo IP adresas).</li>
@@ -126,7 +131,7 @@ export function PrivacyPage() {
       <h2>6. Kiek laiko saugome</h2>
       <p>
         Duomenis saugome, kol turi paskyrą. Ištrynus paskyrą, ji ir susiję duomenys (profilio
-        nuotrauka, treniruotės, žinutės, forumo įrašai) pašalinami iš karto, o iš atsarginių
+        nuotrauka, treniruotės, žinutės, forumo įrašai, klubų nuotraukos) pašalinami iš karto, o iš atsarginių
         kopijų – ne vėliau kaip per 30 dienų. Klaidų ataskaitos ir saugumo
         žurnalai saugomi iki 90 dienų.
       </p>

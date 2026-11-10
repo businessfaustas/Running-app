@@ -207,6 +207,9 @@ policies, publications) goes in a custom migration: run
 - **race_posts**: the race forums – `race_slug`, `author_id`, `parent_id` (replies),
   `topic` (`TIP`/`QUESTION`/`GEAR`/`LOGISTICS`/`GENERAL`), `content`; published to Realtime.
   Races themselves aren't in the database – they come from `packages/shared/src/races.ts`.
+- **club_photos**: the "Akimirkos" grid on club pages – `club_slug`, `author_id`, `path` (a file
+  in the `club-photos` bucket, always inside the author's own folder). Public to read; added and
+  deleted only by the author; 10 an hour. Clubs themselves come from `packages/shared/src/clubs.ts`.
 
 Rules enforced in the database (see `supabase/migrations/*_triggers_rls_realtime.sql`):
 

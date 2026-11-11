@@ -20,7 +20,9 @@ gate, content reports, photos, marketing and payment rules) in
 ## 1. Create the Supabase project
 
 1. [supabase.com](https://supabase.com) → **New project**.
-   - Region: **Central EU (Frankfurt)**, so personal data stays in the EU (GDPR).
+   - Region: any **EU** region – Frankfurt, Ireland, Stockholm or Paris – so personal data
+     stays in the EU (GDPR). Not London or Zurich (outside the EU). The region can't be changed
+     later.
    - Save the database password in a password manager.
 2. Copy two connection details for later (Supabase → **Connect**):
    - the **Session pooler** connection string (`postgresql://postgres.<ref>:<password>@aws-0-…pooler.supabase.com:5432/postgres`);
@@ -48,6 +50,11 @@ posts, which is right for a demo but would show fake people to real users.
 
 When a later version of the app adds a migration (a new file in `supabase/migrations/`), run
 `pnpm db:migrate` against production **before** the new version is deployed.
+
+The **Last migration** card on the Supabase dashboard stays empty: it only tracks the Supabase
+CLI, while these migrations are recorded in `drizzle.__drizzle_migrations`. If you connected
+GitHub in Supabase (Project Settings → Integrations), turn off deploying migrations to
+production there, or it will try to apply the same files a second time.
 
 ## 3. Configure sign-in and emails (Supabase → Authentication)
 

@@ -141,6 +141,13 @@
       "when": 1794288670493,
       "tag": "20261110053110_reports_and_clubs_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794382253482,
+      "tag": "20261111073053_lock_down_internals",
+      "breakpoints": true
     }
   ]
 }

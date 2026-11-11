@@ -67,26 +67,33 @@ production there, or it will try to apply the same files a second time.
 
 **URL Configuration**
 
-- Site URL: `https://running-app-web-amber.vercel.app` (or your own domain).
+- Site URL: `https://running-app-web-amber.vercel.app` (or your own domain) – no `/` at the
+  end, or the logo in the emails won't load.
 - Redirect URLs: `https://running-app-web-amber.vercel.app/auth/callback` and
   `http://localhost:5173/auth/callback`. With your own domain, add
   `https://<your-domain>/auth/callback` too.
 
-**Emails → SMTP Settings** – required for real users. Supabase's built-in sender only delivers to
-your own team members' addresses, a few per hour. For example with [Resend](https://resend.com)
-(3,000 emails/month free):
+**Emails → Set up SMTP** – required for real users, and Supabase only lets you edit the email
+templates once it's done. Its built-in sender only delivers to your own team's addresses, a few
+per hour. Two options:
 
-1. Add and verify your domain in Resend, create an API key.
-2. In Supabase: host `smtp.resend.com`, port `465`, user `resend`, password = the API key,
-   sender `PaceMates <noreply@your-domain.lt>`.
+- **Quick start – your Gmail** (about 500 emails a day, enough for the first users): in your
+  Google Account turn on 2-Step Verification, then create an **App password** named "Supabase".
+  In Supabase: host `smtp.gmail.com`, port `465`, username and sender email = the Gmail
+  address, password = the app password, sender name `PaceMates`. Set "emails per hour" (Rate
+  Limits) to about 30.
+- **Later – your own domain** with [Resend](https://resend.com) (3,000 emails/month free): add
+  and verify the domain in Resend, create an API key; in Supabase: host `smtp.resend.com`, port
+  `465`, user `resend`, password = the API key, sender `PaceMates <noreply@your-domain.lt>`.
 
-**Emails → Templates** (Lithuanian versions are in `supabase/templates/`)
+**Emails → Templates** (Lithuanian versions are in `supabase/templates/`), after SMTP is set up.
+Switch the body to **Source**, replace everything and save:
 
-- _Confirm signup_: subject `Patvirtink savo PaceMates paskyrą`, body = `confirmation.html`.
+- _Confirm sign up_: subject `Patvirtink savo PaceMates paskyrą`, body = `confirmation.html`.
 - _Reset password_: subject `PaceMates slaptažodžio atkūrimas`, body = `recovery.html`.
 
-**Rate Limits**: with custom SMTP, raise "emails per hour" to around 100. Keep the sign-in and
-sign-up limits at their defaults.
+**Rate Limits**: with your own domain's SMTP, raise "emails per hour" to around 100 (about 30 with
+Gmail). Keep the sign-in and sign-up limits at their defaults.
 
 ## 4. Connect the site (Vercel → Project → Settings → Environment Variables)
 

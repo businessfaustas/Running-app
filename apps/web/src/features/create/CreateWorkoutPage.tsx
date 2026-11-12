@@ -949,7 +949,7 @@ function WhereStep({
       <div className="mt-5">
         <TextField
           label="Susitikimo vietos pavadinimas"
-          placeholder="pvz., Vingio parkas, prie estrados"
+          placeholder="pvz., Danės krantinė, prie Meridiano"
           value={point?.name ?? ''}
           disabled={!point}
           hint={point ? 'Ko žmonės ieškos atvykę.' : 'Pirmiausia pažymėk vietą žemėlapyje.'}

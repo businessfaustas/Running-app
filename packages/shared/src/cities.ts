@@ -3,7 +3,7 @@ export interface City {
   /** Stable id, stored on profiles – never rename one. */
   id: string
   name: string
-  /** "Vilniuje" – for sentences like "Treniruotės Vilniuje". */
+  /** "Klaipėdoje" – for sentences like "Treniruotės Klaipėdoje". */
   locative: string
   lat: number
   lng: number
@@ -13,6 +13,14 @@ export interface City {
 
 export const CITIES: City[] = [
   {
+    id: 'klaipeda',
+    name: 'Klaipėda',
+    locative: 'Klaipėdoje',
+    lat: 55.7033,
+    lng: 21.1443,
+    radiusKm: 18,
+  },
+  {
     id: 'vilnius',
     name: 'Vilnius',
     locative: 'Vilniuje',
@@ -21,14 +29,6 @@ export const CITIES: City[] = [
     radiusKm: 22,
   },
   { id: 'kaunas', name: 'Kaunas', locative: 'Kaune', lat: 54.8985, lng: 23.9036, radiusKm: 18 },
-  {
-    id: 'klaipeda',
-    name: 'Klaipėda',
-    locative: 'Klaipėdoje',
-    lat: 55.7033,
-    lng: 21.1443,
-    radiusKm: 18,
-  },
   {
     id: 'siauliai',
     name: 'Šiauliai',
@@ -165,12 +165,12 @@ export const CITIES: City[] = [
   },
 ]
 
-export const DEFAULT_CITY_ID = 'vilnius'
+export const DEFAULT_CITY_ID = 'klaipeda'
 
 export const CITY_IDS = CITIES.map((city) => city.id)
 
 export const cityById = (id: string | null | undefined): City =>
-  CITIES.find((city) => city.id === id) ?? CITIES[0]!
+  CITIES.find((city) => city.id === id) ?? CITIES.find((city) => city.id === DEFAULT_CITY_ID)!
 
 /** Great-circle distance in km. */
 export function distanceKm(

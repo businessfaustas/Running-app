@@ -278,7 +278,7 @@ export function AddClubPage() {
 
           <TextField
             label="Susitikimo vieta (nebūtina)"
-            placeholder="pvz., Vingio parkas, prie estrados"
+            placeholder="pvz., Danės krantinė, prie Meridiano"
             maxLength={120}
             value={meetingPlace}
             error={shown(errors.meetingPlace)}

@@ -1,6 +1,6 @@
 # PaceMates
 
-A social endurance-sports calendar, in Lithuanian, set in Vilnius. Runners and cyclists post
+A social endurance-sports calendar, in Lithuanian, set in Klaipėda. Runners and cyclists post
 upcoming workouts on a 24-hour timeline as open invitations, so others can find training partners
 and join.
 

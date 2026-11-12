@@ -20,7 +20,7 @@ const useDeviceCity = create<{ id: string | null }>(() => ({ id: readStored() })
 
 /**
  * Where the person trains: their profile's town when signed in, otherwise the one picked on
- * this device, otherwise Vilnius.
+ * this device, otherwise Klaipėda.
  */
 export function useCity(): City {
   const session = useSession()

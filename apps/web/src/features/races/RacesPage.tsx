@@ -140,7 +140,7 @@ export function RacesPage() {
             </EmptyState>
           ) : (
             <EmptyState Icon={Search} title="Nieko neradome">
-              Pabandyk kitą pavadinimą ar miestą, pvz., „Kuršių nerija“ arba „Vilnius“.
+              Pabandyk kitą pavadinimą ar miestą, pvz., „Kuršių nerija“ arba „Klaipėda“.
             </EmptyState>
           )
         ) : (

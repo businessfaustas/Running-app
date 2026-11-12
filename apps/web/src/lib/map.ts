@@ -10,4 +10,4 @@ export const MAP_STYLE_URL =
   import.meta.env.VITE_MAP_STYLE_URL ?? 'https://tiles.openfreemap.org/styles/dark'
 
 /** Where maps open when there's nothing to show yet. */
-export const DEFAULT_CENTER = { lng: 25.2797, lat: 54.6872 } // Vilnius
+export const DEFAULT_CENTER = { lng: 21.1443, lat: 55.7033 } // Klaipėda

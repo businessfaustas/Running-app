@@ -383,13 +383,14 @@ describe('demo backend', () => {
   it('shows only the workouts around the chosen town', async () => {
     const backend = setup()
     const range = { from: TODAY, to: '2026-10-26' }
-    const vilnius = await backend.listSlots(range, { lat: 54.6872, lng: 25.2797, radiusKm: 22 })
+    const klaipeda = await backend.listSlots(range, { lat: 55.7033, lng: 21.1443, radiusKm: 18 })
     const kaunas = await backend.listSlots(range, { lat: 54.8985, lng: 23.9036, radiusKm: 18 })
     const all = await backend.listSlots(range)
+    expect(klaipeda.length).toBeGreaterThan(kaunas.length)
     expect(kaunas.length).toBeGreaterThan(0)
     expect(kaunas.every((s) => s.meetingPoint.lng < 24.2)).toBe(true)
-    expect(vilnius.some((s) => kaunas.some((k) => k.id === s.id))).toBe(false)
-    expect(vilnius.length + kaunas.length).toBeLessThan(all.length) // Klaipėda is in neither
+    expect(klaipeda.every((s) => s.meetingPoint.lng < 21.3)).toBe(true)
+    expect(klaipeda.length + kaunas.length).toBeLessThan(all.length) // Vilnius is in neither
   })
 
   it('ranks people by finished workouts, leaving out ones still to come', async () => {

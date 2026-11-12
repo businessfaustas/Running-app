@@ -97,11 +97,12 @@ interface Draft {
 
 /** Where to focus each sport's photo in tiles (sports without one get SportArt's colour). */
 const PHOTO_POSITION: Partial<Record<SportType, string>> = {
-  RUN: '50% 40%',
-  TRAIL: '50% 55%',
-  TRACK: '50% 60%',
+  RUN: '50% 45%',
+  TRAIL: '50% 65%',
+  TRACK: '50% 25%',
   CYCLING: '50% 45%',
-  GRAVEL: '20% 70%',
+  GRAVEL: '50% 45%',
+  HIKING: '50% 55%',
 }
 
 /** What the workout is, for generated names: "10 km bėgimas kompanijoje". */

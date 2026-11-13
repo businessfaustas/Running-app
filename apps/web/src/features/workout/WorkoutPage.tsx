@@ -100,7 +100,7 @@ function WorkoutDetail({ slot }: { slot: SlotDetail }) {
     <div className="flex h-full flex-col" style={{ '--accent': sport.accent } as CSSProperties}>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="relative h-[400px] shrink-0 overflow-hidden">
-          <SportArt sport={slot.sportType} vibe={slot.vibeTag} />
+          <SportArt sport={slot.sportType} vibe={slot.vibeTag} className="hero-parallax" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-black/50" />
           <TopBar overlay fallback="/" actions={<ShareButton slot={slot} />} />
 
@@ -652,16 +652,16 @@ function ShareButton({ slot }: { slot: SlotDetail }) {
 function WorkoutSkeleton() {
   return (
     <div className="flex h-full flex-col">
-      <div className="relative h-[400px] animate-pulse bg-surface">
+      <div className="relative h-[400px] skeleton bg-surface">
         <TopBar overlay />
       </div>
       <div className="space-y-3 px-5 pt-4">
         <div className="grid grid-cols-3 gap-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-[20px] bg-surface" />
+            <div key={i} className="h-20 skeleton rounded-[20px] bg-surface" />
           ))}
         </div>
-        <div className="h-24 animate-pulse rounded-[24px] bg-surface" />
+        <div className="h-24 skeleton rounded-[24px] bg-surface" />
       </div>
     </div>
   )

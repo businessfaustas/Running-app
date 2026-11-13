@@ -152,7 +152,7 @@ export function RacesPage() {
                   {countOf(items.length, WORDS.race)}
                 </span>
               </h2>
-              <ul className="space-y-2.5">
+              <ul className="stagger space-y-2.5">
                 {items.map((entry) => (
                   <li key={entry.race.slug}>
                     <RaceRow
@@ -268,7 +268,7 @@ function Featured({ entry: { race, when }, going }: { entry: Entry; going: numbe
   return (
     <Link
       to={`/races/${race.slug}`}
-      className="relative mt-1 flex min-h-[220px] flex-col justify-end overflow-hidden rounded-[28px] p-4"
+      className="pressable relative mt-1 flex min-h-[220px] flex-col justify-end overflow-hidden rounded-[28px] p-4"
     >
       <img src={racePhoto(race)} alt="" className="absolute inset-0 size-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/0" />

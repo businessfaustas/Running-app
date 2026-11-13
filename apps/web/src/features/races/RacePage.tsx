@@ -106,7 +106,7 @@ function RaceView({ race }: { race: Race }) {
         <img
           src={racePhoto(race)}
           alt=""
-          className="absolute inset-0 size-full object-cover opacity-90"
+          className="hero-parallax absolute inset-0 size-full object-cover opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/75" />
         <TopBar overlay fallback="/races" />
@@ -354,7 +354,7 @@ function Attendance({
 
       <div className="mt-3 flex items-center gap-3">
         {loading ? (
-          <span className="h-8 w-24 animate-pulse rounded-full bg-raised" />
+          <span className="h-8 w-24 skeleton rounded-full bg-raised" />
         ) : others.length > 0 ? (
           <AvatarStack users={others.slice(0, 6)} size={32} />
         ) : (
@@ -609,7 +609,7 @@ function Forum({
       {posts.isPending ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-[22px] bg-surface" />
+            <div key={i} className="h-28 skeleton rounded-[22px] bg-surface" />
           ))}
         </div>
       ) : posts.isError ? (

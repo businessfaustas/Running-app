@@ -35,21 +35,26 @@ export function TabBar() {
             aria-label={label}
             className={({ isActive }) =>
               clsx(
-                'flex h-12 items-center justify-center gap-1.5 rounded-full transition-all duration-300 ease-out',
+                'flex h-12 min-w-11 items-center justify-center rounded-full transition-[background-color,color,padding,transform] duration-300 ease-out active:scale-95',
                 isActive
-                  ? 'bg-volt px-3.5 text-black max-[374px]:w-11 max-[374px]:px-0'
-                  : 'w-11 text-slate-400 hover:bg-white/5 hover:text-white',
+                  ? 'bg-volt px-3.5 text-black max-[374px]:px-0'
+                  : 'px-3 text-slate-400 hover:bg-white/5 hover:text-white',
               )
             }
           >
             {({ isActive }) => (
               <>
                 <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.4 : 1.9} aria-hidden />
-                {isActive && (
-                  <span className="text-[13px] font-bold whitespace-nowrap max-[374px]:hidden">
-                    {label}
-                  </span>
-                )}
+                {/* Always there, so the chip can grow and shrink smoothly around its name. */}
+                <span
+                  aria-hidden
+                  className={clsx(
+                    'overflow-hidden text-[13px] font-bold whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-out max-[374px]:hidden',
+                    isActive ? 'ml-1.5 max-w-24 opacity-100' : 'ml-0 max-w-0 opacity-0',
+                  )}
+                >
+                  {label}
+                </span>
               </>
             )}
           </NavLink>

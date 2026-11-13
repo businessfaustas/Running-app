@@ -94,7 +94,8 @@ export function Timeline({
     if (isLoading && !isToday) return // the target depends on data we don't have yet
 
     const firstStart = Math.min(...slots.map((slot) => timeToMinutes(slot.startTime)))
-    scrollTo(isToday ? nowMinutes - 60 : Number.isFinite(firstStart) ? firstStart - 30 : 7 * 60)
+    // Today opens just above "now", so what's still to come fills the screen.
+    scrollTo(isToday ? nowMinutes - 25 : Number.isFinite(firstStart) ? firstStart - 30 : 7 * 60)
   }, [date, focusedSlotId, isLoading, isToday, nowMinutes, slots])
 
   const onGridClick = (event: MouseEvent<HTMLDivElement>) => {
@@ -236,6 +237,10 @@ function NowIndicator({ minutes }: { minutes: number }) {
         className="absolute right-0 h-0.5 -translate-y-1/2 bg-volt shadow-[0_0_10px_rgb(212_255_63/0.6)]"
         style={{ left: AXIS_WIDTH }}
       />
+      <span
+        className="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 animate-breathe rounded-full bg-volt shadow-[0_0_0_0_rgb(212_255_63/0.6)]"
+        style={{ left: AXIS_WIDTH }}
+      />
     </div>
   )
 }
@@ -327,7 +332,7 @@ function Skeletons() {
       className="absolute inset-x-0 p-[3px]"
       style={{ top: minutesToPx(start), height: MIN_CARD_HEIGHT }}
     >
-      <div className="size-full animate-pulse rounded-[20px] bg-surface" />
+      <div className="size-full skeleton rounded-[20px] bg-surface" />
     </li>
   ))
 }

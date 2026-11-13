@@ -15,6 +15,7 @@ import { Link } from 'react-router'
 import { Avatar } from '../../components/Avatar'
 import { Button } from '../../components/Button'
 import { CitySheet } from '../../components/CityPicker'
+import { CountUp } from '../../components/CountUp'
 import { Logo } from '../../components/Logo'
 import { useSession } from '../../data/auth'
 import { useMe, useSlots, useUserSlots } from '../../data/hooks'
@@ -115,7 +116,8 @@ export function DiscoverPage() {
           <h1 className="headline mt-3 text-[34px] [@media(max-height:560px)]:text-[26px]">
             {whenHeadline(selectedDate, today)}
             <span className="block text-volt">
-              {visibleSlots.length} {plural(visibleSlots.length, WORDS.workout)}
+              <CountUp value={visibleSlots.length} duration={500} />{' '}
+              {plural(visibleSlots.length, WORDS.workout)}
             </span>
           </h1>
         </div>
@@ -146,7 +148,7 @@ export function DiscoverPage() {
               aria-pressed={active}
               onClick={() => setSportFilter(filter.id)}
               className={clsx(
-                'flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-bold transition-colors',
+                'flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] font-bold transition-[background-color,color,transform] duration-200 active:scale-95',
                 active
                   ? 'bg-volt text-black'
                   : 'border border-white/[0.08] bg-surface text-slate-300 hover:text-white',
@@ -194,7 +196,7 @@ export function DiscoverPage() {
             cityLocative={city.locative}
           />
         ) : (
-          <Suspense fallback={<div className="h-full animate-pulse bg-surface" />}>
+          <Suspense fallback={<div className="h-full skeleton bg-surface" />}>
             <DiscoverMap
               slots={visibleSlots}
               focusedSlotId={focusedSlotId}
@@ -212,7 +214,11 @@ export function DiscoverPage() {
           aria-label="Sukurti treniruotę"
           className="absolute right-5 bottom-[calc(var(--nav-space)+14px)] z-30 grid size-15 place-items-center rounded-full bg-volt text-black shadow-[0_12px_30px_rgb(212_255_63/0.35)] transition active:scale-95 motion-safe:animate-pop"
         >
-          <Plus className="size-7" strokeWidth={2.6} aria-hidden />
+          <span
+            aria-hidden
+            className="absolute inset-0 animate-breathe rounded-full shadow-[0_0_0_0_rgb(212_255_63/0.55)]"
+          />
+          <Plus className="relative size-7" strokeWidth={2.6} aria-hidden />
         </Link>
       )}
       <CitySheet open={cityOpen} onClose={() => setCityOpen(false)} />

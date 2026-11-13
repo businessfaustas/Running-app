@@ -41,7 +41,7 @@ function Threads({ myId }: { myId: string }) {
     return (
       <div className="space-y-2.5 px-5 pt-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-20 animate-pulse rounded-[22px] bg-surface" />
+          <div key={i} className="h-20 skeleton rounded-[22px] bg-surface" />
         ))}
       </div>
     )
@@ -58,7 +58,7 @@ function Threads({ myId }: { myId: string }) {
     )
   }
   return (
-    <ul className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-5 pt-3 pb-[calc(var(--nav-space)+16px)]">
+    <ul className="stagger flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-5 pt-3 pb-[calc(var(--nav-space)+16px)]">
       {threads.data.map((thread) => (
         <ThreadRow key={thread.slot.id} thread={thread} myId={myId} />
       ))}

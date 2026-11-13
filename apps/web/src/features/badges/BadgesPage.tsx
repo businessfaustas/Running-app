@@ -1,3 +1,4 @@
+import { CountUp } from '../../components/CountUp'
 import clsx from 'clsx'
 import { Award, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -51,11 +52,12 @@ function Collection({ userId }: { userId: string }) {
       <div className="mt-4 rounded-[24px] bg-gradient-to-br from-raised to-surface p-4">
         <p className="text-[13px] font-semibold text-slate-400">Surinkta</p>
         <p className="headline mt-0.5 text-[30px]">
-          {earned.length} <span className="text-slate-500">iš {badges.length}</span>
+          <CountUp value={earned.length} />{' '}
+          <span className="text-slate-500">iš {badges.length}</span>
         </p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
           <div
-            className="h-full rounded-full bg-volt transition-[width] duration-500"
+            className="h-full origin-left animate-grow rounded-full bg-volt transition-[width] duration-500"
             style={{ width: `${(earned.length / badges.length) * 100}%` }}
           />
         </div>
@@ -110,7 +112,7 @@ function Collection({ userId }: { userId: string }) {
       {slots.isPending ? (
         <div className="mt-6 grid grid-cols-3 gap-x-3 gap-y-6">
           {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="h-36 animate-pulse rounded-[18px] bg-surface" />
+            <div key={i} className="h-36 skeleton rounded-[18px] bg-surface" />
           ))}
         </div>
       ) : shown.length === 0 ? (
@@ -120,7 +122,7 @@ function Collection({ userId }: { userId: string }) {
             : 'Viskas surinkta – tikras čempionų lygis.'}
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-3 gap-x-3 gap-y-6">
+        <div key={`${tab}-${category}`} className="stagger mt-6 grid grid-cols-3 gap-x-3 gap-y-6">
           {shown.map((badge) => (
             <BadgeCard
               key={badge.id}

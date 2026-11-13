@@ -62,6 +62,63 @@
       transform: translate(var(--dx), var(--dy)) scale(1);
     }
   }
+  /* Opening a page: it slides in from the side it came from. `backwards`, so nothing lingers on
+     the wrapper afterwards (a filled transform would re-anchor fixed children). */
+  --animate-page: page 340ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  @keyframes page {
+    from {
+      opacity: 0;
+      transform: translateX(22px);
+    }
+  }
+  --animate-page-back: page-back 300ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  @keyframes page-back {
+    from {
+      opacity: 0;
+      transform: translateX(-18px);
+    }
+  }
+  /* Switching tabs: a quick fade-through. */
+  --animate-tab: tab 240ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  @keyframes tab {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  /* Bottom sheets and dialogs. */
+  --animate-sheet: sheet 320ms cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+  @keyframes sheet {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+  }
+  /* Progress bars fill from the left. */
+  --animate-grow: grow 800ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms backwards;
+  @keyframes grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  /* The "now" marker and the add button breathe, so the screen feels live. */
+  --animate-breathe: breathe 2.6s ease-in-out infinite;
+  @keyframes breathe {
+    50% {
+      box-shadow: 0 0 0 7px rgb(212 255 63 / 0);
+    }
+  }
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes parallax {
+    to {
+      transform: translateY(70px) scale(1.1);
+      opacity: 0.55;
+    }
+  }
   --animate-ken: ken 18s ease-in-out infinite alternate;
   @keyframes ken {
     to {
@@ -86,6 +143,27 @@
   body {
     @apply font-sans text-white antialiased;
     overscroll-behavior-y: none;
+  }
+
+  /* Sheets rise from the bottom and the page dims behind them. */
+  dialog[open] {
+    animation: var(--animate-sheet);
+  }
+  dialog[open]::backdrop {
+    animation: var(--animate-fade);
+  }
+
+  /* People who ask for less motion get none of the movement, only the end states. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* iOS zooms into inputs under 16px. */
@@ -116,6 +194,64 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* List items arrive one after another. */
+@utility stagger {
+  & > * {
+    animation: rise 380ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  & > *:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  & > *:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  & > *:nth-child(4) {
+    animation-delay: 135ms;
+  }
+  & > *:nth-child(5) {
+    animation-delay: 180ms;
+  }
+  & > *:nth-child(6) {
+    animation-delay: 225ms;
+  }
+  & > *:nth-child(7) {
+    animation-delay: 270ms;
+  }
+  & > *:nth-child(n + 8) {
+    animation-delay: 315ms;
+  }
+}
+
+/* Loading placeholder: a soft light sweeps across whatever colour the box has. */
+@utility skeleton {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.07) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* Header photos drift and dim as the page scrolls (where the browser supports it). */
+@utility hero-parallax {
+  @supports (animation-timeline: scroll()) {
+    animation: parallax linear both;
+    animation-timeline: scroll(nearest);
+    animation-range: 0 420px;
+  }
+}
+
+/* Cards and rows give a little under the finger. */
+@utility pressable {
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  &:active {
+    transform: scale(0.98);
   }
 }
 

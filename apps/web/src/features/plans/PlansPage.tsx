@@ -61,9 +61,9 @@ function Plans({ userId }: { userId: string }) {
         <ErrorState error={slots.error} onRetry={() => slots.refetch()} />
       ) : slots.isPending ? (
         <div className="space-y-3 pt-3">
-          <div className="h-56 animate-pulse rounded-[28px] bg-surface" />
+          <div className="h-56 skeleton rounded-[28px] bg-surface" />
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-[22px] bg-surface" />
+            <div key={i} className="h-20 skeleton rounded-[22px] bg-surface" />
           ))}
         </div>
       ) : (

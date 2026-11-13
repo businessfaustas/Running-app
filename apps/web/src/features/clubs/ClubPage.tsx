@@ -54,7 +54,7 @@ function ClubView({ club }: { club: Club & { status?: CommunityClub['status'] } 
         <img
           src={clubPhoto(club)}
           alt=""
-          className="absolute inset-0 size-full object-cover opacity-80"
+          className="hero-parallax absolute inset-0 size-full object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/10 to-black/75" />
         <TopBar overlay fallback="/clubs" />

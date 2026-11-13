@@ -239,7 +239,7 @@ function ChatSkeleton() {
       {[60, 75, 45, 70].map((width, i) => (
         <div
           key={i}
-          className={`h-12 animate-pulse rounded-[20px] bg-surface ${i % 2 ? 'ml-auto' : 'ml-9'}`}
+          className={`h-12 skeleton rounded-[20px] bg-surface ${i % 2 ? 'ml-auto' : 'ml-9'}`}
           style={{ width: `${width}%` }}
         />
       ))}

@@ -233,7 +233,7 @@ export function ClubsPage() {
 
 function ClubList({ clubs }: { clubs: ListedClub[] }) {
   return (
-    <ul className="space-y-3">
+    <ul className="stagger space-y-3">
       {clubs.map((club) => (
         <li key={club.slug}>
           <ClubCard club={club} />

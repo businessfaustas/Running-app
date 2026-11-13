@@ -13,7 +13,7 @@ import { SignedOutPrompt } from '../auth/RequireAuth'
 import { ProfileView } from './ProfileView'
 
 function ProfileSkeleton() {
-  return <div className="h-72 animate-pulse rounded-b-[32px] bg-blue/40" />
+  return <div className="h-72 skeleton rounded-b-[32px] bg-blue/40" />
 }
 
 /** The Profile tab. */

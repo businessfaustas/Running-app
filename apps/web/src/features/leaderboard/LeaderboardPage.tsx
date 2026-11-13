@@ -58,7 +58,7 @@ export function LeaderboardPage() {
 
         <div className="relative mt-5 px-5">
           {board.isPending ? (
-            <div className="h-44 animate-pulse rounded-[24px] bg-white/10" />
+            <div className="h-44 skeleton rounded-[24px] bg-white/10" />
           ) : podium.length > 0 ? (
             <Podium podium={podium} metric={metric} myId={session?.userId} />
           ) : null}
@@ -138,7 +138,7 @@ export function LeaderboardPage() {
         ) : board.isPending ? (
           <div className="mt-4 space-y-2">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-[20px] bg-surface" />
+              <div key={i} className="h-16 skeleton rounded-[20px] bg-surface" />
             ))}
           </div>
         ) : ranked.length === 0 ? (
@@ -153,7 +153,7 @@ export function LeaderboardPage() {
         ) : (
           <>
             {rest.length > 0 && (
-              <ol className="mt-5 space-y-2.5">
+              <ol className="stagger mt-5 space-y-2.5">
                 {rest.map((r) => (
                   <li key={r.entry.user.id}>
                     <Row ranked={r} metric={metric} mine={r.entry.user.id === session?.userId} />
@@ -193,7 +193,7 @@ function Podium({
   // Second, first, third – the classic shape.
   const order = [podium[1], podium[0], podium[2]]
   return (
-    <ol className="grid grid-cols-3 items-end gap-2">
+    <ol className="stagger grid grid-cols-3 items-end gap-2">
       {order.map((r, i) =>
         r ? (
           <li key={r.entry.user.id}>

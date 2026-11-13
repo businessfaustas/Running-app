@@ -375,7 +375,7 @@ function Done({ profile }: { profile: Profile }) {
         <div className="mt-5 space-y-2">
           {slots.isPending
             ? [0, 1, 2].map((i) => (
-                <div key={i} className="h-20 animate-pulse rounded-[22px] bg-surface" />
+                <div key={i} className="h-20 skeleton rounded-[22px] bg-surface" />
               ))
             : matches.map((slot) => <SlotRow key={slot.id} slot={slot} />)}
           {!slots.isPending && matches.length === 0 && (

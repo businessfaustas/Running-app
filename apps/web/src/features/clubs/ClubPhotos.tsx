@@ -68,7 +68,7 @@ export function ClubPhotos({ club }: { club: Club }) {
       {photos.isPending ? (
         <div className="grid grid-cols-3 gap-1.5">
           {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="aspect-square animate-pulse rounded-[14px] bg-surface" />
+            <div key={i} className="aspect-square skeleton rounded-[14px] bg-surface" />
           ))}
         </div>
       ) : list.length === 0 ? (

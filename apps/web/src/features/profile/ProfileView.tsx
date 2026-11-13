@@ -12,6 +12,7 @@ import {
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ReportLink } from '../../components/ReportLink'
+import { CountUp } from '../../components/CountUp'
 import { Avatar } from '../../components/Avatar'
 import { EmptyState } from '../../components/EmptyState'
 import { useUserSlots } from '../../data/hooks'
@@ -124,10 +125,10 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
       </div>
 
       <div className="px-5">
-        <dl className="mt-4 grid grid-cols-3 gap-2">
+        <dl className="stagger mt-4 grid grid-cols-3 gap-2">
           <Stat label="Organizavo" value={hosted} />
           <Stat label="Dalyvavo" value={joined} />
-          <Stat label="Km šią sav." value={formatKm(week.km)} accent />
+          <Stat label="Km šią sav." value={week.km} format={formatKm} accent />
         </dl>
 
         <section className="mt-7">
@@ -177,7 +178,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
             {isMe ? 'Artimiausios treniruotės' : 'Organizuoja'}
           </h2>
           {slots.isPending ? (
-            <div className="mt-3 h-20 animate-pulse rounded-[22px] bg-surface" />
+            <div className="mt-3 h-20 skeleton rounded-[22px] bg-surface" />
           ) : upcoming.length === 0 ? (
             <EmptyState Icon={CalendarPlus} title="Kol kas nieko">
               {isMe
@@ -206,10 +207,12 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
 function Stat({
   label,
   value,
+  format,
   accent = false,
 }: {
   label: string
-  value: number | string
+  value: number
+  format?: (n: number) => string
   accent?: boolean
 }) {
   return (
@@ -224,7 +227,7 @@ function Stat({
             : 'font-display text-[32px] leading-none font-bold text-white tabular'
         }
       >
-        {value}
+        <CountUp value={value} format={format} />
       </dd>
     </div>
   )

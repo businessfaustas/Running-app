@@ -1,7 +1,15 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
+import clsx from 'clsx'
 import { lazy, Suspense, useState, type ReactNode } from 'react'
-import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router'
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+  useLocation,
+  useNavigationType,
+} from 'react-router'
 import { CelebrationOverlay } from './components/CelebrationOverlay'
 import { FullScreenLoader } from './components/FullScreenLoader'
 import { OfflineBanner } from './components/OfflineBanner'
@@ -80,9 +88,15 @@ const TermsPage = lazy(() =>
 const page = (element: ReactNode) => <Suspense fallback={<FullScreenLoader />}>{element}</Suspense>
 const signedIn = (element: ReactNode) => page(<RequireAuth>{element}</RequireAuth>)
 
+/** The tab screens; everything else is a page opened on top of them. */
+const TAB_PATHS = new Set(['/', '/races', '/clubs', '/plans', '/inspire', '/inbox', '/profile'])
+
 /** Phone-shaped column; on tablets and desktops it floats over a dimmed photo. */
 function Shell() {
   useAuthSync()
+  const { pathname } = useLocation()
+  const back = useNavigationType() === 'POP'
+  const onTab = TAB_PATHS.has(pathname)
   return (
     <div className="relative min-h-dvh bg-ink">
       <div aria-hidden className="pointer-events-none fixed inset-0 hidden sm:block">
@@ -91,7 +105,13 @@ function Shell() {
       </div>
       <div className="relative mx-auto flex h-dvh max-w-xl flex-col overflow-hidden bg-ink sm:border-x sm:border-white/10 sm:shadow-[0_0_80px_rgb(0_0_0/0.6)]">
         <main className="min-h-0 flex-1">
-          <Outlet />
+          {/* Pages outside the tabs slide in: from the right when opened, from the left on back. */}
+          <div
+            key={onTab ? 'tabs' : pathname}
+            className={clsx('h-full', !onTab && (back ? 'animate-page-back' : 'animate-page'))}
+          >
+            <Outlet />
+          </div>
         </main>
         <Toaster />
         <OfflineBanner />
@@ -108,11 +128,14 @@ function Shell() {
 function TabLayout() {
   const session = useSession()
   const me = useMe()
+  const { pathname } = useLocation()
   // New accounts finish onboarding before using the app.
   if (session && me.data && !me.data.onboarded) return <Navigate to="/onboarding" replace />
   return (
     <div className="relative h-full">
-      <Outlet />
+      <div key={pathname} className="h-full animate-tab">
+        <Outlet />
+      </div>
       <TabBar />
     </div>
   )

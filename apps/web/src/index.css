@@ -174,6 +174,22 @@
   }
 }
 
+/* Celebration confetti: falls the height of the screen, drifting and turning. (Outside @theme,
+   because it's only referenced from inline styles and would be dropped as unused there.) */
+@keyframes confetti {
+  from {
+    opacity: 1;
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(var(--drift), 105vh, 0) rotate(560deg);
+  }
+}
+
 /* Frosted panel for content over photos and colour. */
 @utility glass {
   background-color: rgb(255 255 255 / 0.1);

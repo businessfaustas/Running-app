@@ -278,7 +278,7 @@ export function CreateWorkoutPage() {
             track('workout_created', { sport: slot.sportType, vibe: slot.vibeTag })
             showSlot(slot.id, slot.date)
             navigate('/', { replace: true })
-            celebrate({ kind: 'posted', slotId: slot.id, title: slot.title })
+            celebrate({ kind: 'posted', slot })
           },
           onError: toastError,
         })

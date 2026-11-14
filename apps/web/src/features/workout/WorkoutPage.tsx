@@ -551,7 +551,7 @@ function ActionBar({ slot, isMember }: { slot: SlotDetail; isMember: boolean }) 
             join.mutate(slot.id, {
               onSuccess: () => {
                 track('workout_joined', { sport: slot.sportType })
-                celebrate({ kind: 'joined', slotId: slot.id, title: slot.title })
+                celebrate({ kind: 'joined', slot })
               },
               onError: toastError,
             })

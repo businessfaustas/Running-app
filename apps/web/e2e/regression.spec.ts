@@ -93,11 +93,11 @@ test.describe('regression', () => {
 
   test('the workout count on Discover matches the list under it', async ({ page }) => {
     await page.goto('/')
-    const heading = page.getByRole('heading', { level: 1 })
-    // The number counts up when the page opens, so wait for it to settle.
-    await expect(heading).toContainText(/[1-9]\d*\s+treniruo/)
-    await page.waitForTimeout(900)
-    const count = Number((await heading.innerText()).match(/(\d+)\s+treniruo/)![1])
-    await expect(page.getByRole('button', { name: /^Visi/ })).toContainText(String(count))
+    // The number counts up when the page opens, so give it time to settle.
+    const all = page.getByRole('button', { name: /^Visi/ })
+    await expect(all).toContainText(/[1-9]/)
+    const count = (await all.innerText()).match(/(\d+)/)![1]!
+    // (Some engines also read out the hidden screen-reader copy of the number, so "contains".)
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(`${count} treniruo`)
   })
 })

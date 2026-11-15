@@ -258,7 +258,7 @@ function ValueText({ ranked, metric }: { ranked: Ranked; metric: Metric }) {
   return (
     <>
       {number}
-      {unit && <span className="ml-0.5 text-[0.55em] opacity-80">{unit}</span>}
+      {unit && <span className="ml-0.5 text-[0.55em]">{unit}</span>}
     </>
   )
 }

@@ -18,7 +18,9 @@ test.describe('smoke', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Šiandien')
   })
 
-  test('shows a real 404 page for unknown addresses, hidden from search @live', async ({ page }) => {
+  test('shows a real 404 page for unknown addresses, hidden from search @live', async ({
+    page,
+  }) => {
     await page.goto('/this-does-not-exist')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
@@ -54,7 +56,9 @@ test.describe('smoke', () => {
     await expect(page.getByLabel('El. paštas')).toBeVisible()
   })
 
-  test('someone not signed in is sent to sign in before joining or posting @live', async ({ page }) => {
+  test('someone not signed in is sent to sign in before joining or posting @live', async ({
+    page,
+  }) => {
     await page.goto('/workouts/new')
     await expect(page).toHaveURL(/signin/)
   })

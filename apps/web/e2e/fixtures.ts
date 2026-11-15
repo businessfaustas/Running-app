@@ -45,6 +45,39 @@ export const test = base.extend<{ errors: string[] }>({
 
 export { expect }
 
+/**
+ * Waits until the page has stopped changing: loading placeholders are gone, and every finite
+ * animation (fades, slides, count-ups) has finished, including ones that only start once data
+ * arrives. Measurements such as contrast or positions are only meaningful after this. A fixed
+ * sleep either wastes time or flakes on a busy CI machine; this waits exactly as long as needed.
+ * Endless animations (the pulsing "now" marker) are left running.
+ */
+export async function settled(page: Page) {
+  await page
+    .locator('.skeleton')
+    .first()
+    .waitFor({ state: 'detached', timeout: 15_000 })
+    .catch(() => undefined)
+  for (let round = 0; round < 6; round++) {
+    const running = await page.evaluate(async () => {
+      // Two frames, so styles for anything that just mounted are computed and its animations exist.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      const finite = document
+        .getAnimations()
+        // Scroll-driven animations (the header photo's parallax) follow the scroll position and
+        // never "finish"; only time-based ones are waited for.
+        .filter(
+          (a) => a.timeline === document.timeline && a.effect?.getTiming().iterations !== Infinity,
+        )
+      await Promise.all(finite.map((a) => a.finished.catch(() => undefined)))
+      return finite.length
+    })
+    // Let anything the last round triggered (data arriving, a list mounting) start, then look again.
+    await page.waitForTimeout(80)
+    if (running === 0) break
+  }
+}
+
 /** Signs in as the sample athlete (preview mode). */
 export async function signInAsSample(page: Page) {
   await page.goto('/signin')

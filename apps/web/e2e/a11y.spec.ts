@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, OPEN_RACE, test } from './fixtures'
+import { expect, OPEN_RACE, settled, test } from './fixtures'
 
 /** Accessibility: automated WCAG 2.1 A/AA checks. Anything serious or critical fails the build. */
 const PAGES = [
@@ -18,7 +18,7 @@ test.describe('accessibility', () => {
   for (const path of PAGES) {
     test(`${path} has no serious accessibility problems`, async ({ page }) => {
       await page.goto(path)
-      await page.waitForTimeout(700) // let entrance animations settle before measuring contrast
+      await settled(page) // measure contrast on the finished page, not mid-fade
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze()

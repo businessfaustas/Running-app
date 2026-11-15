@@ -211,7 +211,9 @@ Everything the repository can do is already in place. These need your accounts:
 - [ ] Run **Database backup** once, then **Restore drill** once, and read both logs
 - [ ] GitHub → Settings → Branches: require the CI checks on the production branch
 - [ ] GitHub → Settings → Code security: Dependabot alerts + security updates, Secret scanning + Push protection
-- [ ] Vercel: enable **Analytics** and **Speed Insights**; set `VITE_SUPABASE_*`, `VITE_SENTRY_DSN`, `VITE_SITE_URL`
+- [ ] Vercel: enable **Analytics** and **Speed Insights** (project → Analytics / Speed Insights → Enable; the
+      post-deploy check found them still off: until they are, no visitor data or Web Vitals are collected and
+      the browser logs a harmless 404 for `/_vercel/insights/script.js`); set `VITE_SUPABASE_*`, `VITE_SENTRY_DSN`, `VITE_SITE_URL`
 - [ ] Sentry: create the alert rules from the table above
 - [ ] Spend caps and billing alerts (section above)
 - [ ] Custom domain, then `scripts/check-domain.mjs`

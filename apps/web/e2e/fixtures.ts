@@ -4,6 +4,13 @@ import { expect, test as base, type Page } from '@playwright/test'
 const EXTERNAL =
   /(tiles\.openfreemap\.org|vitals\.vercel-insights\.com|va\.vercel-scripts\.com|sentry\.io)/
 
+/**
+ * Vercel's analytics and speed-insights scripts only exist once those features are switched on in
+ * the Vercel project. When they aren't, the browser logs a failed request for them. That is an
+ * owner to-do (docs/RUNBOOK.md), not a broken page, so it must not fail the smoke tests.
+ */
+const VERCEL_TELEMETRY = /\/_vercel\/(insights|speed-insights)\//
+
 /** An empty but valid map style, so the map code runs without reaching the internet. */
 export const EMPTY_MAP_STYLE = JSON.stringify({ version: 8, sources: {}, layers: [] })
 
@@ -21,6 +28,8 @@ export const test = base.extend<{ errors: string[] }>({
         if (
           m.type() === 'error' &&
           !EXTERNAL.test(m.text()) &&
+          !VERCEL_TELEMETRY.test(m.text()) &&
+          !VERCEL_TELEMETRY.test(m.location().url) &&
           !/Failed to load resource/.test(m.text())
         )
           errors.push(`console: ${m.text()}`)

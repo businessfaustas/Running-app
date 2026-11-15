@@ -141,7 +141,10 @@ supabase/
                        rate limits, account deletion)
   templates/           Lithuanian confirmation and password-reset emails
 docs/GO-LIVE.md        launch checklist
-.github/workflows/     nightly encrypted database backup
+docs/RUNBOOK.md        releases, rollback, staging, alerts, secrets, spend caps, domain
+.github/workflows/     CI, post-deploy check, uptime, nightly backup, restore drill
+scripts/               restore-drill.sh, check-domain.mjs
+apps/web/e2e/          browser tests (smoke, SEO, regression, accessibility, slow network)
 ```
 
 ## Getting started
@@ -263,6 +266,14 @@ The web app doesn't need it; it's kept for server-side jobs later, and holds the
   `nosniff`, Referrer-Policy, Permissions-Policy.
 - **Optional API** (`apps/api`): per-IP rate limiting (300 reads, 30 writes a minute) and a 16 kB
   body limit.
+- **Access control, endpoint by endpoint:** the browser talks to Supabase, where every table has
+  row-level security and every function says who may call it (`migrations.test.ts` fails the build if a
+  table lacks RLS or a `SECURITY DEFINER` function doesn't pin its `search_path`, or if anonymous
+  visitors gain write access anywhere but the report form). The optional API has two public read-only
+  routes and a test that fails if a write route appears. Auth, password reset and email verification are
+  Supabase Auth's, configured per docs/GO-LIVE.md §3.
+- **Dependencies:** `pnpm audit` is clean (overrides in the root `package.json` pin patched versions of
+  transitive packages); CI re-audits on every push and Dependabot proposes updates weekly.
 - **Privacy:** cookieless analytics, error reports scrubbed of emails and tokens, no tracking
   cookies. Account deletion is self-service.
 
@@ -274,6 +285,81 @@ The web app doesn't need it; it's kept for server-side jobs later, and holds the
   (`apps/web/src/lib/analytics.ts`). URLs are reported without ids, query strings or fragments.
 - **Errors:** Sentry, loaded only when `VITE_SENTRY_DSN` is set (`apps/web/src/lib/monitoring.ts`).
   Crashes, unexpected backend errors and failed queries are reported with an anonymous user id.
+- **Performance:** Vercel Speed Insights (Core Web Vitals from real visitors) and the CI size budget.
+- **Uptime and alerts:** `uptime.yml` opens an issue when the live site is down; post-deploy and
+  restore-drill failures open issues too. Who hears what, and the Sentry rules to create, are in the
+  alerts table in [docs/RUNBOOK.md](docs/RUNBOOK.md).
+- **Logs:** the optional API writes one JSON line per request (id, method, path without query string,
+  status, milliseconds; never bodies or headers) and tags errors with the request id it returns in
+  `X-Request-Id`. Browser errors go to Sentry; database logs are in Supabase → Logs.
+
+## Testing and CI/CD
+
+| Layer              | What                                                                                                                          | Where                                    | Run                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------- |
+| Unit               | Logic, data, SEO output, the API, database safety rules                                                                       | `*.test.ts` in each package              | `pnpm test`                             |
+| Database rules     | Row-level security on every table, `search_path` on every `SECURITY DEFINER` function, anonymous writes only where deliberate | `packages/shared/src/migrations.test.ts` | `pnpm test`                             |
+| API                | Health, validation, 404/413 handling, CORS, rate limits, and that no write route exists                                       | `apps/api/src/app.test.ts`               | `pnpm test`                             |
+| Smoke              | Every public page opens without errors; sign-in, join a workout, chat, post a workout                                         | `apps/web/e2e/smoke.spec.ts`             | `pnpm --filter @pacemates/web test:e2e` |
+| SEO / AEO          | Sitemap, robots, llms.txt, structured data, canonical, per-page titles                                                        | `e2e/seo.spec.ts`                        | same                                    |
+| Regression         | Bugs fixed once and kept fixed (sideways scrolling, missing photos, cut-off buttons, reduced motion…)                         | `e2e/regression.spec.ts`                 | same                                    |
+| Accessibility      | WCAG 2.1 A/AA scan (axe) of the main pages, keyboard reach                                                                    | `e2e/a11y.spec.ts`                       | same                                    |
+| Devices            | Everything above on Chrome desktop, Pixel 7, iPhone 13, iPhone SE, iPad                                                       | `playwright.config.ts`                   | same                                    |
+| Slow network       | Slow 3G, going offline, third-party services blocked                                                                          | `e2e/network.spec.ts`                    | same                                    |
+| Performance budget | First-load JS and CSS size, image sizes, map library kept out of the first load                                               | `apps/web/scripts/check-budget.mjs`      | `pnpm --filter @pacemates/web budget`   |
+
+Browser tests run against the production build in preview mode (no Supabase, no secrets):
+
+```bash
+pnpm --filter @pacemates/web exec playwright install chromium webkit   # once
+pnpm --filter @pacemates/web build:e2e
+pnpm --filter @pacemates/web test:e2e                      # everything
+pnpm --filter @pacemates/web exec playwright test --project=iphone-13 e2e/smoke.spec.ts
+```
+
+Only Chromium installed? `E2E_CHROMIUM_ONLY=1` runs the iPhone and iPad profiles in Chromium.
+
+**CI** (`.github/workflows/ci.yml`) runs on every push and pull request: types, lint, unit tests,
+build, size budget; a dependency audit (`pnpm audit`) and a secret scan of the whole history
+(gitleaks); and the browser tests, one job per device profile, with WebKit for the iPhone and iPad.
+**CD:** Vercel builds a preview of every branch and deploys the production branch. After each
+production deploy `post-deploy.yml` runs the smoke and SEO tests (those tagged `@live`) against the
+live site and opens an issue with the rollback steps if they fail. `uptime.yml` checks the live site
+every 30 minutes, `db-backup.yml` backs up nightly, `restore-drill.yml` proves a backup restores
+every month, and Dependabot proposes dependency updates weekly.
+Releasing, rolling back, staging and alerts are in [docs/RUNBOOK.md](docs/RUNBOOK.md).
+
+## SEO and AEO
+
+The app is a single-page app, so the build and the pages cooperate to give crawlers what they need:
+
+- **`sitemap.xml`, `robots.txt`, `llms.txt`** are generated at build time from the race and club
+  lists (`apps/web/seo-plugin.ts`, `src/lib/seo.ts`), so a new race appears with the next deploy. The
+  address comes from `VITE_SITE_URL`, else Vercel's production domain. `robots.txt` welcomes Google, Bing
+  and the main answer-engine crawlers (GPTBot, ClaudeBot, PerplexityBot…) on public pages and keeps every
+  crawler out of account screens.
+- **Structured data (JSON-LD):** the home page carries `WebSite`, `Organization` and a Lithuanian
+  `FAQPage` (generated from `seo.ts`); each race with a confirmed date gets a `SportsEvent` and each
+  club a `SportsOrganization`. A race with no announced date gets none rather than an invented one.
+- **Per-page meta** (`usePageMeta`): title, description, canonical link, Open Graph URL and
+  `noindex` on not-found pages and clubs still awaiting review. Pages without JavaScript get a
+  heading and links from a `<noscript>` block.
+- **Social previews:** Open Graph and Twitter tags, a 1200×630 `og.png`, favicons, an app icon set
+  and a web manifest.
+- Tests: `src/lib/seo.test.ts` (unit) and `e2e/seo.spec.ts` (in a real browser). After launch, submit
+  `/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
+
+## Performance and caching
+
+- **Budget:** first-load JavaScript is checked in CI (about 238 kB gzipped against a 260 kB budget); the
+  1 MB map library loads only when a map is on screen; every photo is a small WebP.
+- **Caching** (`apps/web/vercel.json`): hashed build files are cached for a year (`immutable`); photos,
+  icons and the manifest for a day, with stale-while-revalidate; `index.html` always revalidates, so a
+  release reaches everyone at once; `sitemap.xml`, `robots.txt` and `llms.txt` for an hour.
+- **Real-visitor monitoring:** Vercel Speed Insights reports LCP, INP and CLS (cookieless, URLs scrubbed
+  as for analytics). Enable it in the Vercel project.
+- Measured on emulated slow 3G (400 kbit/s, 400 ms): the home page is interactive in about 8 seconds,
+  and it keeps working offline-aware (banner) and when maps and analytics are unreachable.
 
 ## Backups
 
@@ -295,6 +381,9 @@ PGOPTIONS="-c session_replication_role=replica" pg_restore --data-only --no-owne
 ```
 
 People sign in again after a restore (sessions aren't backed up).
+
+`scripts/restore-drill.sh <dump>` restores a decrypted dump into a throwaway database and checks it; the
+monthly **Restore drill** workflow runs it on the newest backup. See the runbook.
 
 ## Environment variables (web)
 

@@ -1,3 +1,4 @@
+import { usePageMeta } from '../../lib/usePageMeta'
 import type { Race } from '@pacemates/shared'
 import { RACES } from '@pacemates/shared/races'
 import clsx from 'clsx'
@@ -22,6 +23,11 @@ interface Entry {
 const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
 export function RacesPage() {
+  usePageMeta({
+    title: 'Varžybos',
+    description:
+      'Lietuvos bėgimo, trail, ultra, dviračių ir triatlono varžybų kalendorius: datos, distancijos, aprašymai ir dalyvių forumas.',
+  })
   const session = useSession()
   const counts = useRaceCounts()
   const myRaces = useUserRaces(session?.userId)

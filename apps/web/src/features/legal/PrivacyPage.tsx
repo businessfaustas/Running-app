@@ -1,14 +1,16 @@
+import { usePageMeta } from '../../lib/usePageMeta'
 import { Link } from 'react-router'
 import { MIN_AGE, OPERATOR } from '../../content/legal'
 import { LegalLayout } from './LegalLayout'
 
 export function PrivacyPage() {
+  usePageMeta({ title: 'Privatumo politika' })
   return (
     <LegalLayout title="Privatumo politika">
       <p>
-        Ši politika paaiškina, kokius asmens duomenis tvarko PaceMates, kodėl tai darome ir
-        kokias teises turi. Duomenis tvarkome pagal Bendrąjį duomenų apsaugos reglamentą (BDAR) ir
-        Lietuvos Respublikos asmens duomenų teisinės apsaugos įstatymą.
+        Ši politika paaiškina, kokius asmens duomenis tvarko PaceMates, kodėl tai darome ir kokias
+        teises turi. Duomenis tvarkome pagal Bendrąjį duomenų apsaugos reglamentą (BDAR) ir Lietuvos
+        Respublikos asmens duomenų teisinės apsaugos įstatymą.
       </p>
 
       <h2>1. Kas tvarko duomenis</h2>
@@ -24,17 +26,17 @@ export function PrivacyPage() {
           kaip kriptografinė maiša – mes jo nematome) ir laikas, kada sutikai su sąlygomis.
         </li>
         <li>
-          <strong>Profilio duomenys, kuriuos pateiki:</strong> aprašymas, sporto šakos,
-          įprasti tempai, miestas, kuriame dažniausiai sportuoji, Strava ID ir profilio
-          nuotrauka, jei ją įkeli. Prieš įkeliant nuotrauka apkerpama ir perkoduojama tavo
-          įrenginyje, todėl jos metaduomenys (pvz., fotografavimo vieta) pas mus nepatenka.
+          <strong>Profilio duomenys, kuriuos pateiki:</strong> aprašymas, sporto šakos, įprasti
+          tempai, miestas, kuriame dažniausiai sportuoji, Strava ID ir profilio nuotrauka, jei ją
+          įkeli. Prieš įkeliant nuotrauka apkerpama ir perkoduojama tavo įrenginyje, todėl jos
+          metaduomenys (pvz., fotografavimo vieta) pas mus nepatenka.
         </li>
         <li>
           <strong>Veiklos duomenys:</strong> tavo skelbiamos treniruotės (laikas, susitikimo vieta,
           atstumas, tempas, aprašymas), dalyvavimas treniruotėse, žinutės grupių pokalbiuose,
-          varžybos, į kurias žadi vykti (ir pasirinkta distancija), bei įrašai ir atsakymai
-          varžybų forumuose, taip pat nuotraukos, kurias įkeli į klubų puslapius (įkeliant jos
-          sumažinamos, o metaduomenys, pvz., fotografavimo vieta, pašalinami).
+          varžybos, į kurias žadi vykti (ir pasirinkta distancija), bei įrašai ir atsakymai varžybų
+          forumuose, taip pat nuotraukos, kurias įkeli į klubų puslapius (įkeliant jos sumažinamos,
+          o metaduomenys, pvz., fotografavimo vieta, pašalinami).
         </li>
         <li>
           <strong>Vieta:</strong> tik tada, kai kuriant treniruotę paspaudi „Mano vieta“ arba
@@ -42,25 +44,24 @@ export function PrivacyPage() {
           žemėlapyje ar rastume artimiausią miestą; tavo buvimo vietos istorijos nesaugome.
         </li>
         <li>
-          <strong>Gimimo data registruojantis:</strong> metus ir mėnesį naudojame tik patikrinti,
-          ar tau jau yra {MIN_AGE} metų. Jų niekur neišsaugome ir niekam neperduodame.
+          <strong>Gimimo data registruojantis:</strong> metus ir mėnesį naudojame tik patikrinti, ar
+          tau jau yra {MIN_AGE} metų. Jų niekur neišsaugome ir niekam neperduodame.
         </li>
         <li>
           <strong>Pranešimai apie turinį:</strong> jei pranešei apie netinkamą turinį (per
           „Pranešti“ formą ar el. paštu), saugome pranešimą: kas ir kur pranešta, priežastį,
-          paaiškinimą ir kas pranešė (paskyrą arba, jei pranešei neprisijungus, nurodytą vardą
-          ir el. paštą). Pranešimą mato tik už jo nagrinėjimą atsakingi
-          žmonės; saugome jį, kol išnagrinėjame, ir ne ilgiau kaip 1 metus.
+          paaiškinimą ir kas pranešė (paskyrą arba, jei pranešei neprisijungus, nurodytą vardą ir
+          el. paštą). Pranešimą mato tik už jo nagrinėjimą atsakingi žmonės; saugome jį, kol
+          išnagrinėjame, ir ne ilgiau kaip 1 metus.
         </li>
         <li>
           <strong>Klubai, kuriuos pridedi:</strong> klubo pavadinimas, sportas, miestas, aprašymas,
           treniruočių laikas, susitikimo vieta, nuorodos ir viešas klubo el. paštas. Kol klubą
-          peržiūrime, jį matai tik tu; patvirtintą mato visi. Kas pridėjo klubą, kitiems
-          nerodome.
+          peržiūrime, jį matai tik tu; patvirtintą mato visi. Kas pridėjo klubą, kitiems nerodome.
         </li>
         <li>
-          <strong>Mitybos skaičiuoklė:</strong> joje įvesti duomenys (svoris, amžius, lytis,
-          pulsas) lieka tik tavo naršyklėje – skaičiuojama tavo įrenginyje, mums jie nesiunčiami.
+          <strong>Mitybos skaičiuoklė:</strong> joje įvesti duomenys (svoris, amžius, lytis, pulsas)
+          lieka tik tavo naršyklėje – skaičiuojama tavo įrenginyje, mums jie nesiunčiami.
         </li>
         <li>
           <strong>Techniniai duomenys:</strong> IP adresas ir naršyklės informacija, reikalingi
@@ -72,24 +73,24 @@ export function PrivacyPage() {
       <h2>3. Kam naudojame ir kokiu pagrindu</h2>
       <ul>
         <li>
-          Paskyrai, treniruotėms, dalyvavimui ir pokalbiams užtikrinti – <strong>sutarties
-          vykdymas</strong> (BDAR 6 str. 1 d. b p.).
+          Paskyrai, treniruotėms, dalyvavimui ir pokalbiams užtikrinti –{' '}
+          <strong>sutarties vykdymas</strong> (BDAR 6 str. 1 d. b p.).
         </li>
         <li>
           Paslaugos el. laiškams (paskyros patvirtinimas, slaptažodžio atkūrimas) – sutarties
           vykdymas. Rinkodaros laiškų nesiunčiame.
         </li>
         <li>
-          Saugumui, piktnaudžiavimo prevencijai ir klaidoms taisyti – <strong>teisėtas
-          interesas</strong> (BDAR 6 str. 1 d. f p.).
+          Saugumui, piktnaudžiavimo prevencijai ir klaidoms taisyti –{' '}
+          <strong>teisėtas interesas</strong> (BDAR 6 str. 1 d. f p.).
         </li>
         <li>
           Pranešimams apie neteisėtą turinį nagrinėti – <strong>teisinė prievolė</strong> (BDAR 6
           str. 1 d. c p.; ES skaitmeninių paslaugų akto 16 str.).
         </li>
         <li>
-          Anoniminei statistikai, padedančiai tobulinti programėlę, – teisėtas interesas.
-          Statistika renkama be slapukų ir tavęs neidentifikuoja.
+          Anoniminei statistikai, padedančiai tobulinti programėlę, – teisėtas interesas. Statistika
+          renkama be slapukų ir tavęs neidentifikuoja.
         </li>
       </ul>
 
@@ -103,8 +104,8 @@ export function PrivacyPage() {
       <ul>
         <li>
           <strong>Kas dalyvauja treniruotėje</strong>, mato tik tos treniruotės dalyviai ir
-          organizatorius. Visi kiti mato tik dalyvių skaičių – taip niekas negali sužinoti, kur
-          ir kada konkretus žmogus sportuos.
+          organizatorius. Visi kiti mato tik dalyvių skaičių – taip niekas negali sužinoti, kur ir
+          kada konkretus žmogus sportuos.
         </li>
         <li>
           Būsimas treniruotes, į kurias užsirašei, matai tik tu – kitų profilyje jos nerodomos.
@@ -122,9 +123,8 @@ export function PrivacyPage() {
       </ul>
       <p>
         <strong>Lyderių lentelės</strong> viešai rodo, kiek kilometrų nubėgai ar numynei, kiek
-        treniruočių įvyko ir kiek jų organizavai per savaitę ar mėnesį. Skaičiuojamos tik
-        įvykusios PaceMates grupinės treniruotės, kuriose dalyvavai, – kitų tavo treniruočių
-        nematome.
+        treniruočių įvyko ir kiek jų organizavai per savaitę ar mėnesį. Skaičiuojamos tik įvykusios
+        PaceMates grupinės treniruotės, kuriose dalyvavai, – kitų tavo treniruočių nematome.
       </p>
 
       <h2>5. Kam perduodame duomenis</h2>
@@ -137,17 +137,17 @@ export function PrivacyPage() {
       </ul>
       <p>
         Kai kurie teikėjai duomenis gali tvarkyti už ES / EEE ribų. Tokiais atvejais taikomos
-        Europos Komisijos patvirtintos standartinės sutarčių sąlygos arba ES ir JAV duomenų
-        apsaugos sistema. Duomenų neparduodame ir reklamai neperduodame.
+        Europos Komisijos patvirtintos standartinės sutarčių sąlygos arba ES ir JAV duomenų apsaugos
+        sistema. Duomenų neparduodame ir reklamai neperduodame.
       </p>
 
       <h2>6. Kiek laiko saugome</h2>
       <p>
         Duomenis saugome, kol turi paskyrą. Ištrynus paskyrą, ji ir susiję duomenys (profilio
-        nuotrauka, treniruotės, žinutės, forumo įrašai, klubų nuotraukos) pašalinami iš karto, o iš atsarginių
-        kopijų – ne vėliau kaip per 30 dienų. Tavo pridėti klubai lieka sąraše (be nuorodos į
-        tave), o pateikti pranešimai saugomi iki savo termino, bet nebesusieti su paskyra. Klaidų
-        ataskaitos ir saugumo žurnalai saugomi iki 90 dienų.
+        nuotrauka, treniruotės, žinutės, forumo įrašai, klubų nuotraukos) pašalinami iš karto, o iš
+        atsarginių kopijų – ne vėliau kaip per 30 dienų. Tavo pridėti klubai lieka sąraše (be
+        nuorodos į tave), o pateikti pranešimai saugomi iki savo termino, bet nebesusieti su
+        paskyra. Klaidų ataskaitos ir saugumo žurnalai saugomi iki 90 dienų.
       </p>
 
       <h2>7. Slapukai ir naršyklės saugykla</h2>
@@ -170,8 +170,11 @@ export function PrivacyPage() {
       </ul>
       <p>
         Prašymus siųsk el. paštu {OPERATOR.email} – atsakysime per 30 dienų. Jei manai, kad tavo
-        teisės pažeistos, gali kreiptis į Valstybinę duomenų apsaugos inspekciją (L. Sapiegos g.
-        17, Vilnius, <a href="https://vdai.lrv.lt" target="_blank" rel="noreferrer">vdai.lrv.lt</a>
+        teisės pažeistos, gali kreiptis į Valstybinę duomenų apsaugos inspekciją (L. Sapiegos g. 17,
+        Vilnius,{' '}
+        <a href="https://vdai.lrv.lt" target="_blank" rel="noreferrer">
+          vdai.lrv.lt
+        </a>
         ).
       </p>
 
@@ -186,9 +189,7 @@ export function PrivacyPage() {
       </p>
 
       <h2>11. Pakeitimai</h2>
-      <p>
-        Apie esminius šios politikos pakeitimus pranešime programėlėje arba el. paštu.
-      </p>
+      <p>Apie esminius šios politikos pakeitimus pranešime programėlėje arba el. paštu.</p>
     </LegalLayout>
   )
 }

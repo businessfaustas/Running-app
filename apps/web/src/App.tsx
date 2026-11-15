@@ -1,5 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import clsx from 'clsx'
 import { lazy, Suspense, useState, type ReactNode } from 'react'
 import {
@@ -118,7 +119,13 @@ function Shell() {
         <CelebrationOverlay />
       </div>
       {analyticsEnabled && (
-        <Analytics beforeSend={(event) => ({ ...event, url: sanitizeAnalyticsUrl(event.url) })} />
+        <>
+          <Analytics beforeSend={(event) => ({ ...event, url: sanitizeAnalyticsUrl(event.url) })} />
+          {/* Real-visitor Core Web Vitals (LCP, INP, CLS), cookieless, with the same URL scrubbing. */}
+          <SpeedInsights
+            beforeSend={(event) => ({ ...event, url: sanitizeAnalyticsUrl(event.url) })}
+          />
+        </>
       )}
     </div>
   )

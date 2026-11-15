@@ -18,23 +18,6 @@ interface SlotCardProps {
   role?: Role
 }
 
-function describe(slot: SlotSummary, role?: Role): string {
-  const going = slot.maxParticipants
-    ? `dalyvauja ${slot.participantCount} iš ${slot.maxParticipants}`
-    : `dalyvauja ${slot.participantCount}`
-  return [
-    slot.title,
-    SPORT_META[slot.sportType].label,
-    slot.endTime ? `${slot.startTime}–${slot.endTime}` : `pradžia ${slot.startTime}`,
-    `${formatKm(slot.distanceKm)} km, ${slot.targetPace}`,
-    `organizuoja ${slot.host.name}`,
-    slot.status === 'CANCELLED' ? 'atšaukta' : slot.status === 'FULL' ? 'vietų nebėra' : going,
-    role === 'HOST' ? 'tu organizuoji' : role === 'PARTICIPANT' ? 'tu dalyvauji' : null,
-  ]
-    .filter(Boolean)
-    .join(', ')
-}
-
 /**
  * Timeline card. Fills its container and adapts to the container's width (container
  * queries), so it reads in a narrow column and in the full-width map preview alike.
@@ -47,7 +30,6 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
   return (
     <Link
       to={`/workouts/${slot.id}`}
-      aria-label={describe(slot, role)}
       style={{ '--accent': sport.accent } as CSSProperties}
       className={clsx(
         '@container relative flex size-full overflow-hidden rounded-[22px] border text-left',
@@ -60,7 +42,7 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
       <span
         className={clsx(
           'flex min-w-0 flex-1 flex-col p-3 @max-[119px]:p-2',
-          (dimmed || cancelled) && 'opacity-45',
+          (dimmed || cancelled) && 'opacity-75 saturate-50',
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">
@@ -98,6 +80,7 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
         <span className="mt-1 hidden min-h-0 min-w-0 items-center gap-1.5 overflow-hidden text-[12px] text-slate-400 @min-[170px]:flex">
           <Avatar user={slot.host} size={16} />
           <span className="truncate">
+            <span className="sr-only">organizuoja </span>
             {firstName(slot.host.name)} · {formatKm(slot.distanceKm)} km
             <span className="hidden @min-[240px]:inline"> · {slot.targetPace}</span>
           </span>
@@ -138,10 +121,16 @@ function Attendance({ slot }: { slot: SlotSummary }) {
         )}
       >
         <UsersRound className="size-3.5 opacity-70" aria-hidden />
+        <span className="sr-only">dalyvauja </span>
         {slot.maxParticipants
           ? `${slot.participantCount}/${slot.maxParticipants}`
           : slot.participantCount}
-        {full && <span className="hidden font-semibold @min-[200px]:inline"> · pilna</span>}
+        {full && (
+          <span className="sr-only @min-[200px]:not-sr-only @min-[200px]:font-semibold">
+            {' '}
+            · pilna
+          </span>
+        )}
       </span>
     </span>
   )

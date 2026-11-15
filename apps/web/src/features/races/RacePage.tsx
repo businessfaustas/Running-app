@@ -1,3 +1,5 @@
+import { metaDescription, raceJsonLd } from '../../lib/seo'
+import { usePageMeta } from '../../lib/usePageMeta'
 import type { Race, RaceAttendee, RacePost, RacePostTopic } from '@pacemates/shared'
 import { raceBySlug } from '@pacemates/shared/races'
 import clsx from 'clsx'
@@ -65,24 +67,33 @@ const signInPath = (next: string) => `/signin?next=${encodeURIComponent(next)}`
 export function RacePage() {
   const { slug = '' } = useParams()
   const race = raceBySlug(slug)
-  if (!race) {
-    return (
-      <div className="flex h-full flex-col">
-        <TopBar fallback="/races" title="Varžybos" />
-        <EmptyState
-          Icon={Trophy}
-          title="Varžybų neradome"
-          action={<ButtonLink to="/races">Visos varžybos</ButtonLink>}
-        >
-          Gal nuoroda pasenusi? Peržiūrėk kalendorių – ten rasi visas Lietuvos varžybas.
-        </EmptyState>
-      </div>
-    )
-  }
+  if (!race) return <RaceNotFound />
   return <RaceView key={race.slug} race={race} />
 }
 
+function RaceNotFound() {
+  usePageMeta({ title: 'Varžybų nerasta', noindex: true })
+  return (
+    <div className="flex h-full flex-col">
+      <TopBar fallback="/races" title="Varžybos" />
+      <EmptyState
+        Icon={Trophy}
+        title="Varžybų neradome"
+        action={<ButtonLink to="/races">Visos varžybos</ButtonLink>}
+      >
+        Gal nuoroda pasenusi? Peržiūrėk kalendorių – ten rasi visas Lietuvos varžybas.
+      </EmptyState>
+    </div>
+  )
+}
+
 function RaceView({ race }: { race: Race }) {
+  usePageMeta({
+    title: race.name,
+    description: metaDescription(`${race.name} – ${race.city}. ${race.description}`),
+    path: `/races/${race.slug}`,
+    jsonLd: raceJsonLd(race, window.location.origin),
+  })
   const session = useSession()
   const attendees = useRaceAttendees(race.slug)
   const me = attendees.data?.find((a) => a.id === session?.userId)

@@ -1,0 +1,64 @@
+# Restore drill: once a month (and on demand) the newest nightly backup is decrypted and restored
+# into a throwaway PostgreSQL+PostGIS database and checked (rows, row-level security, triggers,
+# location queries). A backup that was never restored is only a hope; this makes it a fact.
+# If it fails, GitHub opens an issue. Uses the same two secrets as the backup workflow.
+name: Restore drill
+
+on:
+  schedule:
+    - cron: '23 4 1 * *' # 04:23 UTC on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_PASSWORD: drill
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check configuration
+        run: |
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Add the BACKUP_PASSPHRASE secret (the same one the backup workflow uses)."; exit 1; }
+      - name: Install the PostgreSQL 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Download the newest backup
+        run: |
+          run_id=$(gh run list --workflow db-backup.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          [ -n "$run_id" ] || { echo "::error::No successful backup run found. Is the Database backup workflow set up?"; exit 1; }
+          echo "Newest successful backup: run $run_id"
+          gh run download "$run_id" --dir backup
+          ls -lh backup/*/
+      - name: Decrypt
+        run: |
+          file=$(ls backup/*/*.gpg | head -1)
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" --decrypt --output pacemates.dump "$file"
+      - name: Restore and check
+        run: scripts/restore-drill.sh pacemates.dump "postgresql://postgres:drill@localhost:5432/postgres"
+      - name: Raise an issue if the drill failed
+        if: failure()
+        run: |
+          gh label create incident --color B60205 --description "Something is broken" 2>/dev/null || true
+          gh issue create --label incident --title "Restore drill failed – the latest backup may not be restorable" \
+            --body "The monthly restore drill failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          Check the Database backup workflow and its secrets, then run this workflow again. See docs/RUNBOOK.md → Backups and restores."

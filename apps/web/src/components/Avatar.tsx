@@ -63,7 +63,9 @@ export function Avatar({ user, size = 32, className }: AvatarProps) {
           onError={() => setFailedSrc(user.avatarUrl)}
         />
       ) : (
-        initials(user.name)
+        // Drawn by CSS, not as text: the initials are decoration, and as real text they'd count
+        // as visible words that a link's spoken name (which has the full name) doesn't repeat.
+        <span data-initials={initials(user.name)} className="after:content-[attr(data-initials)]" />
       )}
     </span>
   )

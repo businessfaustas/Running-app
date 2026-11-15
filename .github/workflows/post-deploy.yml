@@ -1,0 +1,51 @@
+# After every production deploy, drive the live site with the tests that are safe to run on it
+# (smoke + SEO, tagged @live). If they fail, an issue is opened with the rollback steps.
+name: Post-deploy check
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live-check:
+    # Vercel reports each deployment; only a finished production one is checked.
+    if: >
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @pacemates/web exec playwright install --with-deps chromium webkit
+      - name: Smoke and SEO tests against the live site
+        env:
+          E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+        run: >
+          pnpm --filter @pacemates/web exec playwright test --grep @live
+          --project=desktop-chrome --project=iphone-13
+      - name: Open an issue with the rollback steps
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Production deploy ${GITHUB_SHA::7} failed its post-deploy check" \
+            --label "incident" \
+            --body "The live site failed the smoke tests after deploying \`${{ github.event.deployment.sha }}\`.
+
+          **Roll back now:** Vercel → project → Deployments → pick the last good one → ⋯ → *Promote to Production* (instant, no rebuild).
+          Then fix forward on a branch. Full steps: docs/RUNBOOK.md → Rolling back.
+
+          Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            || gh issue create --title "Production deploy failed its post-deploy check" --body "See $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

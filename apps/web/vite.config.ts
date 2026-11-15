@@ -2,22 +2,34 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { PUBLIC_ENV_PREFIXES, publicEnvGuard } from './env-guard.ts'
+import { seoFiles } from './seo-plugin.ts'
+import { websiteJsonLd } from './src/lib/seo.ts'
 
 /**
  * Link previews (Facebook, Messenger, Slack…) need absolute URLs. The site's address comes from
  * VITE_SITE_URL, else the production domain Vercel exposes at build time.
  */
-function siteUrl(): Plugin {
+const siteOrigin = () => {
   const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  const url = (process.env.VITE_SITE_URL ?? (vercel ? `https://${vercel}` : '')).replace(/\/$/, '')
+  return (process.env.VITE_SITE_URL ?? (vercel ? `https://${vercel}` : '')).replace(/\/$/, '')
+}
+
+function siteUrl(): Plugin {
   return {
     name: 'pacemates:site-url',
-    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', url),
+    // The home page's structured data comes from src/lib/seo.ts, so there's one source of truth.
+    transformIndexHtml: (html) =>
+      html
+        .replace(
+          '__JSON_LD__',
+          JSON.stringify(websiteJsonLd(siteOrigin())).replaceAll('<', '\\u003c'),
+        )
+        .replaceAll('%SITE_URL%', siteOrigin()),
   }
 }
 
 export default defineConfig({
-  plugins: [publicEnvGuard(), siteUrl(), react(), tailwindcss()],
+  plugins: [publicEnvGuard(), siteUrl(), seoFiles(siteOrigin), react(), tailwindcss()],
   // NEXT_PUBLIC_* lets the Vercel ↔ Supabase integration's variables work without renaming.
   envPrefix: PUBLIC_ENV_PREFIXES,
   define: {

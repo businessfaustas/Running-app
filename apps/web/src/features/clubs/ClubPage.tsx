@@ -1,3 +1,5 @@
+import { metaDescription, clubJsonLd } from '../../lib/seo'
+import { usePageMeta } from '../../lib/usePageMeta'
 import type { Club, CommunityClub } from '@pacemates/shared'
 import { clubBySlug } from '@pacemates/shared/clubs'
 import { Clock, ExternalLink, Mail, MapPin, Navigation, UsersRound } from 'lucide-react'
@@ -22,6 +24,7 @@ export function ClubPage() {
   if (!club) {
     return (
       <div className="flex h-full flex-col">
+        <NoIndex title="Klubo nerasta" />
         <TopBar fallback="/clubs" title="Klubai" />
         <EmptyState
           Icon={UsersRound}
@@ -37,6 +40,14 @@ export function ClubPage() {
 }
 
 function ClubView({ club }: { club: Club & { status?: CommunityClub['status'] } }) {
+  usePageMeta({
+    title: club.name,
+    description: metaDescription(`${club.name} – ${club.city}. ${club.description}`),
+    path: `/clubs/${club.slug}`,
+    // Clubs still waiting for review aren't public, so they stay out of search.
+    jsonLd: club.status === 'PENDING' ? null : clubJsonLd(club, window.location.origin),
+    noindex: club.status === 'PENDING',
+  })
   const accent = CLUB_TYPE_META[club.types[0] ?? 'RUNNING'].accent
   const links: { href: string; label: string; Icon: typeof ExternalLink }[] = [
     club.website && { href: club.website, label: 'Svetainė', Icon: ExternalLink },
@@ -176,4 +187,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
       <p className="mt-1 text-[15px] leading-snug font-bold text-white">{children}</p>
     </div>
   )
+}
+
+/** Renders nothing; marks the page as not for search results. */
+function NoIndex({ title }: { title: string }) {
+  usePageMeta({ title, noindex: true })
+  return null
 }

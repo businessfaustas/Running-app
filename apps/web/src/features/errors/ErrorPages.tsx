@@ -1,3 +1,4 @@
+import { usePageMeta } from '../../lib/usePageMeta'
 import { useEffect, type ReactNode } from 'react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
 import { Button, ButtonLink } from '../../components/Button'
@@ -39,6 +40,7 @@ function ErrorScreen({
 
 /** Custom 404: a path that doesn't exist (or a deleted workout's old link). */
 export function NotFoundPage() {
+  usePageMeta({ title: 'Puslapio nerasta', noindex: true })
   const navigate = useNavigate()
   return (
     <ErrorScreen

@@ -1,0 +1,93 @@
+# Continuous integration: every push and pull request is type-checked, linted, unit-tested,
+# built, size-checked, security-scanned and driven through a real browser on phone, tablet and
+# desktop profiles before it can be merged. Vercel deploys from Git as soon as it is green on
+# the production branch (see "Releasing" in docs/RUNBOOK.md).
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**', staging]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Link previews and the canonical link need an absolute address; any value works for tests.
+  VITE_SITE_URL: https://pacemates.example
+
+jobs:
+  check:
+    name: Types, lint, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - name: Performance budget (first-load size, image sizes)
+        run: pnpm --filter @pacemates/web budget
+
+  security:
+    name: Dependency audit and secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the whole history, so an old leaked key is found too
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Known vulnerabilities in dependencies (high and critical fail the build)
+        run: pnpm audit --audit-level=high
+      - name: Secrets in the code or its history
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  e2e:
+    name: Browser tests (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # Real engines: Chromium for Chrome/Android, WebKit for iPhone and iPad.
+        project: [desktop-chrome, pixel-7, iphone-13, iphone-se, ipad]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install browsers
+        run: pnpm --filter @pacemates/web exec playwright install --with-deps chromium webkit
+      - run: pnpm --filter @pacemates/web build:e2e
+      - name: Smoke, SEO, regression, accessibility and slow-network tests
+        run: pnpm --filter @pacemates/web exec playwright test --project=${{ matrix.project }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-report-${{ matrix.project }}
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7

@@ -26,7 +26,6 @@ export function DayStrip({ days, today, selected, counts, onSelect }: DayStripPr
             key={date}
             type="button"
             aria-pressed={active}
-            aria-label={`${longDay(date)}, ${countOf(count, WORDS.workout)}`}
             onClick={() => onSelect(date)}
             className={clsx(
               'flex h-[76px] w-[58px] shrink-0 snap-start flex-col items-center justify-center rounded-[20px] transition-all duration-200 active:scale-95',
@@ -41,6 +40,10 @@ export function DayStrip({ days, today, selected, counts, onSelect }: DayStripPr
             </span>
             <span className="mt-0.5 font-display text-[22px] leading-6 font-extrabold tracking-tight tabular">
               {fromISODate(date).getDate()}
+            </span>
+            {/* Read out after the visible text, so the spoken name always contains what's on screen. */}
+            <span className="sr-only">
+              , {longDay(date)}, {countOf(count, WORDS.workout)}
             </span>
             <span aria-hidden className="mt-0.5 flex h-1 gap-0.5">
               {Array.from({ length: Math.min(count, 3) }, (_, i) => (

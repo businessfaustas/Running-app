@@ -1,0 +1,62 @@
+# Uptime monitoring and alerting. Every 30 minutes the live site is checked from outside; when it
+# is down GitHub opens an "incident" issue (GitHub emails the repository owner), and closes it
+# again when the site recovers. For minute-by-minute checks (and SMS or phone alerts) add a free
+# outside monitor too, e.g. UptimeRobot (5-minute checks) pointed at the same address.
+#
+# Setup (once): Settings → Secrets and variables → Actions → Variables → add SITE_URL
+# (your public address, no trailing slash). Turn on Settings → Notifications so issues email you.
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # each run bills as one Actions minute: ~1 500 a month, inside the free 2 000 for private repos
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://running-app-web-amber.vercel.app' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check the site
+        id: probe
+        run: |
+          ok=true; why=""
+          code=$(curl -s -o /tmp/home.html -w '%{http_code}' --max-time 20 "$SITE_URL/") || code=000
+          [ "$code" = 200 ] || { ok=false; why="home page answered $code"; }
+          grep -q 'id="root"' /tmp/home.html 2>/dev/null || { ok=false; why="$why; app shell missing"; }
+          for path in /sitemap.xml /robots.txt /manifest.webmanifest; do
+            c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL$path") || c=000
+            [ "$c" = 200 ] || { ok=false; why="$why; $path answered $c"; }
+          done
+          start=$(date +%s%N)
+          curl -s -o /dev/null --max-time 30 "$SITE_URL/" || true
+          ms=$(( ($(date +%s%N) - start) / 1000000 ))
+          [ "$ms" -lt 5000 ] || { ok=false; why="$why; home page took ${ms} ms"; }
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+          echo "why=$why" >> "$GITHUB_OUTPUT"
+          echo "Home page in ${ms} ms. ok=$ok $why"
+
+      - name: Raise or clear the incident
+        run: |
+          open=$(gh issue list --label uptime --state open --json number --jq '.[0].number // empty')
+          if [ "${{ steps.probe.outputs.ok }}" = "false" ]; then
+            msg="Checked $SITE_URL: ${{ steps.probe.outputs.why }}"
+            if [ -z "$open" ]; then
+              gh label create uptime --color B60205 --description "Site down" 2>/dev/null || true
+              gh issue create --label uptime --title "Site is down or unhealthy" --body "$msg
+
+          Next steps: docs/RUNBOOK.md → Site down."
+            else
+              gh issue comment "$open" --body "Still failing. $msg"
+            fi
+            exit 1
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Recovered: $SITE_URL answers normally again."
+          fi

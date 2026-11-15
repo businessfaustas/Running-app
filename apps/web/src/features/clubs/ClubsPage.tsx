@@ -1,3 +1,4 @@
+import { usePageMeta } from '../../lib/usePageMeta'
 import type { Club, CommunityClub } from '@pacemates/shared'
 import { CLUBS } from '@pacemates/shared/clubs'
 import clsx from 'clsx'
@@ -35,6 +36,11 @@ const townsOf = (clubs: Club[]) =>
 
 /** The clubs tab: pick a town and see every club there in full. */
 export function ClubsPage() {
+  usePageMeta({
+    title: 'Klubai',
+    description:
+      'Bėgimo, triatlono ir dviračių klubai Lietuvoje pagal miestą: treniruočių tvarkaraščiai, susitikimo vietos ir kontaktai.',
+  })
   const city = useCity()
   const community = useCommunityClubs()
   // The listed clubs, plus the ones people added (yours show up while they wait for review).

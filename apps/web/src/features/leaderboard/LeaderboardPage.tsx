@@ -1,3 +1,4 @@
+import { usePageMeta } from '../../lib/usePageMeta'
 import { todayISO } from '../../lib/clock'
 import clsx from 'clsx'
 import { Crown, Trophy } from 'lucide-react'
@@ -26,6 +27,11 @@ import {
 type Scope = 'city' | 'country'
 
 export function LeaderboardPage() {
+  usePageMeta({
+    title: 'Lyderiai',
+    description:
+      'Savaitės, praėjusios savaitės ir mėnesio lyderiai pagal nubėgtus ir numintus kilometrus bei grupines treniruotes.',
+  })
   const session = useSession()
   const city = useCity()
   const [period, setPeriod] = useState<Period>('week')

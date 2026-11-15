@@ -1,5 +1,6 @@
 # After every production deploy, drive the live site with the tests that are safe to run on it
 # (smoke + SEO, tagged @live). If they fail, an issue is opened with the rollback steps.
+# Uses the repository variable SITE_URL (your public address, no trailing slash), as uptime.yml does.
 name: Post-deploy check
 
 on:
@@ -30,7 +31,9 @@ jobs:
       - run: pnpm --filter @pacemates/web exec playwright install --with-deps chromium webkit
       - name: Smoke and SEO tests against the live site
         env:
-          E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          # The public address, not the per-deployment one: Vercel puts a sign-in page in front of
+          # those (Deployment Protection), so tests would read the login page instead of the app.
+          E2E_BASE_URL: ${{ vars.SITE_URL || 'https://running-app-web-amber.vercel.app' }}
         run: >
           pnpm --filter @pacemates/web exec playwright test --grep @live
           --project=desktop-chrome --project=iphone-13

@@ -30,7 +30,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check configuration
         run: |
           [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Add the BACKUP_PASSPHRASE secret (the same one the backup workflow uses)."; exit 1; }

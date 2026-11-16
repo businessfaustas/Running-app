@@ -23,6 +23,8 @@ jobs:
     env:
       SITE_URL: ${{ vars.SITE_URL || 'https://running-app-web-amber.vercel.app' }}
       GH_TOKEN: ${{ github.token }}
+      # This job has no checkout, so tell gh which repository to use (it can't read it from git).
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: Check the site
         id: probe

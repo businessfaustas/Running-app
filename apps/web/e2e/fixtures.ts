@@ -67,22 +67,38 @@ export async function settled(page: Page) {
     .first()
     .waitFor({ state: 'detached', timeout: 15_000 })
     .catch(() => undefined)
-  for (let round = 0; round < 6; round++) {
+  for (let round = 0; round < 8; round++) {
+    // 1. Wait for the page to stop changing: on a slower device a lazy page's content can mount
+    //    well after "load", and only then do its fade-ins begin.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          let timer = setTimeout(done, 350)
+          const observer = new MutationObserver(() => {
+            clearTimeout(timer)
+            timer = setTimeout(done, 350)
+          })
+          const hardStop = setTimeout(done, 6000)
+          function done() {
+            observer.disconnect()
+            clearTimeout(timer)
+            clearTimeout(hardStop)
+            resolve()
+          }
+          observer.observe(document.body, { subtree: true, childList: true, attributes: true })
+        }),
+    )
+    // 2. Wait for every time-based animation that is running (scroll-driven ones never finish).
     const running = await page.evaluate(async () => {
-      // Two frames, so styles for anything that just mounted are computed and its animations exist.
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
       const finite = document
         .getAnimations()
-        // Scroll-driven animations (the header photo's parallax) follow the scroll position and
-        // never "finish"; only time-based ones are waited for.
         .filter(
           (a) => a.timeline === document.timeline && a.effect?.getTiming().iterations !== Infinity,
         )
       await Promise.all(finite.map((a) => a.finished.catch(() => undefined)))
       return finite.length
     })
-    // Let anything the last round triggered (data arriving, a list mounting) start, then look again.
-    await page.waitForTimeout(80)
     if (running === 0) break
   }
 }

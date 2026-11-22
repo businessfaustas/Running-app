@@ -143,7 +143,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
           <Stat label="Km šią sav." value={week.km} format={formatKm} accent />
         </dl>
 
-        {isMe && paymentsEnabled && (
+        {isMe && (
           <Link
             to={isPlus ? '/stats' : '/plus'}
             className="mt-4 flex items-center gap-3 rounded-[22px] bg-gradient-to-br from-blue to-blue-deep p-4 transition active:scale-[0.99]"
@@ -162,7 +162,9 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
               <span className="block text-[13px] leading-snug text-white/75">
                 {isPlus
                   ? '12 savaičių pažanga, serija ir kalendoriaus eksportas'
-                  : 'Pasiruošimo planai, pažangos statistika · 14 dienų nemokamai'}
+                  : paymentsEnabled
+                    ? 'Pasiruošimo planai, pažangos statistika · 14 dienų nemokamai'
+                    : 'Pasiruošimo planai ir pažangos statistika – netrukus'}
               </span>
             </span>
             <ChevronRight className="size-5 shrink-0 text-white/70" aria-hidden />

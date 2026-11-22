@@ -27,6 +27,16 @@ test.describe('PaceMates Plus', () => {
     expect(errors).toEqual([])
   })
 
+  test('the pricing page can be reached from the profile and from settings', async ({ page }) => {
+    await signInAsSample(page)
+    await page.goto('/profile')
+    await page.getByRole('link', { name: /Išbandyk PaceMates Plus/ }).click()
+    await expect(page).toHaveURL(/\/plus$/)
+    await page.goto('/settings')
+    await page.getByRole('link', { name: /PaceMates Plus/ }).click()
+    await expect(page).toHaveURL(/\/plus$/)
+  })
+
   test('answers the questions people have before paying', async ({ page }) => {
     await page.goto('/plus')
     await page.getByText('Ar PaceMates lieka nemokama?').click()

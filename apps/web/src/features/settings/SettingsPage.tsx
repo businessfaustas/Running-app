@@ -195,8 +195,16 @@ function SubscriptionGroup() {
       onError: toastError,
     })
 
-  // Nothing to show (or manage) until Plus can be bought.
-  if (!paymentsEnabled) return null
+  // Until Plus can be bought there is nothing to manage, but the offer stays one tap away.
+  if (!paymentsEnabled) {
+    return (
+      <Group title="Prenumerata">
+        <Row Icon={Sparkles} to="/plus">
+          PaceMates Plus – kas tai?
+        </Row>
+      </Group>
+    )
+  }
   if (!plan.plus) {
     return (
       <Group title="Prenumerata">

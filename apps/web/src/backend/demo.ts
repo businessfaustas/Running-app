@@ -1,7 +1,10 @@
 import {
   addDays,
   distanceKm,
+  hasRaceAccess,
   isRunning,
+  NO_ENTITLEMENTS,
+  TRIAL_DAYS,
   newClubInputSchema,
   newReportSchema,
   newSlotInputSchema,
@@ -11,7 +14,9 @@ import {
   type ChatMessage,
   type ChatThread,
   type ClubPhoto,
+  type CheckoutRequest,
   type CommunityClub,
+  type Entitlements,
   type LeaderboardEntry,
   type NewReport,
   type NewSlotInput,
@@ -23,7 +28,9 @@ import {
   type SlotDetail,
   type SlotStatus,
   type SlotSummary,
+  type SubscriptionStatus,
   type UserSlot,
+  type PlanId,
 } from '@pacemates/shared'
 import {
   MOCK_MESSAGES,
@@ -104,6 +111,21 @@ interface StoredClub extends CommunityClub {
 /** Photos are the heaviest thing kept on the device; older ones make room for new ones. */
 const MAX_DEMO_CLUB_PHOTOS = 24
 
+/** A pretend plan: no money moves in preview mode, but everything else behaves like the real one. */
+interface DemoPlan {
+  plan: PlanId | null
+  status: SubscriptionStatus
+  trialEnd: string | null
+  periodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  /** Had a subscription before, so no second free trial. */
+  hadSubscription: boolean
+  racePasses: string[]
+}
+
+/** Sample athletes who show the Plus badge in preview mode. */
+const SAMPLE_PLUS_IDS = new Set([MOCK_USERS[2]!.id, MOCK_USERS[9]!.id])
+
 interface DemoState {
   accounts: { userId: string; email: string; passwordHash: string }[]
   /** New users, plus edits to the sample athletes. */
@@ -130,6 +152,8 @@ interface DemoState {
   communityClubs: StoredClub[]
   /** Notices sent from this device (nobody reads them in the demo). */
   reports: (NewReport & { at: string })[]
+  /** Pretend plans and race passes, by user id. */
+  plans: Record<string, DemoPlan>
 }
 
 const emptyState = (): DemoState => ({
@@ -148,6 +172,7 @@ const emptyState = (): DemoState => ({
   clubPhotos: [],
   communityClubs: [],
   reports: [],
+  plans: {},
 })
 
 /** Mirrors the database's limits on how fast one person can write. */
@@ -533,6 +558,7 @@ export function createDemoBackend({
         }
         state.racePosts = state.racePosts.filter((p) => p.authorId !== userId)
         state.clubPhotos = state.clubPhotos.filter((p) => p.authorId !== userId)
+        delete state.plans[userId]
         state.sessionUserId = null
         state.recoveryUserId = null
       }
@@ -1005,6 +1031,89 @@ export function createDemoBackend({
       state.reports = [...state.reports, { ...parsed.data, at: now().toISOString() }].slice(-20)
       save()
     },
+
+    async getEntitlements() {
+      await pause()
+      return entitlementsOf(state.sessionUserId)
+    },
+
+    async startCheckout(request: CheckoutRequest) {
+      await pause()
+      const userId = requireUserId()
+      const current = entitlementsOf(userId)
+      const plan: DemoPlan = state.plans[userId] ?? {
+        plan: null,
+        status: 'none',
+        trialEnd: null,
+        periodEnd: null,
+        cancelAtPeriodEnd: false,
+        hadSubscription: false,
+        racePasses: [],
+      }
+      const at = now()
+      const inDays = (days: number) => new Date(at.getTime() + days * 86_400_000).toISOString()
+      if (request.kind === 'plus') {
+        if (current.plus) throw new BackendError(MESSAGES.alreadyHaveAccess)
+        const trial = !plan.hadSubscription
+        plan.plan = request.plan
+        plan.status = trial ? 'trialing' : 'active'
+        plan.trialEnd = trial ? inDays(TRIAL_DAYS) : null
+        plan.periodEnd = trial
+          ? inDays(TRIAL_DAYS)
+          : inDays(request.plan === 'plus_year' ? 365 : 30)
+        plan.cancelAtPeriodEnd = false
+        plan.hadSubscription = true
+      } else {
+        if (hasRaceAccess(current, request.raceSlug))
+          throw new BackendError(MESSAGES.alreadyHaveAccess)
+        plan.racePasses = [...plan.racePasses, request.raceSlug]
+      }
+      state.plans[userId] = plan
+      save()
+      for (const listener of changeListeners) listener()
+      return { url: null }
+    },
+
+    async openBillingPortal() {
+      await pause()
+      requireUserId()
+      return { url: null }
+    },
+
+    async listPlusMembers(userIds) {
+      await pause()
+      return userIds.slice(0, 50).filter((id) => SAMPLE_PLUS_IDS.has(id) || entitlementsOf(id).plus)
+    },
+
+    async demoCancelPlus() {
+      await pause()
+      const plan = state.plans[requireUserId()]
+      if (plan && entitlementsOf(state.sessionUserId).plus) {
+        plan.cancelAtPeriodEnd = true
+        save()
+        for (const listener of changeListeners) listener()
+      }
+    },
+  }
+
+  /** What a pretend plan gives right now: trialing or active, until its period runs out. */
+  function entitlementsOf(userId: string | null): Entitlements {
+    if (!userId) return NO_ENTITLEMENTS
+    const plan = state.plans[userId]
+    if (!plan) return NO_ENTITLEMENTS
+    const live =
+      (plan.status === 'trialing' || plan.status === 'active') &&
+      plan.periodEnd !== null &&
+      new Date(plan.periodEnd).getTime() > now().getTime()
+    return {
+      plus: live,
+      status: plan.status,
+      plan: plan.plan,
+      renewsAt: plan.periodEnd,
+      trialEndsAt: plan.status === 'trialing' ? plan.trialEnd : null,
+      cancelAtPeriodEnd: plan.cancelAtPeriodEnd,
+      racePasses: plan.racePasses,
+    }
   }
 }
 

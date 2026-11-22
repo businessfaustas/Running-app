@@ -99,9 +99,23 @@ artwork without people – or get written permission. Don't use them in Instagra
 **Club logos.** The Klaipėda club logos identify those clubs, which is generally fine, but ask
 each club for permission (and remove any on request).
 
+## Paid plans (added 22 November 2026)
+
+The terms (section 8) and privacy policy now cover PaceMates Plus and race passes: prices with VAT, the
+free trial and automatic renewal, cancellation, the 14-day consumer withdrawal right with the express-consent
+wording for digital services, Stripe as a payment processor, and the "Plus" badge being visible to others.
+It is written for this app but **needs a lawyer's read before you charge anyone**, in particular:
+
+- the withdrawal-right wording (Directive 2011/83/EU art. 16: services that start immediately, digital
+  content), and whether Stripe's checkbox plus these terms is enough express consent;
+- automatic renewal and trial disclosures (clear price, date and way to cancel before the first charge);
+- VAT: a Lithuanian company selling digital services to EU consumers normally registers for the One Stop Shop;
+- how long to keep invoices and payment records (accounting law) versus the privacy policy's wording;
+- a business with "paid" features must show its full details in the terms (`legal.ts` still has placeholders).
+
 ## Owner tasks
 
-1. Run `pnpm db:migrate` on production (adds the avatar rule).
+1. Run `pnpm db:migrate` on production (adds the avatar rule and, later, the paid-plans tables).
 2. Fill in `apps/web/src/content/legal.ts` – the report links send to `OPERATOR.email`.
 3. Decide on the header photos (above).
 4. Optional: register a DMCA designated agent if you want US safe harbor.

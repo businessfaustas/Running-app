@@ -1,3 +1,4 @@
+import { NO_ENTITLEMENTS, type CheckoutRequest, type Entitlements } from '@pacemates/shared'
 import type {
   Area,
   NewClubInput,
@@ -10,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { backend } from '../backend'
 import { useSession } from './auth'
+import { paymentsEnabled } from './payments'
 
 export const keys = {
   slots: (from: string, to: string, area: Area | null) =>
@@ -26,6 +28,8 @@ export const keys = {
   racePosts: (slug: string) => ['racePosts', slug] as const,
   userRaces: (userId: string) => ['userRaces', userId] as const,
   clubPhotos: (slug: string) => ['clubPhotos', slug] as const,
+  entitlements: (userId: string) => ['entitlements', userId] as const,
+  plusMembers: (ids: string) => ['plusMembers', ids] as const,
   /** Per person: your own clubs waiting for review show up only for you. */
   communityClubs: (userId: string | null) => ['communityClubs', userId ?? 'visitor'] as const,
 }
@@ -309,4 +313,45 @@ export function useSubmitClub() {
 
 export function useReportContent() {
   return useMutation({ mutationFn: (report: NewReport) => backend.reportContent(report) })
+}
+
+/** What the signed-in person's plan unlocks. Signed out, or still loading, it is "nothing". */
+export function useEntitlements(): { entitlements: Entitlements; isLoading: boolean } {
+  const session = useSession()
+  const query = useQuery({
+    queryKey: keys.entitlements(session?.userId ?? ''),
+    queryFn: () => backend.getEntitlements(),
+    enabled: Boolean(session) && paymentsEnabled,
+    staleTime: 30_000,
+  })
+  return {
+    entitlements: query.data ?? NO_ENTITLEMENTS,
+    isLoading: Boolean(session) && paymentsEnabled && query.isPending,
+  }
+}
+
+/** Starts a purchase. Resolves with where to send the person (null: it was done in place). */
+export function useCheckout() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: CheckoutRequest) => backend.startCheckout(request),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['entitlements'] }),
+  })
+}
+
+export function useBillingPortal() {
+  return useMutation({ mutationFn: () => backend.openBillingPortal() })
+}
+
+/** Which of these people are Plus members (for the badge). */
+export function usePlusMembers(userIds: string[]) {
+  const session = useSession()
+  const ids = [...new Set(userIds)].sort()
+  const query = useQuery({
+    queryKey: keys.plusMembers(ids.join(',')),
+    queryFn: () => backend.listPlusMembers(ids),
+    enabled: Boolean(session) && paymentsEnabled && ids.length > 0,
+    staleTime: 5 * 60_000,
+  })
+  return new Set(query.data ?? [])
 }

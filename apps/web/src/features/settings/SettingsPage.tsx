@@ -1,5 +1,6 @@
 import {
   ChevronRight,
+  Sparkles,
   FileText,
   KeyRound,
   LogOut,
@@ -18,8 +19,13 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PasswordChecklist, PasswordField } from '../../components/Field'
 import { TopBar } from '../../components/TopBar'
 import { useSession } from '../../data/auth'
+import { useBillingPortal, useEntitlements } from '../../data/hooks'
+import { paymentsEnabled } from '../../data/payments'
+import { PlusBadge } from '../../components/PlusBadge'
+import { describePlan } from '../plus/planText'
+import { useQueryClient } from '@tanstack/react-query'
 import { track } from '../../lib/analytics'
-import { toast } from '../../lib/toast'
+import { toast, toastError } from '../../lib/toast'
 import { confirmPasswordError, passwordChecks, passwordError } from '../../lib/validation'
 
 /** Typed to confirm deleting an account, so it can't happen by a mis-tap. */
@@ -78,6 +84,8 @@ export function SettingsPage() {
           </Row>
           <ChangePassword />
         </Group>
+
+        <SubscriptionGroup />
 
         <Group title="Teisinė informacija">
           <Row Icon={ShieldCheck} to="/privatumas">
@@ -165,6 +173,60 @@ export function SettingsPage() {
         duomenys grįš į pradinę būseną.
       </ConfirmDialog>
     </div>
+  )
+}
+
+/** Plus status, with the way to manage or cancel it. Cancelling is always one tap away. */
+function SubscriptionGroup() {
+  const { entitlements: plan } = useEntitlements()
+  const portal = useBillingPortal()
+  const queryClient = useQueryClient()
+
+  const manage = () =>
+    portal.mutate(undefined, {
+      onSuccess: async ({ url }) => {
+        if (url) window.location.assign(url)
+        else if (backend.demoCancelPlus) {
+          await backend.demoCancelPlus()
+          await queryClient.invalidateQueries({ queryKey: ['entitlements'] })
+          toast('Prenumerata atšaukta (peržiūros režimas)')
+        }
+      },
+      onError: toastError,
+    })
+
+  // Nothing to show (or manage) until Plus can be bought.
+  if (!paymentsEnabled) return null
+  if (!plan.plus) {
+    return (
+      <Group title="Prenumerata">
+        <Row Icon={Sparkles} to="/plus">
+          PaceMates Plus – išbandyk nemokamai
+        </Row>
+        {plan.racePasses.length > 0 && (
+          <p className="px-5 py-3 text-[13px] text-slate-400">
+            Turi {plan.racePasses.length} varžybų leidimą(-us): pilni jų planai atrakinti.
+          </p>
+        )}
+      </Group>
+    )
+  }
+  return (
+    <Group title="Prenumerata">
+      <div className="px-5 py-3.5">
+        <p className="flex items-center gap-2 text-[15px] font-bold text-white">
+          PaceMates Plus <PlusBadge />
+        </p>
+        <p className="mt-1 text-[13px] leading-relaxed text-slate-400">{describePlan(plan)}</p>
+      </div>
+      {!plan.cancelAtPeriodEnd || backend.mode === 'supabase' ? (
+        <Row Icon={Sparkles} onClick={manage}>
+          {backend.mode === 'supabase'
+            ? 'Tvarkyti arba atšaukti prenumeratą'
+            : 'Atšaukti prenumeratą'}
+        </Row>
+      ) : null}
+    </Group>
   )
 }
 

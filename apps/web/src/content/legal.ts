@@ -13,7 +13,7 @@ export const OPERATOR = {
   email: 'info.pacemates@gmail.com',
 } as const
 
-export const LEGAL_UPDATED = '2026 m. lapkričio 10 d.'
+export const LEGAL_UPDATED = '2026 m. lapkričio 22 d.'
 
 /** Youngest age allowed to sign up. */
 export const MIN_AGE = 16

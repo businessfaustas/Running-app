@@ -1,3 +1,4 @@
+import { TrainingPlanSection } from './TrainingPlanSection'
 import { metaDescription, raceJsonLd } from '../../lib/seo'
 import { usePageMeta } from '../../lib/usePageMeta'
 import type { Race, RaceAttendee, RacePost, RacePostTopic } from '@pacemates/shared'
@@ -1032,6 +1033,8 @@ function Preparation({
           ))}
         </div>
       )}
+
+      <TrainingPlanSection race={race} distance={distance} />
 
       {fueling && (
         <Link

@@ -36,6 +36,11 @@ export const MESSAGES = {
   photoUpload: 'Nepavyko įkelti nuotraukos. Pabandyk kitą arba mažesnę.',
   reporterDetails: 'Įvesk savo vardą ir el. paštą – be jų pranešimo priimti negalime',
   sampleHasNoPassword: 'Pavyzdinė paskyra neturi slaptažodžio – susikurk savo paskyrą',
+  alreadyHaveAccess: 'Šią prieigą jau turi – pirkti nereikia',
+  paymentsOff: 'Mokėjimai dar neįjungti. Pabandyk vėliau.',
+  paymentFailed: 'Nepavyko pradėti mokėjimo. Bandyk dar kartą.',
+  cancelSubscriptionFirst:
+    'Nepavyko atšaukti prenumeratos, todėl paskyros dar netriname. Bandyk dar kartą arba atšauk ją skiltyje „Prenumerata“.',
   unknown: 'Kažkas nepavyko. Bandyk dar kartą.',
 } as const
 

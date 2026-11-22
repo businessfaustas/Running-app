@@ -112,18 +112,19 @@ run against your production data, because no backup of it existed yet: the first
 
 ## Alerts: who hears what
 
-| What goes wrong            | How you hear                                          | Set up                                                                                                                                                              |
-| -------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site down / unhealthy      | GitHub issue `uptime` (emailed), checked every 30 min | Variable `SITE_URL`; GitHub notifications on. For 1–5 minute checks and SMS/phone alerts add a free outside monitor (UptimeRobot, Better Stack) on the same address |
-| Bad deploy                 | GitHub issue `incident`                               | Automatic (`post-deploy.yml`)                                                                                                                                       |
-| Backup didn't run          | Failed workflow email from GitHub                     | Automatic                                                                                                                                                           |
-| Backup can't be restored   | GitHub issue `incident`                               | Automatic (`restore-drill.yml`)                                                                                                                                     |
-| New code error in browsers | Sentry email                                          | Sentry → Alerts → "Issues: new issue" and "issue regression" → your email                                                                                           |
-| Error spike                | Sentry email                                          | Sentry → Alerts → "Number of errors > 20 in 1 hour"                                                                                                                 |
-| Slow site (real visitors)  | Vercel Speed Insights                                 | Vercel → Speed Insights → Enable; watch LCP < 2.5 s, INP < 200 ms, CLS < 0.1                                                                                        |
-| Vulnerable dependency      | Dependabot pull request / failed CI                   | Settings → Code security → enable Dependabot alerts and security updates                                                                                            |
-| Leaked secret              | GitHub secret-scanning alert / failed CI              | Settings → Code security → enable Secret scanning and Push protection                                                                                               |
-| Money                      | Billing alert emails                                  | See the next section                                                                                                                                                |
+| What goes wrong             | How you hear                                          | Set up                                                                                                                                                              |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site down / unhealthy       | GitHub issue `uptime` (emailed), checked every 30 min | Variable `SITE_URL`; GitHub notifications on. For 1–5 minute checks and SMS/phone alerts add a free outside monitor (UptimeRobot, Better Stack) on the same address |
+| Bad deploy                  | GitHub issue `incident`                               | Automatic (`post-deploy.yml`)                                                                                                                                       |
+| Backup didn't run           | Failed workflow email from GitHub                     | Automatic                                                                                                                                                           |
+| Backup can't be restored    | GitHub issue `incident`                               | Automatic (`restore-drill.yml`)                                                                                                                                     |
+| New code error in browsers  | Sentry email                                          | Sentry → Alerts → "Issues: new issue" and "issue regression" → your email                                                                                           |
+| Error spike                 | Sentry email                                          | Sentry → Alerts → "Number of errors > 20 in 1 hour"                                                                                                                 |
+| Slow site (real visitors)   | Vercel Speed Insights                                 | Vercel → Speed Insights → Enable; watch LCP < 2.5 s, INP < 200 ms, CLS < 0.1                                                                                        |
+| Vulnerable dependency       | Dependabot pull request / failed CI                   | Settings → Code security → enable Dependabot alerts and security updates                                                                                            |
+| Leaked secret               | GitHub secret-scanning alert / failed CI              | Settings → Code security → enable Secret scanning and Push protection                                                                                               |
+| Money                       | Billing alert emails                                  | See the next section                                                                                                                                                |
+| A payment or webhook failed | Stripe email and Supabase → Edge Functions → Logs     | Stripe → Developers → Webhooks → email me on failed deliveries                                                                                                      |
 
 ## Secrets and key rotation
 
@@ -219,6 +220,8 @@ Everything the repository can do is already in place. These need your accounts:
 - [ ] Custom domain, then `scripts/check-domain.mjs`
 - [ ] Fill in the operator details in `apps/web/src/content/legal.ts` (GO-LIVE §8)
 - [ ] Submit `/sitemap.xml` in Google Search Console and Bing Webmaster Tools
+- [ ] **Payments (only when you want to charge):** follow [docs/PAYMENTS.md](PAYMENTS.md) – Stripe account and prices,
+      the Supabase secrets, deploy the two functions, the webhook, test mode first, then live. Until then Plus can't be bought.
 
 ## What this app does not have
 

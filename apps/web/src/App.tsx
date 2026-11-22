@@ -76,6 +76,12 @@ const LeaderboardPage = lazy(() =>
 const ClubPage = lazy(() =>
   import('./features/clubs/ClubPage').then((m) => ({ default: m.ClubPage })),
 )
+const PlusPage = lazy(() =>
+  import('./features/plus/PlusPage').then((m) => ({ default: m.PlusPage })),
+)
+const StatsPage = lazy(() =>
+  import('./features/stats/StatsPage').then((m) => ({ default: m.StatsPage })),
+)
 const BadgesPage = lazy(() =>
   import('./features/badges/BadgesPage').then((m) => ({ default: m.BadgesPage })),
 )
@@ -183,6 +189,8 @@ const router = createBrowserRouter([
       { path: 'fueling', element: page(<FuelingPage />) },
       { path: 'leaderboard', element: page(<LeaderboardPage />) },
       { path: 'badges', element: page(<BadgesPage />) },
+      { path: 'plus', element: page(<PlusPage />) },
+      { path: 'stats', element: signedIn(<StatsPage />) },
       { path: 'clubs/new', element: signedIn(<AddClubPage />) },
       { path: 'clubs/:slug', element: page(<ClubPage />) },
       { path: 'profile/edit', element: signedIn(<EditProfilePage />) },

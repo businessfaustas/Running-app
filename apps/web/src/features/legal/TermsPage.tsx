@@ -1,5 +1,6 @@
 import { usePageMeta } from '../../lib/usePageMeta'
 import { Link } from 'react-router'
+import { formatPrice, PRICES, TRIAL_DAYS } from '@pacemates/shared'
 import { MIN_AGE, OPERATOR } from '../../content/legal'
 import { LegalLayout } from './LegalLayout'
 
@@ -111,7 +112,63 @@ export function TermsPage() {
         paskyrą skiltyje <Link to="/settings">Nustatymai</Link>.
       </p>
 
-      <h2>8. Paslaugos veikimas</h2>
+      <h2>8. Mokami planai (PaceMates Plus)</h2>
+      <p>
+        <strong>PaceMates naudoti nemokama</strong>: treniruočių paieška ir skelbimas, pokalbiai,
+        varžybų kalendorius ir forumai, klubai, ženkliukai ir lyderių lentelės. Papildomos funkcijos
+        – pasiruošimo planai varžyboms, pažangos statistika, kalendoriaus eksportas ir Plus
+        ženklelis – yra mokamos.
+      </p>
+      <ul>
+        <li>
+          <strong>PaceMates Plus</strong> – prenumerata: {formatPrice(PRICES.plusMonthCents)} per
+          mėnesį arba {formatPrice(PRICES.plusYearCents)} per metus.
+        </li>
+        <li>
+          <strong>Varžybų leidimas</strong> – vienkartinis {formatPrice(PRICES.racePassCents)}{' '}
+          pirkinys, atrakinantis visą pasiruošimo planą vienoms pasirinktoms varžyboms. Jis
+          nesikartoja.
+        </li>
+        <li>
+          Visos kainos nurodytos eurais ir <strong>įskaitant PVM</strong>. Kainas galime keisti;
+          apie prenumeratos kainos pakeitimą pranešime iš anksto (ne vėliau kaip prieš 30 dienų), o
+          jau apmokėtam laikotarpiui nauja kaina netaikoma.
+        </li>
+      </ul>
+      <p>
+        <strong>Bandomasis laikotarpis.</strong> Pirmą kartą užsisakius Plus, pirmosios {TRIAL_DAYS}{' '}
+        dienų yra nemokamos. Pasibaigus laikotarpiui, jei prenumeratos neatšaukei, automatiškai
+        nuskaitoma pasirinkto plano kaina, o prenumerata atnaujinama kas mėnesį arba kas metus, kol
+        ją atšauksi. Prieš pasibaigiant bandomajam laikotarpiui išsiųsime priminimą.
+      </p>
+      <p>
+        <strong>Atšaukimas.</strong> Prenumeratą gali atšaukti bet kada skiltyje{' '}
+        <Link to="/settings">Nustatymai → Prenumerata</Link>. Atšaukus, prieiga lieka iki apmokėto
+        laikotarpio pabaigos ir daugiau nieko nenuskaitoma. Ištrynus paskyrą prenumerata nutraukiama
+        iš karto; už jau prasidėjusį apmokėtą laikotarpį pinigai negrąžinami, nebent privalomos
+        teisės normos numato kitaip.
+      </p>
+      <p>
+        <strong>Atsisakymo teisė.</strong> Kaip vartotojas turi teisę per 14 dienų nuo sutarties
+        sudarymo atsisakyti jos nenurodydamas priežasties. Mokėdamas pažymi, kad nori, jog
+        skaitmeninė paslauga ar turinys būtų suteikti nedelsiant, ir supranti, kad: (a)
+        atsisakydamas Plus prenumeratos per 14 dienų sumokėsi tik už jau suteiktą paslaugą dalį; (b)
+        kai Varžybų leidimu atrakintas pilnas planas jau pateiktas, atsisakymo teisė prarandama.
+        Praktiškai mes linkę grąžinti pinigus visiems, kurie paprašo pirmosiomis dienomis – parašyk{' '}
+        <a href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.
+      </p>
+      <p>
+        <strong>Mokėjimai.</strong> Apmokėjimą apdoroja Stripe Payments Europe, Ltd. Kortelės
+        duomenų PaceMates nemato ir nesaugo. Plus galioja tavo paskyrai ir negali būti perduotas
+        kitam žmogui.
+      </p>
+      <p>
+        <strong>Planų pobūdis.</strong> Pasiruošimo planai ir statistika yra bendro pobūdžio
+        informacija sveikiems suaugusiems žmonėms. Tai nėra medicininė konsultacija ar
+        profesionalaus trenerio paslauga; už sprendimą jais naudotis atsakai pats (žr. 4 skyrių).
+      </p>
+
+      <h2>9. Paslaugos veikimas</h2>
       <p>
         Paslauga teikiama tokia, kokia yra. Stengiamės, kad ji veiktų sklandžiai, tačiau negalime
         garantuoti nepertraukiamo veikimo ir galime keisti ar nutraukti atskiras funkcijas.
@@ -122,19 +179,19 @@ export function TermsPage() {
         skaičiuoklės rezultatai yra apytiksliai ir nėra medicininė rekomendacija.
       </p>
 
-      <h2>9. Atsakomybė</h2>
+      <h2>10. Atsakomybė</h2>
       <p>
         Mūsų atsakomybė ribojama tiek, kiek leidžia teisės aktai. Šios sąlygos neriboja vartotojų
         teisių, kurių pagal įstatymus apriboti negalima.
       </p>
 
-      <h2>10. Sąlygų pakeitimai</h2>
+      <h2>11. Sąlygų pakeitimai</h2>
       <p>
         Apie esminius pakeitimus pranešime ne vėliau kaip prieš 14 dienų programėlėje arba el.
         paštu. Jei su pakeitimais nesutinki, gali ištrinti paskyrą.
       </p>
 
-      <h2>11. Taikoma teisė ir ginčai</h2>
+      <h2>12. Taikoma teisė ir ginčai</h2>
       <p>
         Taikoma Lietuvos Respublikos teisė. Ginčus pirmiausia stengsimės išspręsti derybomis.
         Vartotojai taip pat gali kreiptis į Valstybinę vartotojų teisių apsaugos tarnybą (

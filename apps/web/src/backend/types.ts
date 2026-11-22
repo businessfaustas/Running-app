@@ -1,5 +1,7 @@
 import type {
   Area,
+  CheckoutRequest,
+  Entitlements,
   ChatMessage,
   ClubPhoto,
   ChatThread,
@@ -127,4 +129,18 @@ export interface Backend {
 
   /** Sends the operator a notice about content; works signed in or not. */
   reportContent(report: NewReport): Promise<void>
+
+  /** What the signed-in person's plan unlocks (nothing when signed out). */
+  getEntitlements(): Promise<Entitlements>
+  /**
+   * Starts paying for Plus or a race pass. Returns the address of the payment page to send the
+   * person to; `null` means it was done right here (preview mode has no payments).
+   */
+  startCheckout(request: CheckoutRequest): Promise<{ url: string | null }>
+  /** The payment provider's page for cancelling, changing card and invoices; null in preview mode. */
+  openBillingPortal(): Promise<{ url: string | null }>
+  /** Which of these people are Plus members, for the profile badge. */
+  listPlusMembers(userIds: string[]): Promise<string[]>
+  /** Preview mode only: stop the pretend subscription at the end of its period. */
+  demoCancelPlus?: () => Promise<void>
 }

@@ -6,6 +6,8 @@ import {
   CalendarPlus,
   Camera,
   ChevronRight,
+  Sparkles,
+  TrendingUp,
   Footprints,
   MapPin,
 } from 'lucide-react'
@@ -15,7 +17,9 @@ import { ReportLink } from '../../components/ReportLink'
 import { CountUp } from '../../components/CountUp'
 import { Avatar } from '../../components/Avatar'
 import { EmptyState } from '../../components/EmptyState'
-import { useUserSlots } from '../../data/hooks'
+import { PlusBadge } from '../../components/PlusBadge'
+import { paymentsEnabled } from '../../data/payments'
+import { useEntitlements, usePlusMembers, useUserSlots } from '../../data/hooks'
 import { formatKm, isPast } from '../../lib/format'
 import { BadgeCard } from '../badges/BadgeCard'
 import { BadgeSheet } from '../badges/BadgesPage'
@@ -40,6 +44,11 @@ interface ProfileViewProps {
 export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
   const slots = useUserSlots(profile.id)
   const today = todayISO()
+  const { entitlements } = useEntitlements()
+  const plusMembers = usePlusMembers([profile.id])
+  // Your own status comes from your plan; other people's from the badge list.
+  const isPlus = isMe ? entitlements.plus : plusMembers.has(profile.id)
+  const ring = isPlus ? 'ring-volt/70' : 'ring-white/25'
 
   const { upcoming, hosted, joined, week, badges } = useMemo(() => {
     const items = slots.data ?? []
@@ -63,7 +72,7 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
       <div className="relative overflow-hidden rounded-b-[32px] bg-blue px-5 pt-[calc(env(safe-area-inset-top)+72px)] pb-6">
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-white/10 blur-2xl"
+          className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-white/5 blur-2xl"
         />
         {header}
         <div className="relative flex items-end gap-4">
@@ -73,16 +82,19 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
               aria-label="Keisti profilio nuotrauką"
               className="relative shrink-0 rounded-full transition active:scale-95"
             >
-              <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
+              <Avatar user={profile} size={96} className={`ring-4 ${ring}`} />
               <span className="absolute right-0 bottom-0 grid size-8 place-items-center rounded-full bg-volt text-black ring-4 ring-blue">
                 <Camera className="size-4" aria-hidden />
               </span>
             </Link>
           ) : (
-            <Avatar user={profile} size={96} className="ring-4 ring-white/25" />
+            <Avatar user={profile} size={96} className={`ring-4 ${ring}`} />
           )}
           <div className="min-w-0 pb-1">
-            <h1 className="headline text-[30px] text-white">{profile.name}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="headline text-[30px] text-white">{profile.name}</h1>
+              {isPlus && <PlusBadge />}
+            </div>
             {(profile.sports.length > 0 || profile.city) && (
               <p className="mt-2 flex flex-wrap gap-1.5">
                 {profile.city && (
@@ -130,6 +142,32 @@ export function ProfileView({ profile, isMe, header }: ProfileViewProps) {
           <Stat label="Dalyvavo" value={joined} />
           <Stat label="Km šią sav." value={week.km} format={formatKm} accent />
         </dl>
+
+        {isMe && paymentsEnabled && (
+          <Link
+            to={isPlus ? '/stats' : '/plus'}
+            className="mt-4 flex items-center gap-3 rounded-[22px] bg-gradient-to-br from-blue to-blue-deep p-4 transition active:scale-[0.99]"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-volt text-black">
+              {isPlus ? (
+                <TrendingUp className="size-5" aria-hidden />
+              ) : (
+                <Sparkles className="size-5" aria-hidden />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-bold text-white">
+                {isPlus ? 'Mano statistika' : 'Išbandyk PaceMates Plus'}
+              </span>
+              <span className="block text-[13px] leading-snug text-white/75">
+                {isPlus
+                  ? '12 savaičių pažanga, serija ir kalendoriaus eksportas'
+                  : 'Pasiruošimo planai, pažangos statistika · 14 dienų nemokamai'}
+              </span>
+            </span>
+            <ChevronRight className="size-5 shrink-0 text-white/70" aria-hidden />
+          </Link>
+        )}
 
         <section className="mt-7">
           <div className="mb-3 flex items-baseline justify-between">

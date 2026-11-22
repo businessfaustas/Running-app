@@ -68,6 +68,12 @@ export function PrivacyPage() {
           saugumui (pvz., bandymų skaičiui riboti), anoniminė lankomumo statistika ir klaidų
           ataskaitos.
         </li>
+        <li>
+          <strong>Mokėjimų duomenys</strong> (tik jei perki Plus ar varžybų leidimą): pasirinktas
+          planas, prenumeratos būsena ir laikotarpio pabaiga, pirktų varžybų leidimų sąrašas ir
+          Stripe kliento bei prenumeratos numeriai.{' '}
+          <strong>Kortelės duomenų nematome ir nesaugome</strong> – juos tvarko tik Stripe.
+        </li>
       </ul>
 
       <h2>3. Kam naudojame ir kokiu pagrindu</h2>
@@ -79,6 +85,11 @@ export function PrivacyPage() {
         <li>
           Paslaugos el. laiškams (paskyros patvirtinimas, slaptažodžio atkūrimas) – sutarties
           vykdymas. Rinkodaros laiškų nesiunčiame.
+        </li>
+        <li>
+          Mokamiems planams teikti ir apmokėjimams tvarkyti – <strong>sutarties vykdymas</strong>;
+          apskaitos dokumentus saugome tiek, kiek reikalauja apskaitos ir mokesčių teisės aktai –{' '}
+          <strong>teisinė prievolė</strong>.
         </li>
         <li>
           Saugumui, piktnaudžiavimo prevencijai ir klaidoms taisyti –{' '}
@@ -120,6 +131,10 @@ export function PrivacyPage() {
           gali bet kada ištrinti.
         </li>
         <li>Tavo el. pašto adreso kitiems naudotojams nerodome niekada.</li>
+        <li>
+          Jei turi Plus, kiti prie tavo vardo mato „Plus“ ženklelį. Daugiau apie tavo mokėjimus ar
+          planą kiti nemato nieko.
+        </li>
       </ul>
       <p>
         <strong>Lyderių lentelės</strong> viešai rodo, kiek kilometrų nubėgai ar numynei, kiek
@@ -132,6 +147,10 @@ export function PrivacyPage() {
       <ul>
         <li>Supabase Inc. – duomenų bazė, prisijungimas ir nuotraukų saugykla;</li>
         <li>Vercel Inc. – svetainės talpinimas ir anoniminė statistika;</li>
+        <li>
+          Stripe Payments Europe, Ltd. – mokėjimai ir prenumeratos (kortelės duomenis tvarko tik
+          jie);
+        </li>
         <li>Functional Software Inc. (Sentry) – klaidų ataskaitos, jei jos įjungtos;</li>
         <li>OpenFreeMap – žemėlapio vaizdai (įkeliant žemėlapį jiems matomas tavo IP adresas).</li>
       </ul>

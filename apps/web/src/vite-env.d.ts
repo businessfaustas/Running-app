@@ -14,6 +14,8 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN?: string
   /** When set, the whole app is replaced by a maintenance notice with this text. */
   readonly VITE_MAINTENANCE_MESSAGE?: string
+  /** "true" turns on buying PaceMates Plus once Stripe and the edge functions are set up (docs/PAYMENTS.md). */
+  readonly VITE_PAYMENTS_ENABLED?: string
   /** Release name for error reports; set automatically from the Vercel commit at build time. */
   readonly VITE_APP_VERSION?: string
 }

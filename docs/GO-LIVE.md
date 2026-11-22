@@ -223,6 +223,15 @@ With two real email addresses and a phone:
 The next day, the leaderboard should list the test workout once it has finished – then you know
 the whole chain works.
 
+## 10a. Paid plans (optional – only when you want to charge)
+
+The app is free and works fully without this. PaceMates Plus (training plans, statistics, calendar
+export; 3,99 €/month, 29,99 €/year, 14 days free; a 6,99 € race pass) needs a Stripe account and two
+Supabase edge functions: follow **[docs/PAYMENTS.md](PAYMENTS.md)**. Until then the pricing page shows
+the offer but the buy buttons say payments aren't on. Before charging anyone: the operator details in
+`legal.ts` filled in (section 8), the new paid-plans section of the terms read by a lawyer, VAT sorted
+with your accountant, and a test purchase made in Stripe's test mode.
+
 ## 11. After launch
 
 - Sentry emails you about new errors; Vercel → Analytics shows visits.

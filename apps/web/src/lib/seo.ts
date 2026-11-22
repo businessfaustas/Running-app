@@ -1,4 +1,7 @@
 import type { Club, Race } from '@pacemates/shared'
+// The build config loads this file with Node directly, so it imports the one self-contained
+// module it needs instead of the package index (whose files import each other without extensions).
+import { formatPrice, PRICES, TRIAL_DAYS } from '@pacemates/shared/plans'
 
 /*
  * Search and answer-engine optimisation, as plain functions: the build uses them to write
@@ -12,7 +15,15 @@ export const SITE_DESCRIPTION =
   'PaceMates – rask, su kuo bėgti ar minti. Grupinės bėgimo ir dviračių treniruotės, varžybų kalendorius ir klubai visoje Lietuvoje.'
 
 /** Pages anyone can open and search engines should list. Everything behind a sign-in is left out. */
-export const PUBLIC_PATHS = ['/', '/races', '/clubs', '/leaderboard', '/privatumas', '/salygos']
+export const PUBLIC_PATHS = [
+  '/',
+  '/races',
+  '/clubs',
+  '/leaderboard',
+  '/plus',
+  '/privatumas',
+  '/salygos',
+]
 
 /** Paths crawlers are asked to stay out of: account screens and one-off auth links. */
 export const PRIVATE_PATHS = [
@@ -25,6 +36,7 @@ export const PRIVATE_PATHS = [
   '/inbox',
   '/profile',
   '/plans',
+  '/stats',
   '/workouts/new',
 ]
 
@@ -35,6 +47,10 @@ const xmlEscape = (text: string) => text.replace(/[<>&'"]/g, (c) => `&#${c.charC
 
 /** Question and answer pairs for the home page: written for people and for answer engines. */
 export const FAQ: { question: string; answer: string }[] = [
+  {
+    question: 'Kiek kainuoja PaceMates?',
+    answer: `Programėlė nemokama: treniruočių paieška, prisijungimas, skelbimas, pokalbiai, varžybų kalendorius, klubai ir lyderių lentelės. Papildomai yra PaceMates Plus – pasiruošimo planai varžyboms, pažangos statistika ir kalendoriaus eksportas: ${formatPrice(PRICES.plusMonthCents)} per mėnesį arba ${formatPrice(PRICES.plusYearCents)} per metus, pirmos ${TRIAL_DAYS} dienų nemokamai. Vienoms varžyboms pakanka vienkartinio ${formatPrice(PRICES.racePassCents)} leidimo.`,
+  },
   {
     question: 'Kas yra PaceMates?',
     answer:
@@ -224,6 +240,7 @@ Workouts, chats and profiles need an account; the pages below are public.
 - [Varžybos](${abs(origin, '/races')}): calendar of Lithuanian road, trail, ultra, cycling and triathlon races
 - [Klubai](${abs(origin, '/clubs')}): running, triathlon and cycling clubs by town
 - [Lyderiai](${abs(origin, '/leaderboard')}): weekly and monthly leaderboards
+- [Plus](${abs(origin, '/plus')}): the free app and the optional paid plan (training plans, statistics, calendar export)
 - [Privatumas](${abs(origin, '/privatumas')}): privacy policy
 - [Sąlygos](${abs(origin, '/salygos')}): terms of use
 

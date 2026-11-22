@@ -15,10 +15,12 @@ const sql = readdirSync(dir)
   .map((f) => readFileSync(join(dir, f), 'utf8'))
   .join('\n')
 
+// Tables created with quoted names (drizzle) or plain ones (hand-written SQL).
 const tables = [
-  ...sql.matchAll(/create table\s+(?:if not exists\s+)?(?:"?public"?\.)?"(\w+)"/gi),
-].map((m) => m[1]!)
-
+  ...sql.matchAll(/create table\s+(?:if not exists\s+)?(?:"?public"?\.)?"?(\w+)"?\s*\(/gi),
+]
+  .map((m) => m[1]!)
+  .filter((name) => !['rate_limit_hits'].includes(name)) // lives in the private schema
 describe('migrations', () => {
   it('finds the public tables', () => {
     expect(tables.length).toBeGreaterThanOrEqual(9)
@@ -62,6 +64,25 @@ describe('migrations', () => {
     // …and the one exception is insert-only.
     expect(sql).not.toMatch(
       /grant\s+(?:all|select|update|delete)[^;]*on\s+public\.content_reports[^;]*\banon\b/i,
+    )
+  })
+
+  // Paid plans: only the payment webhook (service role) may ever write, so people can't give
+  // themselves Plus from the browser.
+  it('lets people read, but never write, their own plan and race passes', () => {
+    for (const table of ['subscriptions', 'race_passes', 'stripe_events']) {
+      expect(sql).toMatch(
+        new RegExp(`revoke all on [^;]*public\\.${table}[^;]* from anon, authenticated`, 'i'),
+      )
+      for (const m of sql.matchAll(
+        new RegExp(`grant\\s+([a-z, ]+?)\\s+on\\s+[^;]*public\\.${table}[^;]*to\\s+([^;]+);`, 'gi'),
+      )) {
+        expect(m[1], `${table} grant`).toMatch(/^\s*select\s*$/i)
+        expect(m[2]).not.toMatch(/\banon\b/i)
+      }
+    }
+    expect(sql).not.toMatch(
+      /grant[^;]*\b(insert|update|delete|all)\b[^;]*public\.(subscriptions|race_passes)/i,
     )
   })
 })

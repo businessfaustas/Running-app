@@ -1,4 +1,9 @@
-import { distanceKm } from '@pacemates/shared'
+import {
+  distanceKm,
+  NO_ENTITLEMENTS,
+  parseEntitlements,
+  type CheckoutRequest,
+} from '@pacemates/shared'
 import type {
   ChatMessage,
   ChatThread,
@@ -389,6 +394,16 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
 
     async deleteAccount() {
       const userId = await requireUserId()
+      // A subscription must not outlive the account it belongs to: stop it first, and refuse to
+      // delete if that fails, so nobody keeps being charged for an account that no longer exists.
+      const { data: plan } = await supabase.rpc('my_entitlements')
+      if (['trialing', 'active', 'past_due'].includes(parseEntitlements(plan).status)) {
+        try {
+          await billing({ action: 'cancel' })
+        } catch {
+          throw new BackendError(MESSAGES.cancelSubscriptionFirst)
+        }
+      }
       // Storage files aren't rows that cascade, so remove the photos first (best effort).
       await supabase.storage.from(AVATARS).remove([avatarPath(userId)])
       const { data: photos } = await supabase
@@ -832,5 +847,65 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       })
       if (error) fail(error)
     },
+
+    async getEntitlements() {
+      const { data: auth } = await supabase.auth.getSession()
+      if (!auth.session) return NO_ENTITLEMENTS
+      const { data, error } = await supabase.rpc('my_entitlements')
+      if (error) fail(error)
+      return parseEntitlements(data)
+    },
+
+    async startCheckout(request: CheckoutRequest) {
+      await requireUserId()
+      return billing({ action: 'checkout', request })
+    },
+
+    async openBillingPortal() {
+      await requireUserId()
+      return billing({ action: 'portal' })
+    },
+
+    async listPlusMembers(userIds) {
+      const ids = [...new Set(userIds)].slice(0, 50)
+      if (ids.length === 0) return []
+      const { data: auth } = await supabase.auth.getSession()
+      if (!auth.session) return []
+      const { data, error } = await supabase.rpc('plus_among', { p_users: ids })
+      if (error) fail(error)
+      return Array.isArray(data) ? data.filter((x): x is string => typeof x === 'string') : []
+    },
+  }
+
+  /**
+   * Talks to the `billing` edge function (supabase/functions/billing), which holds the payment
+   * provider's secret key. It answers { url } to send the person to, or { error: code }.
+   */
+  async function billing(body: {
+    action: 'checkout' | 'portal' | 'cancel'
+    request?: CheckoutRequest
+  }): Promise<{ url: string | null }> {
+    const { data, error } = await supabase.functions.invoke('billing', {
+      body: { ...body, returnUrl: window.location.origin },
+    })
+    if (error) {
+      // A non-2xx answer carries the function's JSON in error.context.
+      let code: string | undefined
+      try {
+        code = ((await (error as { context?: Response }).context?.json()) as { error?: string })
+          ?.error
+      } catch {
+        code = undefined
+      }
+      if (code === 'already_has_access') throw new BackendError(MESSAGES.alreadyHaveAccess)
+      if (code === 'payments_off') throw new BackendError(MESSAGES.paymentsOff)
+      if (code === 'unauthorized') throw new BackendError(MESSAGES.signInFirst)
+      reportError(new Error(`billing: ${error.message}`), { code })
+      throw new BackendError(
+        /failed to fetch|network/i.test(error.message) ? MESSAGES.offline : MESSAGES.paymentFailed,
+      )
+    }
+    const url = (data as { url?: unknown } | null)?.url
+    return { url: typeof url === 'string' && url.startsWith('https://') ? url : null }
   }
 }

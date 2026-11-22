@@ -148,6 +148,13 @@
       "when": 1794382253482,
       "tag": "20261111073053_lock_down_internals",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795300000000,
+      "tag": "20261122120000_paid_plans",
+      "breakpoints": true
     }
   ]
 }

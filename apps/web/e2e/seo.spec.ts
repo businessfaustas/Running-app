@@ -10,7 +10,9 @@ test.describe('SEO and AEO @live', () => {
     expect(xml).toContain('<urlset')
     expect(xml).toContain('/races/trail-kursiu-nerija')
     expect(xml).toMatch(/<loc>https?:\/\//)
+    expect(xml).toContain('/plus')
     expect(xml).not.toContain('/signin')
+    expect(xml).not.toContain('/stats')
   })
 
   test('serves robots.txt pointing at the sitemap', async ({ request }) => {
@@ -19,6 +21,7 @@ test.describe('SEO and AEO @live', () => {
     const txt = await res.text()
     expect(txt).toMatch(/^Sitemap: https?:\/\/.+\/sitemap\.xml$/m)
     expect(txt).toContain('Disallow: /settings')
+    expect(txt).toContain('Disallow: /stats')
   })
 
   test('serves llms.txt', async ({ request }) => {

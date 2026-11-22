@@ -52,7 +52,7 @@ export function LeaderboardPage() {
       <section className="relative overflow-hidden rounded-b-[32px] bg-blue pb-5 shadow-[0_18px_40px_-18px_rgb(46_91_255/0.7)]">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-white/10 blur-2xl"
+          className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-white/5 blur-2xl"
         />
         <TopBar overlay fallback="/inspire" />
         <div className="relative px-5 pt-20">

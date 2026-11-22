@@ -95,4 +95,12 @@ export async function signInAsSample(page: Page) {
 }
 
 export const TAB_PAGES = ['/', '/races', '/clubs', '/plans', '/inspire', '/inbox', '/profile']
-export const PUBLIC_PAGES = ['/', '/races', '/clubs', '/leaderboard', '/privatumas', '/salygos']
+export const PUBLIC_PAGES = [
+  '/',
+  '/races',
+  '/clubs',
+  '/leaderboard',
+  '/plus',
+  '/privatumas',
+  '/salygos',
+]

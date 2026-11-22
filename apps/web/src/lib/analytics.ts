@@ -23,6 +23,10 @@ export type AnalyticsEvent =
   | 'content_reported'
   | 'password_reset_requested'
   | 'account_deleted'
+  | 'plus_viewed'
+  | 'checkout_started'
+  | 'plan_viewed'
+  | 'calendar_exported'
 
 export const analyticsEnabled = import.meta.env.PROD
 

@@ -42,7 +42,7 @@ export function SlotCard({ slot, focused, dimmed, role }: SlotCardProps) {
       <span
         className={clsx(
           'flex min-w-0 flex-1 flex-col p-3 @max-[119px]:p-2',
-          (dimmed || cancelled) && 'opacity-75 saturate-50',
+          (dimmed || cancelled) && 'saturate-50 brightness-90',
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">

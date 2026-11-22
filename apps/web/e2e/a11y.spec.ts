@@ -81,6 +81,21 @@ test.describe('accessibility', () => {
     }
   })
 
+  test('past (dimmed) workout cards keep readable text, whatever the time of day', async ({
+    page,
+  }) => {
+    // Dim every card the way finished workouts are, so the check doesn't depend on the clock.
+    await page.goto('/')
+    await settled(page)
+    await page.evaluate(() => {
+      for (const card of document.querySelectorAll<HTMLElement>('a[href^="/workouts/"]')) {
+        card.firstElementChild?.classList.add('saturate-50', 'brightness-90')
+      }
+    })
+    const results = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([])
+  })
+
   test('the page can be used with a keyboard alone: focus is visible and reaches the tab bar', async ({
     page,
     isMobile,
